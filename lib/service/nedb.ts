@@ -8,8 +8,8 @@ const USER_DATA_PATH = global.get('USER_DATA_PATH') || 'db'
 
 const userDB = new Datastore({ filename: `${USER_DATA_PATH}/user`, autoload: true })
 const commentDB = new Datastore({ filename: `${USER_DATA_PATH}/comment`, autoload: true })
-const interactDB = new Datastore({ filename: `${'.'}/interact`, autoload: true })
-const giftDB = new Datastore({ filename: `${'.'}/gift`, autoload: true })
+const interactDB = new Datastore({ filename: `${USER_DATA_PATH}/interact`, autoload: true })
+const giftDB = new Datastore({ filename: `${USER_DATA_PATH}/gift`, autoload: true })
 const lotteryDB = new Datastore({ filename: `${USER_DATA_PATH}/lottery`, autoload: true });
 
 giftDB.ensureIndex({
