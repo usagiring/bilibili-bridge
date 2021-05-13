@@ -3,7 +3,7 @@
     "transpileOnly": true,
   },
   "compilerOptions": {
-    "lib": ["ES2020"],
+    "lib": ["es2018"],
     "target": "ES6",
     "outDir": "dist",
     "module": "CommonJS",
@@ -11,10 +11,7 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "sourceMap": true,
     "resolveJsonModule": true,
-  },
-  "include": [
-    "./package.json"
-  ]
+    "inlineSourceMap": true
+  }
 }
