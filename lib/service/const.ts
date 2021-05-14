@@ -15,3 +15,14 @@ export const ERRORS = {
 export const COMMON_RESPONSE = {
   message: 'ok'
 }
+
+export const HTTP_ERRORS = {
+  NOT_FOUND: {
+    status: 404,
+    message: 'NOT_FOUND'
+  },
+  PARAMS_ERROR: {
+    status: 400,
+    message: 'PARAMS_ERROR'
+  }
+}

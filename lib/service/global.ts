@@ -1,3 +1,4 @@
+import { get } from 'lodash'
 class Global {
   options = {}
 
@@ -6,13 +7,13 @@ class Global {
   }
 
   get(key: string) {
-    return this.options[key]
+    return get(this.options, key)
   }
 
   set(path: string, data) {
     const paths = path.split('.')
     const last = paths.pop()
-  
+
     let part = this.options
     for (const cursor of paths) {
       if (!part[cursor]) { part[cursor] = {} }

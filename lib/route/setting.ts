@@ -1,4 +1,4 @@
-import { EVENTS } from '../service/const'
+import { EVENTS, HTTP_ERRORS } from '../service/const'
 import global from '../service/global'
 import wss from '../service/wss'
 
@@ -6,7 +6,13 @@ const routes = [
   {
     verb: 'get',
     uri: '/settings',
-    middlewares: [get]
+    middlewares: [get],
+    validator: {
+      type: 'object',
+      properties: {
+        path: { type: 'string' }
+      }
+    }
   },
   {
     verb: 'put',
@@ -25,13 +31,15 @@ const routes = [
   }
 ]
 
-function get(ctx) {
-  const { path } = ctx.params
-  ctx.body = global.get(path)
+async function get(ctx) {
+  const { path } = ctx.__body
+  const data = global.get(path)
+  if(!data) throw HTTP_ERRORS.NOT_FOUND
+  ctx.body = data
 }
 
 function update(ctx) {
-  const { path, payload } = ctx.params
+  const { path, payload } = ctx.request.query
   const settings = global.set(path, payload)
   wss.broadcast({
     event: EVENTS.UPDATE_SETTING,
@@ -41,7 +49,7 @@ function update(ctx) {
 }
 
 function merge(ctx) {
-  const { payload } = ctx.params
+  const { payload } = ctx.request.query
   const settings = global.merge(payload)
   wss.broadcast({
     event: EVENTS.MERGE_SETTING,
@@ -51,7 +59,7 @@ function merge(ctx) {
 }
 
 function replace(ctx) {
-  const { payload } = ctx.params
+  const { payload } = ctx.request.query
   const settings = global.replace(payload)
   wss.broadcast({
     event: EVENTS.REPLACE_SETTING,

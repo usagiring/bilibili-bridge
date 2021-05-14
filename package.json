@@ -14,8 +14,8 @@
   "license": "MIT",
   "dependencies": {
     "@koa/router": "^10.0.0",
+    "ajv": "^8.3.0",
     "axios": "^0.21.1",
-    "config": "^3.3.6",
     "cookie": "^0.4.1",
     "koa": "^2.13.1",
     "lodash": "^4.17.21",
@@ -25,7 +25,6 @@
     "ws": "^7.4.5"
   },
   "devDependencies": {
-    "@types/config": "0.0.38",
     "@types/koa__router": "^8.0.4",
     "@types/nedb": "^1.8.11",
     "@types/node": "^15.0.3",
