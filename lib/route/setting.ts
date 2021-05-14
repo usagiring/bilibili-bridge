@@ -33,7 +33,7 @@ const routes = [
 
 async function get(ctx) {
   const { path } = ctx.__body
-  const data = global.get(path)
+  const data = path ? global.get(path): global.all()
   if(!data) throw HTTP_ERRORS.NOT_FOUND
   ctx.body = data
 }
