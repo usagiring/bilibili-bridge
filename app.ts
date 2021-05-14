@@ -1,12 +1,12 @@
 import Koa from 'koa'
 import router from './lib/route'
 import wss from './lib/service/wss'
+import global from './lib/service/global'
 
 // 注册事件
 import './lib/service/socket-event'
 
-// 
-const PORT = 3001
+const PORT = global.get('PORT') || 3000
 
 const app = new Koa()
 
