@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "NODE_PATH=./dist node ./dist/index",
     "dev": "NODE_ENV=dev nodemon --watch 'lib/**' --ext 'ts,json' --exec 'ts-node index.ts'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm run build"
   },
   "author": "其妙",
   "license": "MIT",
