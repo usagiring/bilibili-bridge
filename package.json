@@ -6,18 +6,21 @@
   "scripts": {
     "build": "tsc",
     "start": "NODE_PATH=./dist node ./dist/index",
-    "dev": "NODE_ENV=dev nodemon --watch 'lib/**' --ext 'ts,json' --exec 'ts-node index.ts'",
+    "dev": "nodemon --watch 'lib/**' --ext 'ts,json' --exec 'ts-node index.ts test'",
+    "dev-win": "nodemon --watch \"lib/**\" --ext \"ts,json\" --exec \"ts-node index.ts test\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "npm run build"
   },
   "author": "其妙",
   "license": "MIT",
   "dependencies": {
+    "@koa/cors": "^3.1.0",
     "@koa/router": "^10.0.0",
     "ajv": "^8.3.0",
     "axios": "^0.21.1",
     "cookie": "^0.4.1",
     "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "nedb": "^1.8.0",

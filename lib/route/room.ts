@@ -24,13 +24,13 @@ const routes = [
   }
 ]
 
-async function getRoomInfo(ctx: Koa.Context) {
+async function getRoomInfo(ctx) {
   const { roomId } = ctx.params
   const info = await getRoomInfoV2(roomId)
   ctx.body = info
 }
 
-async function connect(ctx: Koa.Context) {
+async function connect(ctx) {
   const { roomId } = ctx.params
   await bilibiliWSClient.connect({ roomId: Number(roomId) })
   global.set('roomId', roomId)

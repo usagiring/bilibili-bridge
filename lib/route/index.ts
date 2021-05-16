@@ -4,6 +4,7 @@ import ajv from '../service/ajv'
 import { HTTP_ERRORS } from '../service/const'
 import settingAPIs from './setting'
 import roomAPIs from './room'
+import giftAPIs from './gift'
 
 interface RouteInfo {
   verb: string
@@ -11,14 +12,14 @@ interface RouteInfo {
   uri: string
   validator?: any
 }
-
 const router = new Router()
 const apiRouter = new Router()
 apiRouter.get('/touch', (ctx) => { ctx.body = 'touch' });
 
 [
   ...roomAPIs,
-  ...settingAPIs
+  ...settingAPIs,
+  ...giftAPIs,
 ]
   .forEach(({ verb, middlewares, uri, validator }: RouteInfo) => {
     if (validator) {
@@ -43,7 +44,8 @@ export default router
 async function composeBodyMW(ctx, next) {
   ctx.__body = {
     ...ctx.params,
-    ...ctx.request.query
+    ...ctx.request.query,
+    ...ctx.request.body
   }
   await next()
 }

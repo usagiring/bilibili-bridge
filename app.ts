@@ -1,4 +1,6 @@
 import Koa from 'koa'
+import cors from '@koa/cors'
+import koaBody from 'koa-body'
 import router from './lib/route'
 import wss from './lib/service/wss'
 import global from './lib/service/global'
@@ -9,6 +11,11 @@ import './lib/service/socket-event'
 const PORT = global.get('PORT') || 3000
 
 const app = new Koa()
+
+app.use(cors({
+  origin: '*'
+}))
+app.use(koaBody())
 
 app.use(async (ctx, next) => {
   try {

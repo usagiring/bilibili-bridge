@@ -39,30 +39,31 @@ async function get(ctx) {
 }
 
 function update(ctx) {
-  const { path, payload } = ctx.request.query
-  const settings = global.set(path, payload)
-  wss.broadcast({
-    event: EVENTS.UPDATE_SETTING,
-    payload: settings
-  })
-  ctx.body = settings
+  // const { path, payload } = ctx.__body
+  // console.log(ctx.request.body)
+  // const settings = global.set(path, payload)
+  // wss.broadcast({
+  //   cmd: EVENTS.UPDATE_SETTING,
+  //   payload: settings
+  // })
+  ctx.body = {}
 }
 
 function merge(ctx) {
-  const { payload } = ctx.request.query
-  const settings = global.merge(payload)
+  const { payload } = ctx.__body
+  global.merge(payload)
   wss.broadcast({
-    event: EVENTS.MERGE_SETTING,
-    payload: settings
+    cmd: EVENTS.MERGE_SETTING,
+    payload: payload
   })
-  ctx.body = settings
+  ctx.body = payload
 }
 
 function replace(ctx) {
   const { payload } = ctx.request.query
   const settings = global.replace(payload)
   wss.broadcast({
-    event: EVENTS.REPLACE_SETTING,
+    cmd: EVENTS.REPLACE_SETTING,
     payload: settings
   })
   ctx.body = settings

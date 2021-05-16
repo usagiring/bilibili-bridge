@@ -17,13 +17,7 @@ ws.on('message', function incoming(data) {
   console.log(data)
 })
 
-axios.post('http://127.0.0.1:3000/api/rooms/22159299/connect')
+axios.post('http://127.0.0.1:3000/api/rooms/5050/connect')
   .then(res => {
     console.log(res.data)
   })
-
-// axios.post('http://127.0.0.1:3000/api/rooms/5050/disconnect')
-//   .then(res => {
-//     console.log(res.data)
-//   })
-
