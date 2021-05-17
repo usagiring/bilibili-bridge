@@ -1,13 +1,11 @@
 // import './app'
+// import app from './app'
 import global from './lib/service/global'
-import path from 'path'
-import fs from 'fs'
 
 // 初始化配置
 function init(options) {
-  const giftConfig = JSON.parse(fs.readFileSync(path.join(options.cwd, 'gift_config'), 'utf-8'))
-  options.giftConfig = giftConfig
   global.replace(options)
+  // app
   require('./app')
 }
 
@@ -16,7 +14,6 @@ export default init
 const isTest = process.argv[2] === 'test'
 
 const test = {
-  "cwd": "D:\\Mirror\\bilibili-bridge",
   "roomId": 6655,
   "displayRoomId": 21452505,
   "isConnected": false,
@@ -160,7 +157,7 @@ const test = {
   "isAlwaysOnTop": false,
   "medalId": 193893,
   "medalName": "脆鲨",
-  "USER_DATA_PATH": "C:\\Users\\Holo\\AppData\\Roaming\\Electron\\data1",
+  // "USER_DATA_PATH": "C:\\Users\\Holo\\AppData\\Roaming\\Electron\\data1",
   "PORT": 3000
 }
 

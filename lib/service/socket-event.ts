@@ -1,5 +1,5 @@
 import event from './event'
-import { EVENTS } from './const'
+import { EVENTS, CMDS } from './const'
 import { userDB, commentDB, interactDB, giftDB } from './nedb'
 import global from './global'
 import { getUserInfo } from './bilibili-sdk'
@@ -12,7 +12,7 @@ const isShowAvatar = global.get('isShowAvatar')
 event.on(EVENTS.NINKI, async (data) => {
   const ninkiNumber = data.count
   wss.broadcast({
-    cmd: 'NINKI',
+    cmd: CMDS.NINKI,
     payload: {
       ninkiNumber
     }
@@ -48,7 +48,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
 
       const data = await commentDB.insert(comment)
       wss.broadcast({
-        cmd: 'COMMENT',
+        cmd: CMDS.COMMENT,
         payload: data
       })
     }
@@ -61,7 +61,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
       // console.log(`${interactWord.name}(${interactWord.uid}) 进入了直播间`);
       const data = await interactDB.insert(interactWord);
       wss.broadcast({
-        cmd: 'INTERACT',
+        cmd: CMDS.INTERACT,
         payload: data
       })
     }
@@ -113,7 +113,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
         }
 
         wss.broadcast({
-          cmd: 'SUPER_CHAT',
+          cmd: CMDS.SUPER_CHAT,
           payload: data
         })
       } else if (gift.type === "gift") {
@@ -139,7 +139,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
           data = await giftDB.insert(gift);
         }
         wss.broadcast({
-          cmd: 'GIFT',
+          cmd: CMDS.GIFT,
           payload: data
         })
       }
@@ -169,7 +169,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
       const { fans, fans_club } = data.data;
       wss.broadcast({
-        cmd: 'ROOM_REAL_TIME_MESSAGE_UPDATE',
+        cmd: CMDS.ROOM_REAL_TIME_MESSAGE_UPDATE,
         payload: {
           fansNumber: fans,
           fansClubNumber: fans_club

@@ -63,7 +63,7 @@ export function executor(cursor) {
 
 function wrapper(db) {
   return {
-    insert: (data) => {
+    insert: (data): Promise<any> => {
       return new Promise((resolve, reject) => {
         db.insert(data, (err, newDocs) => {
           if (err) reject(err)
@@ -71,7 +71,7 @@ function wrapper(db) {
         })
       })
     },
-    find: (query, options = {}) => {
+    find: (query, options = {}): Promise<any> => {
       const { skip, limit, sort, projection } = options as any
       return new Promise((resolve, reject) => {
         let cursor = db.find(query)
@@ -93,15 +93,15 @@ function wrapper(db) {
         })
       })
     },
-    count: (query) => {
+    count: (query): Promise<number> => {
       return new Promise((resolve, reject) => {
         db.count(query, (err, count) => {
           if (err) reject(err)
-          resolve(count)
+          resolve(count as number)
         })
       })
     },
-    findOne: (query) => {
+    findOne: (query): Promise<any> => {
       return new Promise((resolve, reject) => {
         db.findOne(query, (err, doc) => {
           if (err) reject(err)
@@ -109,7 +109,7 @@ function wrapper(db) {
         })
       })
     },
-    update: (query, data, options = {}) => {
+    update: (query, data, options = {}): Promise<any> => {
       return new Promise((resolve, reject) => {
         db.update(query, data, options, (err, numAffected, affectedDocuments, upsert) => {
           if (err) reject(err)
@@ -117,7 +117,7 @@ function wrapper(db) {
         })
       })
     },
-    remove: (query, options = {}) => {
+    remove: (query, options = {}): Promise<any> => {
       return new Promise((resolve, reject) => {
         db.remove(query, options, (err, numRemoved) => {
           if (err) reject(err)
@@ -125,7 +125,7 @@ function wrapper(db) {
         })
       })
     },
-    deleteMany: (query, options = { multi: true }) => {
+    deleteMany: (query, options = { multi: true }): Promise<any> => {
       return new Promise((resolve, reject) => {
         db.remove(query, options, (err, numRemoved) => {
           if (err) reject(err)

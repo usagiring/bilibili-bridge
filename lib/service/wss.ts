@@ -3,6 +3,10 @@ import WebSocket from 'ws'
 import { EVENTS } from './const'
 import global from './global'
 
+export interface SocketPayload {
+  cmd: string
+  payload: any
+}
 class WSS {
   wss
 

@@ -1,6 +1,6 @@
 import Koa from 'koa'
 import cors from '@koa/cors'
-import koaBody from 'koa-body'
+import bodyParser from 'koa-bodyparser'
 import router from './lib/route'
 import wss from './lib/service/wss'
 import global from './lib/service/global'
@@ -15,7 +15,7 @@ const app = new Koa()
 app.use(cors({
   origin: '*'
 }))
-app.use(koaBody())
+app.use(bodyParser())
 
 app.use(async (ctx, next) => {
   try {

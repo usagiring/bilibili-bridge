@@ -1,4 +1,4 @@
-import { EVENTS, HTTP_ERRORS } from '../service/const'
+import { CMDS, HTTP_ERRORS } from '../service/const'
 import global from '../service/global'
 import wss from '../service/wss'
 
@@ -33,9 +33,12 @@ const routes = [
 
 async function get(ctx) {
   const { path } = ctx.__body
-  const data = path ? global.get(path): global.all()
-  if(!data) throw HTTP_ERRORS.NOT_FOUND
-  ctx.body = data
+  const data = path ? global.get(path) : global.all()
+  if (!data) throw HTTP_ERRORS.NOT_FOUND
+  ctx.body = {
+    message: 'ok',
+    data
+  }
 }
 
 function update(ctx) {
@@ -53,20 +56,26 @@ function merge(ctx) {
   const { payload } = ctx.__body
   global.merge(payload)
   wss.broadcast({
-    cmd: EVENTS.MERGE_SETTING,
+    cmd: CMDS.SETTING,
     payload: payload
   })
-  ctx.body = payload
+  ctx.body = {
+    message: 'ok',
+    data: payload
+  }
 }
 
 function replace(ctx) {
   const { payload } = ctx.request.query
   const settings = global.replace(payload)
   wss.broadcast({
-    cmd: EVENTS.REPLACE_SETTING,
+    cmd: CMDS.SETTING,
     payload: settings
   })
-  ctx.body = settings
+  ctx.body = {
+    message: 'ok',
+    data: settings
+  }
 }
 
 export default routes

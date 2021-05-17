@@ -109,6 +109,13 @@ class WSClient {
     this.ws.close(4001, 'manual close')
   }
 
+  isConnected() {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      return true
+    }
+    return false
+  }
+
   heartbeat() {
     const self = this
     clearInterval(this.HEART_BEAT_TIMER);
