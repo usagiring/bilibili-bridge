@@ -61,6 +61,13 @@ export function executor(cursor) {
   })
 }
 
+export interface QueryOptions {
+  skip?: number
+  limit?: number
+  sort?: object
+  projection?: object
+}
+
 function wrapper(db) {
   return {
     insert: (data): Promise<any> => {
@@ -71,7 +78,7 @@ function wrapper(db) {
         })
       })
     },
-    find: (query, options = {}): Promise<any> => {
+    find: (query, options: QueryOptions = {}): Promise<any> => {
       const { skip, limit, sort, projection } = options as any
       return new Promise((resolve, reject) => {
         let cursor = db.find(query)
@@ -136,26 +143,44 @@ function wrapper(db) {
   }
 }
 
-export function backup() {
+export function backup(names: string[]) {
+  if (!names.length) return
   const now = moment(new Date()).format("YYYYMMDD-HHmmss");
 
   // 是否先压缩一次？
   // commentDB.persistence.compactDatafile()
   const BACKUP_DIR = path.join(USER_DATA_PATH, `backup-${now}`)
-  console.log(BACKUP_DIR)
   fs.mkdirSync(BACKUP_DIR)
-  fs.copyFileSync(`${USER_DATA_PATH}/comment`, `${BACKUP_DIR}/comment`)
-  fs.copyFileSync(`${USER_DATA_PATH}/gift`, `${BACKUP_DIR}/gift`)
-  fs.copyFileSync(`${USER_DATA_PATH}/interact`, `${BACKUP_DIR}/interact`)
-  fs.copyFileSync(`${USER_DATA_PATH}/lottery`, `${BACKUP_DIR}/lottery`)
+  if (names.includes('comment')) {
+    fs.copyFileSync(`${USER_DATA_PATH}/comment`, `${BACKUP_DIR}/comment`)
+  }
+  if (names.includes('gift')) {
+    fs.copyFileSync(`${USER_DATA_PATH}/gift`, `${BACKUP_DIR}/gift`)
+  }
+  if (names.includes('interact')) {
+    fs.copyFileSync(`${USER_DATA_PATH}/interact`, `${BACKUP_DIR}/interact`)
+  }
+  if (names.includes('lottery')) {
+    fs.copyFileSync(`${USER_DATA_PATH}/lottery`, `${BACKUP_DIR}/lottery`)
+  }
 }
 
-export function deleteData() {
-  fs.unlinkSync(`${USER_DATA_PATH}/comment`)
-  fs.unlinkSync(`${USER_DATA_PATH}/gift`)
-  fs.unlinkSync(`${USER_DATA_PATH}/interact`)
-  fs.unlinkSync(`${USER_DATA_PATH}/lottery`)
-  fs.unlinkSync(`${USER_DATA_PATH}/other`)
+export function deleteDB(names) {
+  if (names.includes('comment')) {
+    fs.unlinkSync(`${USER_DATA_PATH}/comment`)
+  }
+  if (names.includes('gift')) {
+    fs.unlinkSync(`${USER_DATA_PATH}/gift`)
+  }
+  if (names.includes('interact')) {
+    fs.unlinkSync(`${USER_DATA_PATH}/interact`)
+  }
+  if (names.includes('lottery')) {
+    fs.unlinkSync(`${USER_DATA_PATH}/lottery`)
+  }
+  if (names.includes('user')) {
+    fs.unlinkSync(`${USER_DATA_PATH}/user`)
+  }
 }
 
 const userDBWrapper = wrapper(userDB)

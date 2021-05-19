@@ -5,7 +5,7 @@ import global from './global'
 
 export interface SocketPayload {
   cmd: string
-  payload: any
+  payload?: any
 }
 class WSS {
   wss
@@ -42,7 +42,7 @@ class WSS {
     })
   }
 
-  broadcast(payload) {
+  broadcast(payload: SocketPayload) {
     this.wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(payload))

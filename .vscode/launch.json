@@ -24,7 +24,8 @@
         "ts-node/register/transpile-only"
       ],
       "args": [
-        "index.ts"
+        "index.ts",
+        "test"
       ]
     }
   ]

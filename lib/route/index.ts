@@ -5,6 +5,8 @@ import { HTTP_ERRORS } from '../service/const'
 import settingAPIs from './setting'
 import roomAPIs from './room'
 import giftAPIs from './gift'
+import dataAPIs from './data'
+import messageAPIs from './message'
 
 interface RouteInfo {
   verb: string
@@ -20,6 +22,8 @@ apiRouter.get('/touch', (ctx) => { ctx.body = 'touch' });
   ...roomAPIs,
   ...settingAPIs,
   ...giftAPIs,
+  ...dataAPIs,
+  ...messageAPIs,
 ]
   .forEach(({ verb, middlewares, uri, validator }: RouteInfo) => {
     if (validator) {

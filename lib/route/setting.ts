@@ -42,9 +42,9 @@ async function get(ctx) {
 }
 
 function update(ctx) {
-  // const { path, payload } = ctx.__body
+  // const settings = ctx.__body
   // console.log(ctx.request.body)
-  // const settings = global.set(path, payload)
+  // const settings = global.merge(settings)
   // wss.broadcast({
   //   cmd: EVENTS.UPDATE_SETTING,
   //   payload: settings

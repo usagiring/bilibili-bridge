@@ -1,15 +1,9 @@
-import global from '../service/global'
-import { giftDB, QueryOptions } from '../service/nedb'
+import { interactDB, QueryOptions } from '../service/nedb'
 
 const routes = [
   {
     verb: 'get',
-    uri: '/gifts/config',
-    middlewares: [get],
-  },
-  {
-    verb: 'get',
-    uri: '/gifts',
+    uri: '/interacts',
     middlewares: [query],
     validator: {
       type: 'object',
@@ -23,23 +17,17 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/gifts/count',
+    uri: '/interacts/count',
     middlewares: [count],
     validator: {
       type: 'object',
       properties: {
         query: { type: 'object' },
+
       }
     }
   }
 ]
-
-async function get(ctx) {
-  ctx.body = {
-    message: 'ok',
-    data: global.get('giftConfig') || {}
-  }
-}
 
 async function query(ctx) {
   const { query, sort, skip, limit } = ctx.__body
@@ -47,20 +35,20 @@ async function query(ctx) {
   if (sort) { options.sort = sort }
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
-  const gifts = await giftDB.find(query, options)
+  const interacts = await interactDB.find(query, options)
   ctx.body = {
     message: 'ok',
-    data: gifts
+    data: interacts
   }
 }
 
 async function count(ctx) {
   const { query } = ctx.__body
-  const count = await giftDB.count(query)
+  const count = await interactDB.count(query)
   ctx.body = {
     message: 'ok',
     data: count
   }
-} 
+}
 
 export default routes
