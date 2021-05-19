@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import moment from 'moment'
 import global from './global'
+import { dateFormat } from './util'
 
 const USER_DATA_PATH = global.get('USER_DATA_PATH') || 'db'
 
@@ -145,8 +146,7 @@ function wrapper(db) {
 
 export function backup(names: string[]) {
   if (!names.length) return
-  const now = moment(new Date()).format("YYYYMMDD-HHmmss");
-
+  const now = dateFormat(new Date(), "YYYYMMDD-HHmmss")
   // 是否先压缩一次？
   // commentDB.persistence.compactDatafile()
   const BACKUP_DIR = path.join(USER_DATA_PATH, `backup-${now}`)
