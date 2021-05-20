@@ -8,8 +8,8 @@ const routes = [
     middlewares: [get],
   },
   {
-    verb: 'get',
-    uri: '/gifts',
+    verb: 'post',
+    uri: '/gifts/query',
     middlewares: [query],
     validator: {
       type: 'object',
@@ -18,11 +18,12 @@ const routes = [
         sort: { type: 'object' },
         skip: { type: 'number', default: 0 },
         limit: { type: 'number', default: 20 },
+        projection: { type: 'object' },
       }
     }
   },
   {
-    verb: 'get',
+    verb: 'post',
     uri: '/gifts/count',
     middlewares: [count],
     validator: {
@@ -42,11 +43,12 @@ async function get(ctx) {
 }
 
 async function query(ctx) {
-  const { query, sort, skip, limit } = ctx.__body
+  const { query, sort, skip, limit, projection } = ctx.__body
   const options: QueryOptions = {}
   if (sort) { options.sort = sort }
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
+  if (projection) { options.projection = projection }
   const gifts = await giftDB.find(query, options)
   ctx.body = {
     message: 'ok',

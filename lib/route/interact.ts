@@ -2,8 +2,8 @@ import { interactDB, QueryOptions } from '../service/nedb'
 
 const routes = [
   {
-    verb: 'get',
-    uri: '/interacts',
+    verb: 'post',
+    uri: '/interacts/query',
     middlewares: [query],
     validator: {
       type: 'object',
@@ -12,29 +12,30 @@ const routes = [
         sort: { type: 'object' },
         skip: { type: 'number', default: 0 },
         limit: { type: 'number', default: 20 },
+        projection: { type: 'object' },
       }
     }
   },
   {
-    verb: 'get',
+    verb: 'post',
     uri: '/interacts/count',
     middlewares: [count],
     validator: {
       type: 'object',
       properties: {
         query: { type: 'object' },
-
       }
     }
   }
 ]
 
 async function query(ctx) {
-  const { query, sort, skip, limit } = ctx.__body
+  const { query, sort, skip, limit, projection } = ctx.__body
   const options: QueryOptions = {}
   if (sort) { options.sort = sort }
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
+  if (projection) { options.projection = projection }
   const interacts = await interactDB.find(query, options)
   ctx.body = {
     message: 'ok',
