@@ -1,4 +1,5 @@
 import Koa from 'koa'
+import logger from 'koa-logger'
 import cors from '@koa/cors'
 import bodyParser from 'koa-bodyparser'
 import router from './lib/route'
@@ -13,9 +14,11 @@ const PORT = global.get('PORT') || 3000
 const app = new Koa()
 
 app.use(cors({
-  origin: '*'
+  origin: '*',
+  allowMethods: ['POST', 'OPTIONS', 'PUT', 'HEAD', 'DELETE', 'PATCH']
 }))
 app.use(bodyParser())
+app.use(logger())
 
 app.use(async (ctx, next) => {
   try {

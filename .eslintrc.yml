@@ -1,0 +1,25 @@
+---
+env:
+  node: true
+  es6: true
+  es2017: true
+plugins:
+  - '@typescript-eslint'
+parser: '@typescript-eslint/parser'
+extends:
+  - eslint:recommended
+  - plugin:@typescript-eslint/eslint-recommended
+  - plugin:@typescript-eslint/recommended
+rules:
+  semi: [error, never]
+  require-yield: [off]
+  no-unused-vars: [warn]
+  dot-notation: warn
+  comma-dangle: [off, always]
+  array-bracket-spacing: [off]
+  object-curly-spacing: [off]
+  no-multiple-empty-lines: [warn]
+  '@typescript-eslint/no-var-requires': [off]
+  '@typescript-eslint/no-this-alias': [off]
+  '@typescript-eslint/explicit-module-boundary-types': [off]
+  # padded-blocks: [error]

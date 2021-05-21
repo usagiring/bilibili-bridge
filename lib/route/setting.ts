@@ -53,7 +53,7 @@ function update(ctx) {
 }
 
 function merge(ctx) {
-  const { payload } = ctx.__body
+  const payload = ctx.__body
   global.merge(payload)
   wss.broadcast({
     cmd: CMDS.SETTING,
@@ -66,7 +66,7 @@ function merge(ctx) {
 }
 
 function replace(ctx) {
-  const { payload } = ctx.request.query
+  const payload = ctx.request.query
   const settings = global.replace(payload)
   wss.broadcast({
     cmd: CMDS.SETTING,

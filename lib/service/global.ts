@@ -1,4 +1,4 @@
-import { get } from 'lodash'
+import { get, merge } from 'lodash'
 class Global {
   options = {}
 
@@ -25,7 +25,7 @@ class Global {
   }
 
   merge(options) {
-    return Object.assign(this.options, options)
+    return merge(this.options, options)
   }
   replace(options) {
     this.options = options
