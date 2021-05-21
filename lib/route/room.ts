@@ -97,8 +97,8 @@ async function getRealTimeViewersCount(ctx) {
     .concat(gifts)
     .concat(interacts)
     .reduce((map, i) => {
-      map[i.uid] = 1;
-      return map;
+      map[i.uid] = 1
+      return map
     }, {})
   const count = Object.keys(countMap).length
   ctx.body = {

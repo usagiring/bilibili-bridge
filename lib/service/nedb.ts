@@ -11,7 +11,7 @@ const userDB = new Datastore({ filename: `${USER_DATA_PATH}/user`, autoload: tru
 const commentDB = new Datastore({ filename: `${USER_DATA_PATH}/comment`, autoload: true })
 const interactDB = new Datastore({ filename: `${USER_DATA_PATH}/interact`, autoload: true })
 const giftDB = new Datastore({ filename: `${USER_DATA_PATH}/gift`, autoload: true })
-const lotteryDB = new Datastore({ filename: `${USER_DATA_PATH}/lottery`, autoload: true });
+const lotteryDB = new Datastore({ filename: `${USER_DATA_PATH}/lottery`, autoload: true })
 
 giftDB.ensureIndex({
   fieldName: 'uid',
@@ -65,8 +65,8 @@ export function executor(cursor) {
 export interface QueryOptions {
   skip?: number
   limit?: number
-  sort?: object
-  projection?: object
+  sort?: any
+  projection?: any
 }
 
 function wrapper(db) {

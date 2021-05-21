@@ -23,21 +23,21 @@ event.on(EVENTS.DANMAKU, async (data) => {
   if (Array.isArray(data)) {
     const comments = data
       .filter((msg) => msg.cmd === "DANMU_MSG")
-      .map(parseComment);
+      .map(parseComment)
 
     for (const comment of comments) {
       // console.log(`${comment.name}(${comment.uid}): ${comment.comment}`);
 
       if (isShowAvatar) {
         // 缓存 user 信息
-        let user = await userDB.findOne({ uid: comment.uid });
+        let user = await userDB.findOne({ uid: comment.uid })
         if (!user) {
           try {
-            const data = await getUserInfoThrottle(comment.uid);
+            const data = await getUserInfoThrottle(comment.uid)
             // 统一格式化用户数据
-            user = parseUser(data);
-            data.createdAt = new Date();
-            userDB.insert(user);
+            user = parseUser(data)
+            data.createdAt = new Date()
+            userDB.insert(user)
           } catch (e) {
             // throw new Error("getUserInfo limit");
           }
@@ -55,44 +55,44 @@ event.on(EVENTS.DANMAKU, async (data) => {
 
     const interactWords = data
       .filter((msg) => msg.cmd === "INTERACT_WORD")
-      .map(parseInteractWord);
+      .map(parseInteractWord)
 
     for (const interactWord of interactWords) {
       // console.log(`${interactWord.name}(${interactWord.uid}) 进入了直播间`);
-      const data = await interactDB.insert(interactWord);
+      const data = await interactDB.insert(interactWord)
       wss.broadcast({
         cmd: CMDS.INTERACT,
         payload: data
       })
     }
 
-    const gifts = data.map(parseGift).filter(Boolean);
+    const gifts = data.map(parseGift).filter(Boolean)
 
     for (const gift of gifts) {
       if (!gift.avatar) {
         // 缓存 user 信息
-        let user = await userDB.findOne({ uid: gift.uid });
+        let user = await userDB.findOne({ uid: gift.uid })
         if (!user) {
           try {
-            const data = await getUserInfoThrottle(gift.uid);
+            const data = await getUserInfoThrottle(gift.uid)
             // 统一格式化用户数据
-            user = parseUser(data);
-            data.createdAt = new Date();
-            userDB.insert(user);
+            user = parseUser(data)
+            data.createdAt = new Date()
+            userDB.insert(user)
           } catch (e) {
             // TODO 全局 errorHandler
             // throw new Error("getUserInfo limit");
           }
         }
 
-        gift.avatar = ((user || {}) as any).avatar;
+        gift.avatar = ((user || {}) as any).avatar
       }
 
       if (gift.type === "superChat") {
         let data = await giftDB.findOne({
           roomId: realRoomId,
           superChatId: gift.superChatId,
-        });
+        })
 
         // 如果找到已存在sc 并且 新sc有JPN信息，需要更新
         if (data) {
@@ -103,13 +103,13 @@ event.on(EVENTS.DANMAKU, async (data) => {
                 $set: { commentJPN: gift.commentJPN },
               },
               { returnUpdatedDocs: true }
-            );
+            )
           } else {
             // 如果新收到的gift不包含JPN信息，表示原数据齐全，直接continue
-            continue;
+            continue
           }
         } else {
-          data = await giftDB.insert(gift);
+          data = await giftDB.insert(gift)
         }
 
         wss.broadcast({
@@ -117,12 +117,12 @@ event.on(EVENTS.DANMAKU, async (data) => {
           payload: data
         })
       } else if (gift.type === "gift") {
-        let data;
+        let data
         if (gift.batchComboId) {
           const comboGift = <any>await giftDB.findOne({
             roomId: realRoomId,
             batchComboId: gift.batchComboId,
-          });
+          })
           if (comboGift) {
             data = await giftDB.update(
               { _id: comboGift._id },
@@ -132,11 +132,11 @@ event.on(EVENTS.DANMAKU, async (data) => {
                 },
               },
               { returnUpdatedDocs: true }
-            );
+            )
           }
         }
         if (!data) {
-          data = await giftDB.insert(gift);
+          data = await giftDB.insert(gift)
         }
         wss.broadcast({
           cmd: CMDS.GIFT,
@@ -146,9 +146,9 @@ event.on(EVENTS.DANMAKU, async (data) => {
     }
 
     data.forEach((msg) => {
-      if (msg.cmd === "INTERACT_WORD") return;
-      if (msg.cmd === "DANMU_MSG") return;
-      if (msg.cmd === "SEND_GIFT") return;
+      if (msg.cmd === "INTERACT_WORD") return
+      if (msg.cmd === "DANMU_MSG") return
+      if (msg.cmd === "SEND_GIFT") return
       if (msg.cmd === "LIVE") {
         // 直播中
         wss.broadcast({
@@ -164,10 +164,10 @@ event.on(EVENTS.DANMAKU, async (data) => {
           payload: {}
         })
       }
-    });
+    })
   } else {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
-      const { fans, fans_club } = data.data;
+      const { fans, fans_club } = data.data
       wss.broadcast({
         cmd: CMDS.ROOM_REAL_TIME_MESSAGE_UPDATE,
         payload: {
@@ -181,7 +181,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
 
 export function parseComment(msg) {
   if (msg.cmd !== "DANMU_MSG") return
-  const [uid, name, isAdmin] = msg.info[2];
+  const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   const comment = {
     roomId: realRoomId,
@@ -363,7 +363,7 @@ export function parseUser(data) {
 let isGetUserInfoLocked = false
 let isGetUserInfoLocked20min = false
 export async function getUserInfoThrottle(uid) {
-  if (isGetUserInfoLocked) throw new Error("isGetUserInfoLocked");
+  if (isGetUserInfoLocked) throw new Error("isGetUserInfoLocked")
   if (isGetUserInfoLocked20min) {
     setTimeout(() => {
       isGetUserInfoLocked20min = false
@@ -372,14 +372,14 @@ export async function getUserInfoThrottle(uid) {
   }
   // 限制获取头像频率 避免412被封
   // 412 和请求量和速率都有关系，阶段式限流
-  isGetUserInfoLocked = true;
+  isGetUserInfoLocked = true
   setTimeout(() => {
-    isGetUserInfoLocked = false;
-  }, GET_USER_INFO_FREQUENCY_LIMIT || 2000);
+    isGetUserInfoLocked = false
+  }, GET_USER_INFO_FREQUENCY_LIMIT || 2000)
 
   try {
-    const { data } = await getUserInfo(uid);
-    return data;
+    const { data } = await getUserInfo(uid)
+    return data
   } catch (e) {
     if (e.message === 'Request failed with status code 412') {
       isGetUserInfoLocked20min = true

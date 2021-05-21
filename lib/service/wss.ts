@@ -47,14 +47,13 @@ class WSS {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(payload))
       }
-    });
+    })
   }
 }
 
 const wss = new WSS()
 
 export default wss
-
 
 
 // send to client

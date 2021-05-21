@@ -1,6 +1,6 @@
 import axios from 'axios'
-import cookie from "cookie";
-import querystring from "querystring";
+import cookie from "cookie"
+import querystring from "querystring"
 // import httpAdapter from './http'
 
 const baseUrl = 'https://api.bilibili.com'
@@ -73,8 +73,8 @@ export async function getPlayUrl(roomId) {
 
 export async function sendMessage(data, userCookie) {
   const { message, roomId, color, fontsize, mode, rnd, bubble } = data
-  const cookies = cookie.parse(userCookie);
-  const csrf = cookies.bili_jct;
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
   const params = querystring.stringify({
     color: color || 16777215,
     fontsize: fontsize || 25,
@@ -85,7 +85,7 @@ export async function sendMessage(data, userCookie) {
     bubble: bubble || 0,
     csrf_token: csrf,
     csrf: csrf,
-  });
+  })
 
   const res = await axios.post(`https://api.live.bilibili.com/msg/send`, params, {
     headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
@@ -96,13 +96,13 @@ export async function sendMessage(data, userCookie) {
 
 export async function wearMedal(medalId, userCookie) {
   if (!medalId) throw new Error('medalId is required')
-  const cookies = cookie.parse(userCookie);
-  const csrf = cookies.bili_jct;
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
   const params = querystring.stringify({
     medal_id: medalId,
     csrf_token: csrf,
     csrf: csrf,
-  });
+  })
 
   const res = await axios.post(`https://api.live.bilibili.com/xlive/web-room/v1/fansMedal/wear`, params, {
     headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
@@ -121,8 +121,8 @@ export async function getBagList(roomId, userCookie) {
 
 export async function sendBagGift(data, userCookie) {
   const { uid, gift_id, ruid, bag_id, rnd, biz_id, price } = data
-  const cookies = cookie.parse(userCookie);
-  const csrf = cookies.bili_jct;
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
   const params = querystring.stringify({
     uid,
     gift_id,
@@ -138,7 +138,7 @@ export async function sendBagGift(data, userCookie) {
     price: price || 0,
     csrf_token: csrf,
     csrf: csrf,
-  });
+  })
 
   const res = await axios.post(`https://api.live.bilibili.com/gift/v2/live/bag_send`, params, {
     headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),

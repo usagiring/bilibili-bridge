@@ -22,15 +22,15 @@ app.use(logger())
 
 app.use(async (ctx, next) => {
   try {
-    await next();
+    await next()
   } catch (err) {
-    ctx.status = err.statusCode || err.status || 500;
+    ctx.status = err.statusCode || err.status || 500
     ctx.body = {
       status: ctx.status,
       message: err.message,
     }
   }
-});
+})
 
 app
   .use(router.routes())

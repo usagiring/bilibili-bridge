@@ -16,7 +16,7 @@ class WSClient {
   ws: WebSocket
   HEART_BEAT_TIMER
   options: ConnectOption
-  autoReConnect: boolean = true
+  autoReConnect = true
 
   constructor(options?: ConnectOption) {
     this.options = options
@@ -37,7 +37,7 @@ class WSClient {
     }
 
     const ws = new WebSocket(URI)
-    ws.binaryType = "arraybuffer";
+    ws.binaryType = "arraybuffer"
 
     this.ws = ws
 
@@ -51,18 +51,18 @@ class WSClient {
       protover: 2,
       platform: "web",
       clientver: "1.5.15"
-    };
+    }
 
     return new Promise((resolve, reject) => {
       ws.on('open', function open() {
         const data = JSON.stringify(authParams)
         const byte = convertToArrayBuffer(data, 7)
-        ws.send(byte);
+        ws.send(byte)
         resolve(event)
-      });
+      })
 
       ws.on('message', (evt) => {
-        const result = convertToObject(evt);
+        const result = convertToObject(evt)
 
         if (result.op === 3) {
           event.emit(EVENTS.NINKI, result.body)
@@ -70,7 +70,7 @@ class WSClient {
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
             event.emit(EVENTS.DANMAKU, item)
-          });
+          })
         }
 
         if (result.op === 8) {
@@ -81,7 +81,7 @@ class WSClient {
 
       ws.on('close', function (e) {
         console.log('close', e)
-        clearInterval(self.HEART_BEAT_TIMER);
+        clearInterval(self.HEART_BEAT_TIMER)
 
         // 报错重连
         if (self.autoReConnect) {
@@ -91,7 +91,7 @@ class WSClient {
 
       ws.on('error', function (err) {
         console.error('error', err)
-        clearInterval(self.HEART_BEAT_TIMER);
+        clearInterval(self.HEART_BEAT_TIMER)
 
         // 报错重连
         if (self.autoReConnect) {
@@ -118,7 +118,7 @@ class WSClient {
 
   heartbeat() {
     const self = this
-    clearInterval(this.HEART_BEAT_TIMER);
+    clearInterval(this.HEART_BEAT_TIMER)
     this.HEART_BEAT_TIMER = setInterval(() => {
       self.ws.send(convertToArrayBuffer({}, 2))
     }, 30000)
@@ -156,7 +156,7 @@ const wsBinaryHeaderList = [
     offset: 12,
     value: 1
   }
-];
+]
 
 // function stringToByte(str) {
 //   var bytes = [];
@@ -184,22 +184,22 @@ const wsBinaryHeaderList = [
 // }
 
 function convertToObject(arraybuffer) {
-  let dataview = new DataView(arraybuffer);
-  let output: any = {
+  const dataview = new DataView(arraybuffer)
+  const output: any = {
     body: []
-  };
-  output.packetLen = dataview.getInt32(0);
+  }
+  output.packetLen = dataview.getInt32(0)
 
   wsBinaryHeaderList.forEach(function (item) {
     4 === item.bytes
       ? (output[item.key] = dataview.getInt32(item.offset))
-      : 2 === item.bytes && (output[item.key] = dataview.getInt16(item.offset));
-  });
+      : 2 === item.bytes && (output[item.key] = dataview.getInt16(item.offset))
+  })
 
   output.packetLen < arraybuffer.byteLength &&
-    convertToObject(arraybuffer.slice(0, output.packetLen));
+    convertToObject(arraybuffer.slice(0, output.packetLen))
 
-  let decoder = getDecoder();
+  const decoder = getDecoder()
 
   if (output.op && 5 === output.op) {
     for (
@@ -207,24 +207,24 @@ function convertToObject(arraybuffer) {
       i < arraybuffer.byteLength;
       i += o
     ) {
-      o = dataview.getInt32(i);
-      u = dataview.getInt16(i + 4);
+      o = dataview.getInt32(i)
+      u = dataview.getInt16(i + 4)
       try {
         if (output.ver === 2) {
-          const l = arraybuffer.slice(i + u, i + o);
-          const f = inflate(l);
-          c = convertToObject(f.buffer).body;
+          const l = arraybuffer.slice(i + u, i + o)
+          const f = inflate(l)
+          c = convertToObject(f.buffer).body
         } else {
-          c = JSON.parse(decoder.decode(arraybuffer.slice(i + u, i + o)));
+          c = JSON.parse(decoder.decode(arraybuffer.slice(i + u, i + o)))
         }
-        c && output.body.push(c);
+        c && output.body.push(c)
       } catch (t) {
         console.error(
           "decode body error:",
           new Uint8Array(arraybuffer),
           output,
           t
-        );
+        )
       }
     }
   } else {
@@ -233,16 +233,16 @@ function convertToObject(arraybuffer) {
       3 === output.op &&
       (output.body = {
         count: dataview.getInt32(16)
-      });
+      })
   }
-  return output;
+  return output
 }
 
 function convertToArrayBuffer(data, t) {
-  var encoder = getEncoder();
-  var buffer = new ArrayBuffer(16);
-  var dataview = new DataView(buffer, 0);
-  var encode = encoder.encode(data);
+  const encoder = getEncoder()
+  const buffer = new ArrayBuffer(16)
+  const dataview = new DataView(buffer, 0)
+  const encode = encoder.encode(data)
 
   return (
     dataview.setInt32(0, 16 + encode.byteLength),
@@ -250,19 +250,19 @@ function convertToArrayBuffer(data, t) {
     wsBinaryHeaderList.forEach(function (e) {
       4 === e.bytes
         ? dataview.setInt32(e.offset, e.value)
-        : 2 === e.bytes && dataview.setInt16(e.offset, e.value);
+        : 2 === e.bytes && dataview.setInt16(e.offset, e.value)
     }),
     mergeArrayBuffer(buffer, encode)
-  );
+  )
 }
 
 function mergeArrayBuffer(e, t) {
-  const n = new Uint8Array(e);
-  const i = new Uint8Array(t);
-  const r = new Uint8Array(n.byteLength + i.byteLength);
-  r.set(n, 0);
-  r.set(i, n.byteLength);
-  return r.buffer;
+  const n = new Uint8Array(e)
+  const i = new Uint8Array(t)
+  const r = new Uint8Array(n.byteLength + i.byteLength)
+  r.set(n, 0)
+  r.set(i, n.byteLength)
+  return r.buffer
 }
 
 function getDecoder() {
