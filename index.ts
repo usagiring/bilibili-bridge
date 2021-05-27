@@ -158,7 +158,68 @@ const test = {
   "medalId": 193893,
   "medalName": "脆鲨",
   // "USER_DATA_PATH": "C:\\Users\\Holo\\AppData\\Roaming\\Electron\\data1",
-  "PORT": 3000
+  "PORT": 8081,
+  "EXAMPLE_MESSAGES": [
+    {
+      id: 1,
+      type: "comment",
+      uid: "123456",
+      name: "bli_123456",
+      comment: "这是一条测试弹幕哟～",
+      avatar: "",
+      role: 3,
+      similar: 1,
+      medalName: '测试者',
+      "medalLevel": 6,
+      "medalColorBorder": "#5d7b9e",
+      "medalColorStart": "#5d7b9e",
+      "medalColorEnd": "#5d7b9e"
+    },
+    {
+      id: 2,
+      uid: "654321",
+      name: "bli_654321",
+      type: "comment",
+      comment: "～哟幕弹试测条一是这",
+      avatar: "",
+      role: 0
+    },
+    {
+      id: 6,
+      uid: "12345",
+      name: "bli_12345",
+      type: "superChat",
+      comment: "这是一条测试SuperChat哟～",
+      commentJPN: "これはテスト用のスパチャだよ〜",
+      price: 50,
+      totalPrice: 50,
+      avatar: "",
+      role: 0
+    },
+    // {
+    //   id: 7,
+    //   type: "gift",
+    //   uid: 12345,
+    //   name: 'bli_12345',
+    //   avatar: DEFAULT_AVATAR,
+    //   price: 2,
+    //   giftNumber: 50,
+    //   totalPrice: 100,
+    //   giftName: '测试礼物'
+    // },
+    {
+      id: 8,
+      type: "gift",
+      uid: 777777,
+      name: 'bli_777777',
+      avatar: "",
+      isGuardGift: true,
+      price: 198,
+      giftNumber: 1,
+      totalPrice: 198,
+      giftName: '舰长'
+    }
+  ]
 }
 
 if (isTest) {

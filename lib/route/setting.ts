@@ -1,3 +1,4 @@
+import { pick } from 'lodash' 
 import { CMDS, HTTP_ERRORS } from '../service/const'
 import global from '../service/global'
 import wss from '../service/wss'
@@ -54,10 +55,10 @@ function update(ctx) {
 
 function merge(ctx) {
   const payload = ctx.__body
-  global.merge(payload)
+  const setting = global.merge(payload)
   wss.broadcast({
     cmd: CMDS.SETTING,
-    payload: payload
+    payload: pick(setting, Object.keys(payload))
   })
   ctx.body = {
     message: 'ok',

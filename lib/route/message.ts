@@ -1,5 +1,6 @@
 import wss from '../service/wss'
 import { CMDS, COMMON_RESPONSE } from '../service/const'
+import global from '../service/global'
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
         data: { type: 'object' }
       }
     }
+  },
+  {
+    verb: 'get',
+    uri: '/messages/example/initial',
+    middlewares: [getInitialMessages],
   }
 ]
 
@@ -51,8 +57,12 @@ async function sendExampleMessages(ctx) {
     cmd,
     payload: data
   })
-  
+
   ctx.body = COMMON_RESPONSE
+}
+
+async function getInitialMessages(ctx) {
+  ctx.body = global.get('EXAMPLE_MESSAGES')
 }
 
 export default routes
