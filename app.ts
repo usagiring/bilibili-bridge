@@ -8,7 +8,8 @@ import wss from './lib/service/wss'
 import global from './lib/service/global'
 import serve from 'koa-static'
 // 注册事件
-import './lib/service/socket-event'
+import './lib/service/bilibili-handler'
+import './lib/service/gift-handler'
 
 const PORT = global.get('PORT') || 3000
 
@@ -22,7 +23,8 @@ app.use(cors({
 app.use(bodyParser())
 app.use(logger())
 
-const html = global.get('HTML_PATH') || path.join(__dirname, '/node_modules/bilibili-danmaku-page/dist')
+const html = global.get('HTML_PATH') || path.join(__dirname, '../node_modules/@tokine/bilibili-danmaku-page')
+console.log(html)
 app.use(serve(html, {
   maxage: 60 * 1000,
   defer: false,

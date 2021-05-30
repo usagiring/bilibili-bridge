@@ -1,8 +1,9 @@
 {
-  "name": "bilibili-bridge",
-  "version": "0.0.1",
+  "name": "@tokine/bilibili-bridge",
+  "version": "0.0.3",
   "description": "",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "NODE_PATH=./dist node ./dist/index",
@@ -17,6 +18,7 @@
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@koa/router": "^10.0.0",
+    "@tokine/bilibili-danmaku-page": "^0.1.1",
     "ajv": "^8.3.0",
     "axios": "^0.21.1",
     "cookie": "^0.4.1",

@@ -1,12 +1,13 @@
-import event from '../service/event'
-import global from '../service/global'
-import { CMDS, EVENTS } from '../service/const'
-import wss, { SocketPayload } from '../service/wss'
-import { getGiftConfig } from '../service/bilibili-sdk'
+import event from './event'
+import global from './global'
+import { CMDS, EVENTS } from './const'
+import wss, { SocketPayload } from './wss'
+import { getGiftConfig } from './bilibili-sdk'
 
 event.on(EVENTS.GET_GIFT_CONFIG, async ({ roomId }) => {
   // TODO 
   const result = await getGiftConfig(roomId)
+  console.log(result)
   const gifts = result.data.list
 
   const giftConfigMap = gifts.reduce((map, gift) => {

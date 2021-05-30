@@ -3,7 +3,9 @@
     "transpileOnly": true,
   },
   "compilerOptions": {
-    "lib": ["es2018"],
+    "lib": [
+      "es2018"
+    ],
     "target": "ES6",
     "outDir": "dist",
     "module": "CommonJS",
@@ -12,6 +14,11 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "inlineSourceMap": true
-  }
+    "inlineSourceMap": true,
+    "declaration": true,
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
