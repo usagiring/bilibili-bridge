@@ -29,6 +29,7 @@ class Global {
   }
   replace(options) {
     this.options = options
+    return this.options
   }
 }
 

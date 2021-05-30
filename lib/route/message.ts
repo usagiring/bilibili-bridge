@@ -22,8 +22,13 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/messages/example/initial',
+    uri: '/messages/examples',
     middlewares: [getInitialMessages],
+  },
+  {
+    verb: 'post',
+    uri: '/messages/examples/clear',
+    middlewares: [clearExampleMessages],
   }
 ]
 
@@ -62,7 +67,19 @@ async function sendExampleMessages(ctx) {
 }
 
 async function getInitialMessages(ctx) {
-  ctx.body = global.get('EXAMPLE_MESSAGES')
+  ctx.body = {
+    message: 'ok',
+    data: global.get('EXAMPLE_MESSAGES')
+  }
+}
+
+async function clearExampleMessages(ctx) {
+  wss.broadcast({
+    cmd: CMDS.EXAMPLE_MESSAGE_CLEAR
+  })
+  ctx.body = {
+    message: 'ok'
+  }
 }
 
 export default routes

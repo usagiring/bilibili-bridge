@@ -7,6 +7,9 @@ import roomAPIs from './room'
 import giftAPIs from './gift'
 import dataAPIs from './data'
 import messageAPIs from './message'
+import commentAPIs from './comment'
+import interactAPIs from './interact'
+import lotteryAPIs from './lottery'
 
 interface RouteInfo {
   verb: string
@@ -24,6 +27,9 @@ apiRouter.get('/touch', (ctx) => { ctx.body = 'touch' });
   ...giftAPIs,
   ...dataAPIs,
   ...messageAPIs,
+  ...commentAPIs,
+  ...interactAPIs,
+  ...lotteryAPIs,
 ]
   .forEach(({ verb, middlewares, uri, validator }: RouteInfo) => {
     if (validator) {

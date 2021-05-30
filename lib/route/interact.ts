@@ -36,6 +36,7 @@ async function query(ctx) {
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
+  if (query?.name?.$regex) { query.name.$regex = new RegExp(query.name.$regex) }
   const interacts = await interactDB.find(query, options)
   ctx.body = {
     message: 'ok',

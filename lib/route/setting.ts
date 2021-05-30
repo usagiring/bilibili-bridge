@@ -1,4 +1,4 @@
-import { pick } from 'lodash' 
+import { pick } from 'lodash'
 import { CMDS, HTTP_ERRORS } from '../service/const'
 import global from '../service/global'
 import wss from '../service/wss'
@@ -67,7 +67,7 @@ function merge(ctx) {
 }
 
 function replace(ctx) {
-  const payload = ctx.request.query
+  const payload = ctx.__body
   const settings = global.replace(payload)
   wss.broadcast({
     cmd: CMDS.SETTING,

@@ -23,7 +23,6 @@ app.use(bodyParser())
 app.use(logger())
 
 const html = global.get('HTML_PATH') || path.join(__dirname, '/node_modules/bilibili-danmaku-page/dist')
-console.log(html)
 app.use(serve(html, {
   maxage: 60 * 1000,
   defer: false,

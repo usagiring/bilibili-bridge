@@ -5,9 +5,7 @@ import global from './global'
 import { getUserInfo } from './bilibili-sdk'
 import wss from './wss'
 
-const realRoomId = global.get('roomId')
 const GET_USER_INFO_FREQUENCY_LIMIT = global.get('GET_USER_INFO_FREQUENCY_LIMIT')
-const isShowAvatar = global.get('isShowAvatar')
 
 event.on(EVENTS.NINKI, async (data) => {
   const ninkiNumber = data.count
@@ -28,7 +26,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
     for (const comment of comments) {
       // console.log(`${comment.name}(${comment.uid}): ${comment.comment}`);
 
-      if (isShowAvatar) {
+      if (global.get('isShowAvatar')) {
         // 缓存 user 信息
         let user = await userDB.findOne({ uid: comment.uid })
         if (!user) {
@@ -90,7 +88,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
 
       if (gift.type === "superChat") {
         let data = await giftDB.findOne({
-          roomId: realRoomId,
+          roomId: global.get('roomId'),
           superChatId: gift.superChatId,
         })
 
@@ -120,7 +118,7 @@ event.on(EVENTS.DANMAKU, async (data) => {
         let data
         if (gift.batchComboId) {
           const comboGift = <any>await giftDB.findOne({
-            roomId: realRoomId,
+            roomId: global.get('roomId'),
             batchComboId: gift.batchComboId,
           })
           if (comboGift) {
@@ -184,12 +182,13 @@ export function parseComment(msg) {
   const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   const comment = {
-    roomId: realRoomId,
+    roomId: global.get('roomId'),
     sendAt: msg.info[0][4],
     uid,
     name,
     isAdmin,
     guard: msg.info[7],
+    role: msg.info[7],
     comment: msg.info[1],
     avatar: '',
   }
@@ -258,7 +257,7 @@ export function parseGift(msg) {
       gift_name
     } = gift
     return {
-      roomId: realRoomId,
+      roomId: global.get('roomId'),
       sendAt: now,
       // user
       uid,
@@ -293,7 +292,7 @@ export function parseGift(msg) {
     } = msg.data
 
     return {
-      roomId: realRoomId,
+      roomId: global.get('roomId'),
       sendAt: now,
       uid,
       name: username,
@@ -325,7 +324,7 @@ export function parseGift(msg) {
       batch_combo_id
     } = msg.data
     return {
-      roomId: realRoomId,
+      roomId: global.get('roomId'),
       sendAt: now,
       uid,
       name: uname,
