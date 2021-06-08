@@ -19,6 +19,8 @@ const WS_OPERATION_OFFSET = 8
 const WS_HEADER_DEFAULT_OPERATION = 1
 const WS_HEADER_DEFAULT_SEQUENCE = 1
 const WS_SEQUENCE_OFFSET = 12
+const WS_BODY_PROTOCOL_VERSION_NORMAL = 0
+
 
 const URI = "wss://broadcastlv.chat.bilibili.com:2245/sub"
 
@@ -219,7 +221,6 @@ function convertToObject(e: ArrayBuffer) {
       s = t.getInt32(r), a = t.getInt16(r + WS_HEADER_OFFSET);
       console.log(r, s, a)
       try {
-        const WS_BODY_PROTOCOL_VERSION_NORMAL = 0
         if (n.ver === WS_BODY_PROTOCOL_VERSION_NORMAL) {
           // const l = e.slice(r + a, r + s)
           // console.log(e)
