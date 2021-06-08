@@ -1,7 +1,7 @@
 const WebSocket = require('ws')
 const axios = require('axios')
-
-const ws = new WebSocket('ws://127.0.0.1:8081')
+const port = 8082
+const ws = new WebSocket(`ws://127.0.0.1:${port}`)
 
 ws.on('open', function open() {
   const message = {
@@ -17,7 +17,7 @@ ws.on('message', function incoming(data) {
   console.log(data)
 })
 
-axios.post('http://127.0.0.1:8081/api/rooms/22347054/connect')
+axios.post(`http://127.0.0.1:${port}/api/rooms/21452505/connect`)
   .then(res => {
     console.log(res.data)
   })

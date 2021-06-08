@@ -1,8 +1,24 @@
 import util from 'util'
 import { inflate } from 'pako'
+import zlib from 'zlib'
 import WebSocket from 'ws'
 import event from '../event'
 import { EVENTS } from '../const'
+
+const WS_OP_MESSAGE = 5
+const WS_OP_CONNECT_SUCCESS = 8
+const WS_OP_HEARTBEAT_REPLY = 3
+const WS_PACKAGE_HEADER_TOTAL_LENGTH = 16
+const WS_HEADER_OFFSET = 4
+const WS_OP_USER_AUTHENTICATION = 7
+const WS_PACKAGE_OFFSET = 0
+const WS_BODY_PROTOCOL_VERSION_BROTLI = 3
+const WS_VERSION_OFFSET = 6
+const WS_HEADER_DEFAULT_VERSION = 1
+const WS_OPERATION_OFFSET = 8
+const WS_HEADER_DEFAULT_OPERATION = 1
+const WS_HEADER_DEFAULT_SEQUENCE = 1
+const WS_SEQUENCE_OFFSET = 12
 
 const URI = "wss://broadcastlv.chat.bilibili.com:2245/sub"
 
@@ -47,21 +63,23 @@ class WSClient {
     const authParams = {
       uid,
       roomid: roomId,
-      protover: 2,
-      platform: "web",
-      clientver: "1.5.15"
+      protover: 3,
+      // from: 7
+      // aid: "1.5.15"
     }
 
     return new Promise((resolve, reject) => {
       ws.on('open', function open() {
-        const data = JSON.stringify(authParams)
-        const byte = convertToArrayBuffer(data, 7)
+        const byte = convertToArrayBuffer(JSON.stringify(authParams), WS_OP_USER_AUTHENTICATION)
         ws.send(byte)
-        resolve(event)
       })
 
-      ws.on('message', (evt) => {
-        const result = convertToObject(evt)
+      ws.on('message', (e: ArrayBuffer) => {
+        e = new Uint8Array(e).buffer
+        console.log(e instanceof ArrayBuffer)
+        console.log(e)
+        // var buf = new ArrayBuffer(e)
+        const result = convertToObject(e)
 
         if (result.op === 3) {
           event.emit(EVENTS.NINKI, result.body)
@@ -131,29 +149,29 @@ const wsBinaryHeaderList = [
     name: "Header Length",
     key: "headerLen",
     bytes: 2,
-    offset: 4,
-    value: 16
+    offset: WS_HEADER_OFFSET,
+    value: WS_PACKAGE_HEADER_TOTAL_LENGTH
   },
   {
     name: "Protocol Version",
     key: "ver",
     bytes: 2,
-    offset: 6,
-    value: 1
+    offset: WS_VERSION_OFFSET,
+    value: WS_HEADER_DEFAULT_VERSION
   },
   {
     name: "Operation",
     key: "op",
     bytes: 4,
-    offset: 8,
-    value: 1
+    offset: WS_OPERATION_OFFSET,
+    value: WS_HEADER_DEFAULT_OPERATION
   },
   {
     name: "Sequence Id",
     key: "seq",
     bytes: 4,
-    offset: 12,
-    value: 1
+    offset: WS_SEQUENCE_OFFSET,
+    value: WS_HEADER_DEFAULT_SEQUENCE
   }
 ]
 
@@ -182,90 +200,79 @@ const wsBinaryHeaderList = [
 //   return bytes;
 // }
 
-function convertToObject(arraybuffer) {
-  const dataview = new DataView(arraybuffer)
-  const output: any = {
-    body: []
-  }
-  output.packetLen = dataview.getInt32(0)
-
-  wsBinaryHeaderList.forEach(function (item) {
-    4 === item.bytes
-      ? (output[item.key] = dataview.getInt32(item.offset))
-      : 2 === item.bytes && (output[item.key] = dataview.getInt16(item.offset))
+function convertToObject(e: ArrayBuffer) {
+  const t = new DataView(e)
+  const n: any = { body: [] }
+  n.packetLen = t.getInt32(WS_PACKAGE_OFFSET)
+  wsBinaryHeaderList.forEach(function (e) {
+    4 === e.bytes ? n[e.key] = t.getInt32(e.offset) : 2 === e.bytes && (n[e.key] = t.getInt16(e.offset))
   })
-
-  output.packetLen < arraybuffer.byteLength &&
-    convertToObject(arraybuffer.slice(0, output.packetLen))
+  n.packetLen < e.byteLength && convertToObject(e.slice(0, n.packetLen))
 
   const decoder = getDecoder()
 
-  if (output.op && 5 === output.op) {
-    for (
-      let i = 0, o = output.packetLen, u = 0, c = "";
-      i < arraybuffer.byteLength;
-      i += o
-    ) {
-      o = dataview.getInt32(i)
-      u = dataview.getInt16(i + 4)
+  if (!n.op || WS_OP_MESSAGE !== n.op && n.op !== WS_OP_CONNECT_SUCCESS) {
+    // 人气值
+    n.op && WS_OP_HEARTBEAT_REPLY === n.op && (n.body = { count: t.getInt32(WS_PACKAGE_HEADER_TOTAL_LENGTH) })
+  } else {
+    for (var r = WS_PACKAGE_OFFSET, s = n.packetLen, a = 0, u = ""; r < e.byteLength; r += s) {
+      s = t.getInt32(r), a = t.getInt16(r + WS_HEADER_OFFSET);
+      console.log(r, s, a)
       try {
-        if (output.ver === 2) {
-          const l = arraybuffer.slice(i + u, i + o)
-          const f = inflate(l)
-          c = convertToObject(f.buffer).body
-        } else {
-          c = JSON.parse(decoder.decode(arraybuffer.slice(i + u, i + o)))
+        const WS_BODY_PROTOCOL_VERSION_NORMAL = 0
+        if (n.ver === WS_BODY_PROTOCOL_VERSION_NORMAL) {
+          // const l = e.slice(r + a, r + s)
+          // console.log(e)
+          // const c = decoder.decode(e.slice(r + a, r + s));
+          // console.log(c)
+          // u = 0 !== c.length ? JSON.parse(c) : null
+
+        } else if (n.ver === WS_BODY_PROTOCOL_VERSION_BROTLI) {
+          const l = e.slice(r + a, r + s)
+          // const h = inflate(l)
+          const h = zlib.brotliDecompressSync(new Uint8Array(l));
+          u = convertToObject(h.buffer).body
         }
-        c && output.body.push(c)
+        u && n.body.push(u)
       } catch (t) {
-        console.error(
-          "decode body error:",
-          new Uint8Array(arraybuffer),
-          output,
-          t
-        )
+        console.error("decode body error:", new Uint8Array(e), n, t)
       }
     }
-  } else {
-    // 人气值
-    output.op &&
-      3 === output.op &&
-      (output.body = {
-        count: dataview.getInt32(16)
-      })
   }
-  return output
+
+  return n
 }
 
-function convertToArrayBuffer(data, t) {
+function convertToArrayBuffer(e, t) {
   const encoder = getEncoder()
-  const buffer = new ArrayBuffer(16)
-  const dataview = new DataView(buffer, 0)
-  const encode = encoder.encode(data)
+  const n = new ArrayBuffer(WS_PACKAGE_HEADER_TOTAL_LENGTH)
+  const r = new DataView(n, WS_PACKAGE_OFFSET)
+  const s = encoder.encode(e)
 
   return (
-    dataview.setInt32(0, 16 + encode.byteLength),
-    (wsBinaryHeaderList[2].value = t),
-    wsBinaryHeaderList.forEach(function (e) {
-      4 === e.bytes
-        ? dataview.setInt32(e.offset, e.value)
-        : 2 === e.bytes && dataview.setInt16(e.offset, e.value)
-    }),
-    mergeArrayBuffer(buffer, encode)
+    r.setInt32(WS_PACKAGE_OFFSET, WS_PACKAGE_HEADER_TOTAL_LENGTH + s.byteLength),
+    wsBinaryHeaderList[2].value = t,
+    wsBinaryHeaderList.forEach(function (e) { 4 === e.bytes ? r.setInt32(e.offset, e.value) : 2 === e.bytes && r.setInt16(e.offset, e.value) }),
+    mergeArrayBuffer(n, s)
   )
 }
 
 function mergeArrayBuffer(e, t) {
   const n = new Uint8Array(e)
-  const i = new Uint8Array(t)
-  const r = new Uint8Array(n.byteLength + i.byteLength)
-  r.set(n, 0)
-  r.set(i, n.byteLength)
-  return r.buffer
+  const o = new Uint8Array(t)
+  const r = new Uint8Array(n.byteLength + o.byteLength)
+  return r.set(n, 0), r.set(o, n.byteLength), r.buffer
 }
 
 function getDecoder() {
-  return new util.TextDecoder()
+  return new util.TextDecoder
+  // return {
+  //     decode: function (e) {
+  //       return decodeURIComponent(
+  //         escape(String.fromCharCode.apply(String, new Uint8Array(e)))
+  //       );
+  //     }
+  //   }
   // return window.TextDecoder
   //   ? new window.TextDecoder()
   //   : {
@@ -278,7 +285,7 @@ function getDecoder() {
 }
 
 function getEncoder() {
-  return new util.TextEncoder()
+  return new util.TextEncoder
   // return window.TextEncoder
   //   ? new window.TextEncoder()
   //   : {

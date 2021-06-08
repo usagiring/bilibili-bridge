@@ -156,7 +156,7 @@ const test = {
   "medalId": 193893,
   "medalName": "脆鲨",
   // "USER_DATA_PATH": "C:\\Users\\Holo\\AppData\\Roaming\\Electron\\data1",
-  "PORT": 8081,
+  "PORT": 8082,
   "EXAMPLE_MESSAGES": [
     {
       id: 1,
