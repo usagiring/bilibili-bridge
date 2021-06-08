@@ -1,7 +1,7 @@
 import global from '../service/global'
 import { COMMON_RESPONSE, ERRORS, EVENTS } from '../service/const'
-import BilibiliWSClient from '../service/bilibili-ws-client'
-import { getRoomInfoV2 } from '../service/bilibili-sdk'
+import BilibiliWSClient from '../service/bilibili/ws'
+import { getRoomInfoV2 } from '../service/bilibili/sdk'
 import event from '../service/event'
 import { commentDB, giftDB, interactDB } from '../service/nedb'
 

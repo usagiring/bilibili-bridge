@@ -6,9 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "NODE_PATH=./dist node ./dist/index",
+    "start": "node ./dist/index",
+    "start:test": "npm run start -- test",
     "dev": "nodemon --watch 'lib/**' --ext 'ts,json' --exec 'ts-node index.ts test'",
-    "dev-win": "nodemon --watch \"lib/**\" --ext \"ts,json\" --exec \"ts-node index.ts test\"",
+    "dev:win": "nodemon --watch \"lib/**\" --ext \"ts,json\" --exec \"ts-node index.ts test\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "npm run build",
     "lint": "eslint lib/**/*"

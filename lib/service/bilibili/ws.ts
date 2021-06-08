@@ -1,8 +1,8 @@
 import util from 'util'
 import { inflate } from 'pako'
 import WebSocket from 'ws'
-import event from './event'
-import { EVENTS } from './const'
+import event from '../event'
+import { EVENTS } from '../const'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:2245/sub"
 
@@ -11,7 +11,6 @@ interface ConnectOption {
   roomId: number
 }
 
-// TODO: 支持多连接
 class WSClient {
   ws: WebSocket
   HEART_BEAT_TIMER

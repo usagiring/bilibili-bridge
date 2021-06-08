@@ -1,7 +1,6 @@
 import Datastore from 'nedb'
 import fs from 'fs'
 import path from 'path'
-import moment from 'moment'
 import global from './global'
 import { dateFormat } from './util'
 

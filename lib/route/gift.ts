@@ -1,11 +1,12 @@
 import global from '../service/global'
+import giftService from '../service/gift'
 import { giftDB, QueryOptions } from '../service/nedb'
 
 const routes = [
   {
     verb: 'get',
     uri: '/gifts/config',
-    middlewares: [get],
+    middlewares: [getConfig],
   },
   {
     verb: 'post',
@@ -35,10 +36,15 @@ const routes = [
   }
 ]
 
-async function get(ctx) {
+async function getConfig(ctx) {
+  const { roomId } = ctx.__body
+  let giftConfig = global.get('giftConfig')
+  if(!giftConfig) {
+    giftConfig = giftService.getConfig({ roomId: roomId || global.get('roomId') || 1 }) || {}
+  }
   ctx.body = {
     message: 'ok',
-    data: global.get('giftConfig') || {}
+    data: giftConfig
   }
 }
 

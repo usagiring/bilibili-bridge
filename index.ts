@@ -1,5 +1,3 @@
-// import './app'
-// import app from './app'
 import global from './lib/service/global'
 
 // 初始化配置
