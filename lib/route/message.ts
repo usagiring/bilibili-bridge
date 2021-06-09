@@ -29,6 +29,11 @@ const routes = [
     verb: 'post',
     uri: '/messages/examples/clear',
     middlewares: [clearExampleMessages],
+  },
+  {
+    verb: 'post',
+    uri: '/messages/examples/restore',
+    middlewares: [restoreExampleMessages],
   }
 ]
 
@@ -76,6 +81,15 @@ async function getInitialMessages(ctx) {
 async function clearExampleMessages(ctx) {
   wss.broadcast({
     cmd: CMDS.EXAMPLE_MESSAGE_CLEAR
+  })
+  ctx.body = {
+    message: 'ok'
+  }
+}
+
+async function restoreExampleMessages(ctx) {
+  wss.broadcast({
+    cmd: CMDS.EXAMPLE_MESSAGE_RESTORE
   })
   ctx.body = {
     message: 'ok'
