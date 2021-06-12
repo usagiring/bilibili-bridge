@@ -19,7 +19,9 @@ interface RouteInfo {
 }
 const router = new Router()
 const apiRouter = new Router()
-apiRouter.get('/touch', (ctx) => { ctx.body = 'touch' });
+apiRouter.get('/touch', (ctx) => {
+  ctx.body = 'touch'
+});
 
 [
   ...roomAPIs,
