@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 
 export function generateJWT() {
     const SECRET = global.get('SECRET')
-    return jwt.sign({ version: '1' }, SECRET);
+    return jwt.sign({ version: '1' }, SECRET)
 }
 
 export function verifyJWT(token) {

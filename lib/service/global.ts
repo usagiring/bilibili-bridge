@@ -1,6 +1,6 @@
-import { get, merge } from 'lodash'
+import { get, merge, pick } from 'lodash'
 class Global {
-  options = {}
+  options: any = {}
 
   all() {
     return this.options
@@ -27,9 +27,17 @@ class Global {
   merge(options) {
     return merge(this.options, options)
   }
+
   replace(options) {
     this.options = options
     return this.options
+  }
+
+  update(options) {
+    for (const key in options) {
+      this.options[key] = options[key]
+    }
+    return pick(this.options, Object.keys(options))
   }
 }
 

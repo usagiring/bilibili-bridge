@@ -59,6 +59,7 @@ async function connect(ctx) {
   const { roomId } = ctx.__body
   await bilibiliWSClient.connect({ roomId: Number(roomId) })
   global.set('roomId', roomId)
+  global.set('isConnected', true)
 
   event.emit(EVENTS.GET_GIFT_CONFIG, { roomId })
 
@@ -71,6 +72,7 @@ async function disconnect(ctx) {
     throw new Error(ERRORS.SYSTEM_ERROR)
   }
   await bilibiliWSClient.close()
+  global.set('isConnected', false)
   ctx.body = COMMON_RESPONSE
 }
 

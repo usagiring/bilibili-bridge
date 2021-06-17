@@ -11,6 +11,7 @@ const commentDB = new Datastore({ filename: `${USER_DATA_PATH}/comment`, autoloa
 const interactDB = new Datastore({ filename: `${USER_DATA_PATH}/interact`, autoload: true })
 const giftDB = new Datastore({ filename: `${USER_DATA_PATH}/gift`, autoload: true })
 const lotteryDB = new Datastore({ filename: `${USER_DATA_PATH}/lottery`, autoload: true })
+const otherDB = new Datastore({ filename: `${USER_DATA_PATH}/other`, autoload: true })
 
 giftDB.ensureIndex({
   fieldName: 'uid',
@@ -186,7 +187,7 @@ const userDBWrapper = wrapper(userDB)
 const commentDBWrapper = wrapper(commentDB)
 const giftDBWrapper = wrapper(giftDB)
 const interactDBWrapper = wrapper(interactDB)
-// const otherDBWrapper = wrapper(otherDB)
+const otherDBWrapper = wrapper(otherDB)
 const lotteryDBWrapper = wrapper(lotteryDB)
 
 export {
@@ -194,6 +195,6 @@ export {
   commentDBWrapper as commentDB,
   giftDBWrapper as giftDB,
   interactDBWrapper as interactDB,
-  // otherDBWrapper as otherDB,
+  otherDBWrapper as otherDB,
   lotteryDBWrapper as lotteryDB
 }
