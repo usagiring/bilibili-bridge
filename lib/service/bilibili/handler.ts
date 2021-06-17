@@ -206,7 +206,7 @@ async function giftJob(gift) {
     if (sc) {
       if (gift.commentJPN) {
         sc = await giftDB.update(
-          { _id: (sc as any)._id },
+          { _id: sc._id },
           {
             $set: { commentJPN: gift.commentJPN },
           },
@@ -227,7 +227,7 @@ async function giftJob(gift) {
   } else if (gift.type === "gift") {
     let data
     if (gift.batchComboId) {
-      const comboGift = <any>await giftDB.findOne({
+      const comboGift = await giftDB.findOne({
         roomId: global.get('roomId'),
         batchComboId: gift.batchComboId,
       })
@@ -250,6 +250,9 @@ async function giftJob(gift) {
       cmd: CMDS.GIFT,
       payload: data
     })
+    if(global.get('isAutoReply')) {
+      event.emit(EVENTS.AUTO_REPLY, data)
+    }
   }
 }
 

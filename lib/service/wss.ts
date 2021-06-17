@@ -25,14 +25,6 @@ class WSS {
             pong({ ws, payload: payload.payload })
             break
           }
-          case EVENTS.UPDATE_SETTING: {
-            updateSetting({ payload: payload.payload })
-            break
-          }
-          case EVENTS.MERGE_SETTING: {
-            mergeSetting({ payload: payload.payload })
-            break
-          }
         }
       })
     })
@@ -67,15 +59,4 @@ function pong({ ws, payload }) {
     payload: payload
   }
   ws.send(JSON.stringify(msg))
-}
-
-function updateSetting({ payload }) {
-  // unmask
-  const setting = global.set(payload.path, payload.data)
-  wss.broadcast(setting)
-}
-
-function mergeSetting({ payload }) {
-  const setting = global.merge(payload)
-  wss.broadcast(setting)
 }
