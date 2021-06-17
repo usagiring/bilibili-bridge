@@ -68,7 +68,7 @@ class WSClient {
         }
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
-            event.emit(EVENTS.DANMAKU, item)
+            event.emit(EVENTS.MESSAGE, item)
           })
         }
 
