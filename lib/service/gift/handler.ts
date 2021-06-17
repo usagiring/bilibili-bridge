@@ -1,4 +1,4 @@
-import { sortBy } from 'lodash'
+import { orderBy } from 'lodash'
 import event from '../event'
 import global from '../global'
 import { CMDS, EVENTS } from '../const'
@@ -18,21 +18,25 @@ event.on(EVENTS.GET_GIFT_CONFIG, async ({ roomId }) => {
 
 
 // [uid]: { sendAt, name }
-const sendUserCache = {}
+let sendUserCache = {}
+setInterval(() => {
+  sendUserCache = {}
+}, 60 * 1000 * 10)
 event.on(EVENTS.AUTO_REPLY, async (gift) => {
   const userCookie = global.get('userCookie')
   const autoReplyRules = global.get('autoReplyRules')
   const roomId = global.get('roomId')
   const isConnected = global.get('isConnected')
-
+  const uid = gift.uid
   if (!userCookie || !roomId || !isConnected || !autoReplyRules || !autoReplyRules.length) return
+  if (sendUserCache[uid] && sendUserCache[uid].sendAt > Date.now() - 60 * 1000) return
 
-  const autoReplyRulesSorted = sortBy(autoReplyRules, ['priority'])
+  const autoReplyRulesSorted = orderBy(autoReplyRules, ['priority'], ['desc'])
   for (const rule of autoReplyRulesSorted) {
     // 条件校验
-    if (rule.giftId && gift.giftId !== rule.giftId) continue
+    if (rule.giftId && `${gift.giftId}` !== `${rule.giftId}`) continue
     if (rule.giftNumber && gift.giftNumber <= rule.giftNumber) continue
-    if (rule.onlyGold && gift.type !== 'gold') continue
+    if (rule.onlyGold && gift.coinType !== 'gold') continue
 
     // 所有条件通过，发送消息
     // 解析文本
@@ -45,10 +49,12 @@ event.on(EVENTS.AUTO_REPLY, async (gift) => {
       message: text,
     }, userCookie)
     // 已发送不再向下查询
-    
-    // 记录被回复的uid，一段时间内不再回复
-    const uid  = gift.uid
 
+    // 记录被回复的uid，一段时间内不再回复
+    sendUserCache[uid] = {
+      sendAt: Date.now(),
+      name: gift.name
+    }
     break
   }
 })
