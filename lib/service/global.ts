@@ -34,7 +34,7 @@ class Global {
   }
 
   update(options) {
-    for (const key of options) {
+    for (const key in options) {
       this.options[key] = options[key]
     }
     return pick(this.options, Object.keys(options))

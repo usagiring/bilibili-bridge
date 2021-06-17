@@ -17,7 +17,7 @@ const routes = [
   },
   {
     verb: 'put',
-    uri: '/settings',
+    uri: '/settings/update',
     middlewares: [update]
   },
   {
