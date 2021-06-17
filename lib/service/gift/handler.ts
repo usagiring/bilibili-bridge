@@ -16,6 +16,9 @@ event.on(EVENTS.GET_GIFT_CONFIG, async ({ roomId }) => {
   wss.broadcast(data)
 })
 
+
+// [uid]: { sendAt, name }
+const sendUserCache = {}
 event.on(EVENTS.AUTO_REPLY, async (gift) => {
   const userCookie = global.get('userCookie')
   const autoReplyRules = global.get('autoReplyRules')
@@ -42,6 +45,10 @@ event.on(EVENTS.AUTO_REPLY, async (gift) => {
       message: text,
     }, userCookie)
     // 已发送不再向下查询
+    
+    // 记录被回复的uid，一段时间内不再回复
+    const uid  = gift.uid
+
     break
   }
 })
