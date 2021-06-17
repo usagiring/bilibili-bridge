@@ -12,7 +12,8 @@
     "dev:win": "nodemon --watch \"lib/**\" --ext \"ts,json\" --exec \"ts-node index.ts test\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "npm run build",
-    "lint": "eslint lib/**/*"
+    "lint": "eslint lib/**/*",
+    "release": "npm run build && npm publish"
   },
   "author": "其妙",
   "license": "MIT",
