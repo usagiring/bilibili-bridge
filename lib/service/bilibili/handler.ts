@@ -62,6 +62,62 @@ event.on(EVENTS.MESSAGE, async (data) => {
         continue
       }
 
+      if (msg.cmd === BILI_CMDS.ANCHOR_LOT_START) {
+        const {
+          award_name, // description
+          award_num,
+          danmu,
+          gift_id,
+          gift_name,
+          gift_num,
+          gift_price, // 金瓜子
+          id,
+          max_time,
+          room_id,
+        } = msg.data
+        wss.broadcast({
+          cmd: CMDS.ANCHOR_LOT_START,
+          payload: {
+            id: id,
+            roomId: room_id,
+            awardName: award_name,
+            awardNumber: award_num,
+            danmaku: danmu,
+            giftId: gift_id,
+            giftName: gift_name,
+            giftNumber: gift_num,
+            giftPrice: gift_price,
+            maxTime: max_time,
+          }
+        })
+      }
+
+      if (msg.cmd === BILI_CMDS.ANCHOR_LOT_AWARD) {
+        const {
+          id,
+          award_name,
+          award_num,
+          award_users: awardUsers,
+        } = msg.data
+
+        wss.broadcast({
+          cmd: CMDS.ANCHOR_LOT_AWARD,
+          payload: {
+            id: id,
+            awardName: award_name,
+            awardNumber: award_num,
+            awardUsers
+          }
+        })
+
+        for (const awardUser of awardUsers) {
+          await lotteryDB.insert(Object.assign({}, awardUser, {
+            time: Date.now(),
+            description: `${award_name} (天选时刻)`
+          }))
+        }
+      }
+
       if (SAVE_ALL_BILI_MESSAGE) {
         await otherDB.insert({ raw: msg, format: 'array' })
       }
@@ -76,63 +132,7 @@ event.on(EVENTS.MESSAGE, async (data) => {
           fansClubNumber: fans_club
         }
       })
-      return 
-    }
-
-    if (data.cmd === BILI_CMDS.ANCHOR_LOT_START) {
-      const {
-        award_name, // description
-        award_num,
-        danmu,
-        gift_id,
-        gift_name,
-        gift_num,
-        gift_price, // 金瓜子
-        id,
-        max_time,
-        room_id,
-      } = data.data
-      wss.broadcast({
-        cmd: CMDS.ANCHOR_LOT_START,
-        payload: {
-          id: id,
-          roomId: room_id,
-          awardName: award_name,
-          awardNumber: award_num,
-          danmaku: danmu,
-          giftId: gift_id,
-          giftName: gift_name,
-          giftNumber: gift_num,
-          giftPrice: gift_price,
-          maxTime: max_time,
-        }
-      })
-    }
-
-    if (data.cmd === BILI_CMDS.ANCHOR_LOT_AWARD) {
-      const {
-        id,
-        award_name,
-        award_num,
-        award_users: awardUsers,
-      } = data.data
-
-      wss.broadcast({
-        cmd: CMDS.ANCHOR_LOT_AWARD,
-        payload: {
-          id: id,
-          awardName: award_name,
-          awardNumber: award_num,
-          awardUsers
-        }
-      })
-
-      for (const awardUser of awardUsers) {
-        await lotteryDB.insert(Object.assign({}, awardUser, {
-          time: Date.now(),
-          description: `${award_name} (天选时刻)`
-        }))
-      }
+      return
     }
 
     if (SAVE_ALL_BILI_MESSAGE) {
@@ -250,7 +250,7 @@ async function giftJob(gift) {
       cmd: CMDS.GIFT,
       payload: data
     })
-    if(global.get('isAutoReply')) {
+    if (global.get('isAutoReply')) {
       event.emit(EVENTS.AUTO_REPLY, data)
     }
   }
