@@ -1,4 +1,5 @@
 import { orderBy } from 'lodash'
+import cookie from 'cookie'
 import event from '../event'
 import global from '../global'
 import { CMDS, EVENTS } from '../const'
@@ -29,7 +30,14 @@ event.on(EVENTS.AUTO_REPLY, async (gift) => {
   const isConnected = global.get('isConnected')
   const uid = gift.uid
   if (!userCookie || !roomId || !isConnected || !autoReplyRules || !autoReplyRules.length) return
-  if (sendUserCache[uid] && sendUserCache[uid].sendAt > Date.now() - 60 * 1000) return
+  const cacheKey = `${uid}:${gift.giftId}`
+  if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
+
+  const cookies = cookie.parse(userCookie)
+  const me = cookies.DedeUserID
+  const onlyMyselfRoom = global.get('onlyMyselfRoom')
+  const roomUserId = global.get('roomUserId')
+  if (onlyMyselfRoom && `${me}` !== `${roomUserId}`) return
 
   const autoReplyRulesSorted = orderBy(autoReplyRules, ['priority'], ['desc'])
   for (const rule of autoReplyRulesSorted) {
@@ -48,13 +56,14 @@ event.on(EVENTS.AUTO_REPLY, async (gift) => {
       roomId,
       message: text,
     }, userCookie)
-    // 已发送不再向下查询
 
-    // 记录被回复的uid，一段时间内不再回复
-    sendUserCache[uid] = {
+    // 记录被回复的uid + giftId，一段时间内不再回复
+    sendUserCache[cacheKey] = {
       sendAt: Date.now(),
       name: gift.name
     }
+
+    // 已发送不再向下查询
     break
   }
 })
