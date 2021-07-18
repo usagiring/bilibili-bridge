@@ -6,6 +6,7 @@ import { CMDS, EVENTS } from '../const'
 import wss, { SocketPayload } from '../wss'
 import giftService from './'
 import { sendMessage } from '../bilibili/sdk'
+import tts from '../tts'
 
 event.on(EVENTS.GET_GIFT_CONFIG, async ({ roomId }) => {
   const giftConfigMap = giftService.getConfig({ roomId })
@@ -17,7 +18,7 @@ event.on(EVENTS.GET_GIFT_CONFIG, async ({ roomId }) => {
   wss.broadcast(data)
 })
 
-
+let isReadySpeak = true
 // [uid]: { sendAt, name }
 let sendUserCache = {}
 setInterval(() => {
@@ -29,15 +30,9 @@ event.on(EVENTS.AUTO_REPLY, async (gift) => {
   const roomId = global.get('roomId')
   const isConnected = global.get('isConnected')
   const uid = gift.uid
-  if (!userCookie || !roomId || !isConnected || !autoReplyRules || !autoReplyRules.length) return
+  if (!roomId || !isConnected || !autoReplyRules || !autoReplyRules.length) return
   const cacheKey = `${uid}:${gift.giftId}`
   if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
-
-  const cookies = cookie.parse(userCookie)
-  const me = cookies.DedeUserID
-  const onlyMyselfRoom = global.get('onlyMyselfRoom')
-  const roomUserId = global.get('roomUserId')
-  if (onlyMyselfRoom && `${me}` !== `${roomUserId}`) return
 
   const autoReplyRulesSorted = orderBy(autoReplyRules, ['priority'], ['desc'])
   for (const rule of autoReplyRulesSorted) {
@@ -52,10 +47,28 @@ event.on(EVENTS.AUTO_REPLY, async (gift) => {
     if (!text) break
     text = text.replace('{user.name}', gift.name)
     text = text.replace('{gift.name}', gift.giftName)
-    await sendMessage({
-      roomId,
-      message: text,
-    }, userCookie)
+
+    if (userCookie && rule.isTextReply) {
+      const cookies = cookie.parse(userCookie)
+      const me = cookies.DedeUserID
+      const onlyMyselfRoom = global.get('onlyMyselfRoom')
+      const roomUserId = global.get('roomUserId')
+      if (onlyMyselfRoom && `${me}` !== `${roomUserId}`) return
+
+      await sendMessage({
+        roomId,
+        message: text,
+      }, userCookie)
+    }
+
+    // 读完一条再读下一条
+    if (isReadySpeak && rule.isSpeakReply) {
+      isReadySpeak = false
+      tts(text)
+        .then(() => {
+          isReadySpeak = true
+        })
+    }
 
     // 记录被回复的uid + giftId，一段时间内不再回复
     sendUserCache[cacheKey] = {
