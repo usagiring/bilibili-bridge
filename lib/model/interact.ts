@@ -1,16 +1,18 @@
 export interface Interact {
-  _id: string
-  roomId: number
-  sendAt: number
-
+  // basic
+  _id?: string
   identities: number[]
   score?: number
   msgType: 1 | 2 | 3
 
+  // common
+  roomId: number
+  sendAt: number
+  
+  // user
   uid: number
-  name: string
-  nameColor?: string
-
+  uname: string
+  unameColor?: string
   medalLevel?: number
   medalName?: string
   medalColorBorder?: string

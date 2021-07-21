@@ -1,0 +1,7 @@
+spec:
+- test/**/*.test.js
+- test/**/*.test.ts
+require:
+- ts-node/register
+recursive: true
+exit: true
