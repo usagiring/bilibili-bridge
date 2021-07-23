@@ -1,13 +1,16 @@
 import event from '../event'
 import { EVENTS, CMDS, BILI_CMDS } from '../const'
-import { userDB, commentDB, interactDB, giftDB, lotteryDB, otherDB } from '../nedb'
+// import { userDB, commentDB, interactDB, giftDB, lotteryDB, otherDB } from '../nedb'
 import global from '../global'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
 import { parseComment, parseGift, parseInteractWord, parseUser } from './'
-import { Gift } from '../../model/gift'
-import { Comment } from '../../model/comment'
-import { Interact } from '../../model/interact'
+import { GiftDTO, Model as GiftModel } from '../../model/gift'
+import { CommentDTO, Model as CommentModel } from '../../model/comment'
+import { UserDTO, Model as UserModel } from '../../model/user'
+import { InteractDTO, Model as InteractModel } from '../../model/interact'
+import { LotteryDTO, Model as LotteryModel } from '../../model/lottery'
+import { Model as OtherModel } from '../../model/other'
 
 const GET_USER_INFO_FREQUENCY_LIMIT = global.get('GET_USER_INFO_FREQUENCY_LIMIT')
 const SAVE_ALL_BILI_MESSAGE = global.get('SAVE_ALL_BILI_MESSAGE')
@@ -114,7 +117,7 @@ event.on(EVENTS.MESSAGE, async (data) => {
         })
 
         for (const awardUser of awardUsers) {
-          await lotteryDB.insert(Object.assign({}, awardUser, {
+          await LotteryModel.insert(Object.assign({}, awardUser, {
             time: Date.now(),
             description: `${award_name} (天选时刻)`
           }))
@@ -122,7 +125,7 @@ event.on(EVENTS.MESSAGE, async (data) => {
       }
 
       if (SAVE_ALL_BILI_MESSAGE) {
-        await otherDB.insert({ raw: msg, format: 'array' })
+        await OtherModel.insert({ raw: msg, format: 'array' })
       }
     }
   } else {
@@ -139,7 +142,7 @@ event.on(EVENTS.MESSAGE, async (data) => {
     }
 
     if (SAVE_ALL_BILI_MESSAGE) {
-      await otherDB.insert({ raw: data, format: 'item' })
+      await OtherModel.insert({ raw: data, format: 'item' })
     }
   }
 })
@@ -172,46 +175,46 @@ export async function getUserInfoThrottle(uid) {
   }
 }
 
-async function commentJob(comment: Comment) {
+async function commentJob(comment: CommentDTO) {
   // console.log(`${comment.name}(${comment.uid}): ${comment.comment}`);
   if (global.get('isShowAvatar')) {
     await fillUserAvatar(comment)
   }
 
-  const data = await commentDB.insert(comment)
+  const data = await CommentModel.insert(comment)
   wss.broadcast({
     cmd: CMDS.COMMENT,
     payload: data
   })
 }
 
-async function interactJob(interact: Interact) {
+async function interactJob(interact: InteractDTO) {
   // console.log(`${interactWord.name}(${interactWord.uid}) 进入了直播间`);
-  const data = await interactDB.insert(interact)
+  const data = await InteractModel.insert(interact)
   wss.broadcast({
     cmd: CMDS.INTERACT,
     payload: data
   })
 }
 
-async function giftJob(gift: Gift) {
+async function giftJob(gift: GiftDTO) {
   if (!gift.avatar) {
     await fillUserAvatar(gift)
   }
 
-  if (gift.type === "superChat") {
-    let sc = await giftDB.findOne({
+  if (gift.type === 3) {
+    let sc = await GiftModel.findOne({
       roomId: global.get('roomId'),
-      superChatId: gift.superChatId,
+      SCId: gift.SCId,
     })
 
     // 如果找到已存在sc 并且 新sc有JPN信息，需要更新
     if (sc) {
-      if (gift.commentJPN) {
-        sc = await giftDB.update(
+      if (gift.content) {
+        sc = await GiftModel.update(
           { _id: sc._id },
           {
-            $set: { commentJPN: gift.commentJPN },
+            $set: { commentJPN: gift.contentJPN },
           },
           { returnUpdatedDocs: true }
         )
@@ -220,22 +223,22 @@ async function giftJob(gift: Gift) {
         return
       }
     } else {
-      sc = await giftDB.insert(gift)
+      sc = await GiftModel.insert(gift)
     }
 
     wss.broadcast({
       cmd: CMDS.SUPER_CHAT,
       payload: sc
     })
-  } else if (gift.type === 'gift' || gift.type === 'guard') {
+  } else if (gift.type === 1 || gift.type === 2) {
     let data
     if (gift.batchComboId) {
-      const comboGift = await giftDB.findOne({
+      const comboGift = await GiftModel.findOne({
         roomId: global.get('roomId'),
         batchComboId: gift.batchComboId,
       })
       if (comboGift) {
-        data = await giftDB.update(
+        data = await GiftModel.update(
           { _id: comboGift._id },
           {
             $set: {
@@ -247,7 +250,7 @@ async function giftJob(gift: Gift) {
       }
     }
     if (!data) {
-      data = await giftDB.insert(gift)
+      data = await GiftModel.insert(gift)
     }
     wss.broadcast({
       cmd: CMDS.GIFT,
@@ -259,17 +262,17 @@ async function giftJob(gift: Gift) {
   }
 }
 
-async function fillUserAvatar(item) {
+async function fillUserAvatar(item): Promise<UserDTO> {
   if (!item.uid) return item
   // 缓存 user 信息
-  let user = await userDB.findOne({ uid: item.uid })
+  let user = await UserModel.findOne({ uid: item.uid })
   if (!user) {
     try {
       const data = await getUserInfoThrottle(item.uid)
       // 统一格式化用户数据
       user = parseUser(data)
       data.createdAt = new Date()
-      userDB.insert(user)
+      UserModel.insert(user)
     } catch (e) {
       // throw new Error("getUserInfo limit");
     }
