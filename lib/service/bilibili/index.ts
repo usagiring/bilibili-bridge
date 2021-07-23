@@ -1,6 +1,6 @@
-import { Comment } from '../../model/comment'
-import { Gift } from '../../model/gift'
-import { Interact } from '../../model/interact'
+import { CommentDTO } from '../../model/comment'
+import { GiftDTO } from '../../model/gift'
+import { InteractDTO } from '../../model/interact'
 import global from '../global'
 
 export default {
@@ -11,7 +11,7 @@ export default {
 }
 
 
-export function parseComment(msg): Comment {
+export function parseComment(msg): CommentDTO {
   if (!~msg.cmd.indexOf("DANMU_MSG")) return
   const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
@@ -30,7 +30,7 @@ export function parseComment(msg): Comment {
     uname: name,
     isAdmin,
     role: msg.info[7],
-    comment: msg.info[1],
+    content: msg.info[1],
   }
   if (medalLevel && medalName) {
     Object.assign(comment, {
@@ -51,14 +51,14 @@ export function parseComment(msg): Comment {
   return comment
 }
 
-export function parseInteractWord(msg): Interact {
+export function parseInteractWord(msg): InteractDTO {
   if (msg.cmd !== "INTERACT_WORD") return
-  const { identities, msg_type: msgType, roomid: roomId, score, timestamp, uid, uname, uname_color: unameColor, fans_medal } = msg.data
+  const { identities, msg_type: type, roomid: roomId, score, timestamp, uid, uname, uname_color: unameColor, fans_medal } = msg.data
   const interact = {
     identities,
     roomId,
     score,
-    msgType, // 1 进入直播间 2 关注直播间 3 分享直播间
+    type, // 1 进入直播间 2 关注直播间 3 分享直播间
     sendAt: timestamp * 1000, // 
     uid,
     uname,
@@ -78,7 +78,7 @@ export function parseInteractWord(msg): Interact {
   return interact
 }
 
-export function parseGift(msg): Gift {
+export function parseGift(msg): GiftDTO {
   const now = Date.now()
   const RATE = 1000
 
@@ -110,7 +110,7 @@ export function parseGift(msg): Gift {
       uname: uname,
       avatar: face,
       role: guard_level,
-      coinType: 'gold',
+      coinType: 1,
 
       // gift
       price: price,
@@ -119,10 +119,10 @@ export function parseGift(msg): Gift {
       count: num || 1,
 
       // sc
-      superChatId: `${id}`,
-      type: 'superChat',
-      comment: message,
-      commentJPN: message_jpn,
+      SCId: `${id}`,
+      type: 3,
+      content: message,
+      contentJPN: message_jpn,
     }
   }
 
@@ -144,14 +144,14 @@ export function parseGift(msg): Gift {
       uname: username,
 
       role: guard_level,
-      coinType: 'gold',
+      coinType: 1,
 
       price: price / RATE, // 单价
       id: gift_id,
       name: gift_name,
       count: num,
 
-      type: 'guard',
+      type: 2,
     }
   }
 
@@ -177,20 +177,20 @@ export function parseGift(msg): Gift {
       role: guard_level,
 
       batchComboId: batch_combo_id,
-      coinType: coin_type,
+      coinType: coin_type === 'gold' ? 1 : 2,
       price: coin_type === 'gold' ? price / RATE : 0, // 单价
       id: giftId,
       name: giftName,
       count: num,
 
-      type: 'gift',
+      type: 1,
     }
   }
 }
 
 export function parseUser(data) {
   return {
-    uid: data.mid,
+    id: data.mid,
     name: data.name,
     avatar: data.face,
     sex: data.sex,

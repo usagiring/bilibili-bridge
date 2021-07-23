@@ -69,7 +69,7 @@ export interface QueryOptions {
   projection?: any
 }
 
-function wrapper(db) {
+export function wrapper2Async(db) {
   return {
     insert: (data): Promise<any> => {
       return new Promise((resolve, reject) => {
@@ -183,18 +183,27 @@ export function deleteDB(names) {
   }
 }
 
-const userDBWrapper = wrapper(userDB)
-const commentDBWrapper = wrapper(commentDB)
-const giftDBWrapper = wrapper(giftDB)
-const interactDBWrapper = wrapper(interactDB)
-const otherDBWrapper = wrapper(otherDB)
-const lotteryDBWrapper = wrapper(lotteryDB)
+// const userDBWrapper = wrapper(userDB)
+// const commentDBWrapper = wrapper(commentDB)
+// const giftDBWrapper = wrapper(giftDB)
+// const interactDBWrapper = wrapper(interactDB)
+// const otherDBWrapper = wrapper(otherDB)
+// const lotteryDBWrapper = wrapper(lotteryDB)
+
+// export {
+//   userDBWrapper as userDB,
+//   commentDBWrapper as commentDB,
+//   giftDBWrapper as giftDB,
+//   interactDBWrapper as interactDB,
+//   otherDBWrapper as otherDB,
+//   lotteryDBWrapper as lotteryDB
+// }
 
 export {
-  userDBWrapper as userDB,
-  commentDBWrapper as commentDB,
-  giftDBWrapper as giftDB,
-  interactDBWrapper as interactDB,
-  otherDBWrapper as otherDB,
-  lotteryDBWrapper as lotteryDB
+  userDB,
+  commentDB,
+  giftDB,
+  interactDB,
+  otherDB,
+  lotteryDB
 }
