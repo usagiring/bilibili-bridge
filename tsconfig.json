@@ -9,7 +9,7 @@
     "target": "ES6",
     "outDir": "dist",
     "module": "CommonJS",
-    "allowJs": true,
+    "allowJs": false,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

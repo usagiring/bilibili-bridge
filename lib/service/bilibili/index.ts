@@ -12,6 +12,14 @@ export function parseComment(msg) {
   if (!~msg.cmd.indexOf("DANMU_MSG")) return
   const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
+  let voice
+  try {
+    voice = JSON.parse(msg.info[0][14])
+  } catch (e) {
+
+  }
+  const voiceUrl = voice.voice_url
+  const fileDuration = voice.file_duration
   const comment = {
     roomId: global.get('roomId'),
     sendAt: msg.info[0][4],
@@ -31,6 +39,12 @@ export function parseComment(msg) {
       medalColorBorder: `#${medalColorBorder.toString(16).padStart(6, '0')}`,
       medalColorStart: `#${medalColorStart.toString(16).padStart(6, '0')}`,
       medalColorEnd: `#${medalColorEnd.toString(16).padStart(6, '0')}`,
+    })
+  }
+  if (voiceUrl && fileDuration) {
+    Object.assign(comment, {
+      voiceUrl,
+      fileDuration
     })
   }
   return comment

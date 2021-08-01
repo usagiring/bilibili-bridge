@@ -12,214 +12,176 @@ export default init
 const isTest = process.argv[2] === 'test'
 
 const test = {
-  "roomId": 6655,
-  "displayRoomId": 21452505,
-  "isConnected": false,
-  "isShowAvatar": false,
-  "isShowMemberShipIcon": true,
-  "isShowFanMedal": true,
-  "avatarSize": 0,
-  "combineSimilarTime": 3000,
-  "showGiftThreshold": 30,
-  "isShowInteractInfo": false,
-  "showGiftCardThreshold": 0,
-  "isShowSilverGift": false,
-  "guardNumber": 0,
-  "windowOpacity": 1,
-  "recordId": "",
-  "recordStartTime": 0,
-  "isRecording": false,
-  "recordDir": "",
-  "danmakuFont": "unset",
-  "isWithCookie": false,
-  "isUseMiniGiftCard": false,
-  "isAutoRecord": false,
-  "optionstring": "{A}\n{B}\n{C}",
-  "container_style": {
-    "background": "rgba(0, 0, 0, 0.3)"
-  },
-  "historyRooms": [
-    {
-      "roomId": 21449083,
-      "uname": "物述有栖Official",
-      "face": "http://i1.hdslb.com/bfs/face/b47463d917ec2dc7ef34951d51df490fa7f89531.jpg"
+    "isShowAvatar": true,
+    "isShowMemberShipIcon": true,
+    "isShowFanMedal": true,
+    "avatarSize": 24,
+    "combineSimilarTime": 3000,
+    "showHeadlineThreshold": 30,
+    "isShowInteractInfo": false,
+    "showGiftCardThreshold": 0,
+    "isShowSilverGift": false,
+    "opacity": 1,
+    "danmakuFont": "unset",
+    "isUseMiniGiftCard": false,
+    "background": "rgba(0, 0, 0, 0.3)",
+    "message_lv0": {
+        "background": "rgba(0,0,0,0)"
     },
-    {
-      "roomId": 732602,
-      "uname": "大祥哥来了",
-      "face": "http://i1.hdslb.com/bfs/face/1b1fbd26ca19e309425ba58c46822b04a20bdf17.jpg"
+    "name_lv0": {
+        "font-size": "16px",
+        "-webkit-text-stroke-width": "0px",
+        "-webkit-text-stroke-color": "white",
+        "color": "white"
     },
-    {
-      "roomId": 7544221,
-      "uname": "异株湖Official",
-      "face": "http://i0.hdslb.com/bfs/face/aa8e7e3f1b45c30773ab8e055f11c6c8f3b8ebec.jpg"
+    "comment_lv0": {
+        "font-size": "16px",
+        "color": "white",
+        "-webkit-text-stroke-color": "rgba(0,0,0,0)"
     },
-    {
-      "roomId": 22625025,
-      "uname": "向晚大魔王",
-      "face": "http://i0.hdslb.com/bfs/face/566078c52b408571d8ae5e3bcdf57b2283024c27.jpg"
+    "message_lv3": {
+        "background": "rgba(0,0,0,0)"
     },
-    {
-      "roomId": 80397,
-      "uname": "阿梓从小就很可爱",
-      "face": "http://i2.hdslb.com/bfs/face/c7ec7af2c0f456545c96daeffbef9b3762dc3363.jpg"
+    "name_lv3": {
+        "font-size": "16px",
+        "-webkit-text-stroke-width": "0px",
+        "-webkit-text-stroke-color": "crimson",
+        "color": "white"
     },
-    {
-      "roomId": 1029,
-      "uname": "黑桐谷歌",
-      "face": "http://i2.hdslb.com/bfs/face/31706c82949b3ba4756a411825c3f16aeb14ad44.jpg"
+    "comment_lv3": {
+        "font-size": "16px",
+        "color": "white",
+        "-webkit-text-stroke-color": "rgba(0,0,0,0)"
     },
-    {
-      "roomId": 22571958,
-      "uname": "美波七海-official",
-      "face": "http://i0.hdslb.com/bfs/face/bf8808261f2d8e04d3a0cb0660f50f34c0b2a32c.jpg"
+    "message_lv2": {
+        "background": "rgba(0,0,0,0)"
     },
-    {
-      "roomId": 22603245,
-      "uname": "一包薯条嘻嘻",
-      "face": "http://i1.hdslb.com/bfs/face/931e9b2e9753694145cddec57760b23b1f4596af.jpg"
+    "name_lv2": {
+        "font-size": "16px",
+        "-webkit-text-stroke-width": "0.2px",
+        "-webkit-text-stroke-color": "crimson",
+        "color": "white"
     },
-    {
-      "roomId": 850674,
-      "uname": "其妙",
-      "face": "http://i1.hdslb.com/bfs/face/b5b3f09760d3c5a4c1858317dffe7dc2b2723c8d.jpg"
+    "comment_lv2": {
+        "font-size": "16px",
+        "color": "white",
+        "-webkit-text-stroke-color": "rgba(0,0,0,0)"
     },
-    {
-      "roomId": 21452505,
-      "uname": "七海Nana7mi",
-      "face": "http://i2.hdslb.com/bfs/face/68f625cf285f2086b7a6f8248e71ca21730f1422.jpg"
-    }
-  ],
-  "0_message": {
-    "background": "rgba(0,0,0,0)"
-  },
-  "0_name": {
-    "font-size": "16px",
-    "-webkit-text-stroke-width": "0px",
-    "-webkit-text-stroke-color": "white",
-    "color": "black"
-  },
-  "0_comment": {
-    "font-size": "16px",
-    "color": "black",
-    "-webkit-text-stroke-color": "rgba(0,0,0,0)"
-  },
-  "3_message": {
-    "background": "rgba(0,0,0,0)"
-  },
-  "3_name": {
-    "font-size": "16px",
-    "-webkit-text-stroke-width": "0px",
-    "-webkit-text-stroke-color": "crimson",
-    "color": "black"
-  },
-  "3_comment": {
-    "font-size": "16px",
-    "color": "black",
-    "-webkit-text-stroke-color": "rgba(0,0,0,0)"
-  },
-  "2_message": {
-    "background": "rgba(0,0,0,0)"
-  },
-  "2_name": {
-    "font-size": "16px",
-    "-webkit-text-stroke-width": "0.2px",
-    "-webkit-text-stroke-color": "crimson",
-    "color": "black"
-  },
-  "2_comment": {
-    "font-size": "16px",
-    "color": "black",
-    "-webkit-text-stroke-color": "rgba(0,0,0,0)"
-  },
-  "1_message": {
-    "background": "rgba(0,0,0,0)"
-  },
-  "1_name": {
-    "font-size": "16px",
-    "-webkit-text-stroke-width": "0.2px",
-    "-webkit-text-stroke-color": "crimson",
-    "color": "black"
-  },
-  "1_comment": {
-    "font-size": "16px",
-    "color": "black",
-    "-webkit-text-stroke-color": "rgba(0,0,0,0)"
-  },
-  "realRoomId": 21452505,
-  "ruid": 434334701,
-  "windowWidth": 495,
-  "windowHeight": 556,
-  "windowX": 90,
-  "windowY": 0,
-  "isAlwaysOnTop": false,
-  "medalId": 193893,
-  "medalName": "脆鲨",
-  // "USER_DATA_PATH": "C:\\Users\\Holo\\AppData\\Roaming\\Electron\\data1",
-  "PORT": 8081,
-  "EXAMPLE_MESSAGES": [
-    {
-      id: 1,
-      type: "comment",
-      uid: "123456",
-      name: "bli_123456",
-      comment: "这是一条测试弹幕哟～",
-      avatar: "",
-      role: 3,
-      similar: 1,
-      medalName: '测试者',
-      "medalLevel": 6,
-      "medalColorBorder": "#5d7b9e",
-      "medalColorStart": "#5d7b9e",
-      "medalColorEnd": "#5d7b9e"
+    "message_lv1": {
+        "background": "rgba(0,0,0,0)"
     },
-    {
-      id: 2,
-      uid: "654321",
-      name: "bli_654321",
-      type: "comment",
-      comment: "～哟幕弹试测条一是这",
-      avatar: "",
-      role: 0
+    "name_lv1": {
+        "font-size": "16px",
+        "-webkit-text-stroke-width": "0.2px",
+        "-webkit-text-stroke-color": "crimson",
+        "color": "white"
     },
-    {
-      id: 6,
-      uid: "12345",
-      name: "bli_12345",
-      type: "superChat",
-      comment: "这是一条测试SuperChat哟～",
-      commentJPN: "これはテスト用のスパチャだよ〜",
-      price: 50,
-      totalPrice: 50,
-      avatar: "",
-      role: 0
+    "comment_lv1": {
+        "font-size": "16px",
+        "color": "white",
+        "-webkit-text-stroke-color": "rgba(0,0,0,0)"
     },
-    // {
-    //   id: 7,
-    //   type: "gift",
-    //   uid: 12345,
-    //   name: 'bli_12345',
-    //   avatar: DEFAULT_AVATAR,
-    //   price: 2,
-    //   giftNumber: 50,
-    //   totalPrice: 100,
-    //   giftName: '测试礼物'
-    // },
-    {
-      id: 8,
-      type: "gift",
-      uid: 777777,
-      name: 'bli_777777',
-      avatar: "",
-      isGuardGift: true,
-      price: 198,
-      giftNumber: 1,
-      totalPrice: 198,
-      giftName: '舰长'
-    }
-  ]
+    "roomId": 1,
+    "isConnected": false,
+    "USER_DATA_PATH": "C:\\Users\\Holo\\AppData\\Roaming\\Electron\\data",
+    "PORT": 8080,
+    "EXAMPLE_MESSAGES": [
+        {
+            "cmd": "EXAMPLE_COMMENT",
+            "payload": {
+                "_id": 1,
+                "id": 1,
+                "type": "comment",
+                "uid": "123456",
+                "name": "bli_123456",
+                "comment": "这是一条测试弹幕哟～",
+                "guard": 3,
+                "role": 3,
+                "similar": 1,
+                "medalName": "测试者",
+                "medalLevel": 6,
+                "medalColorBorder": "#5d7b9e",
+                "medalColorStart": "#5d7b9e",
+                "medalColorEnd": "#5d7b9e"
+            }
+        },
+        {
+            "cmd": "EXAMPLE_COMMENT",
+            "payload": {
+                "_id": 2,
+                "id": 2,
+                "guard": 0,
+                "uid": "654321",
+                "name": "bli_654321",
+                "type": "comment",
+                "comment": "～哟幕弹试测条一是这",
+                "role": 0
+            }
+        },
+        {
+            "cmd": "EXAMPLE_SUPER_CHAT",
+            "payload": {
+                "_id": 6,
+                "id": 6,
+                "uid": "12345",
+                "name": "bli_12345",
+                "type": "superChat",
+                "comment": "这是一条测试SuperChat哟～",
+                "commentJPN": "これはテスト用のスパチャだよ〜",
+                "price": 50,
+                "totalPrice": 50,
+                "role": 0,
+                "guard": 0,
+                "coinType": "gold"
+            }
+        },
+        {
+            "cmd": "EXAMPLE_GIFT",
+            "payload": {
+                "_id": 8,
+                "id": 8,
+                "type": "gift",
+                "uid": 777777,
+                "name": "bli_777777",
+                "isGuardGift": true,
+                "price": 198,
+                "giftNumber": 1,
+                "totalPrice": 198,
+                "giftName": "舰长",
+                "guard": 1,
+                "coinType": "gold"
+            }
+        }
+    ],
+    "SAVE_ALL_BILI_MESSAGE": false,
+    "HTML_PATH": "node_modules\\@tokine\\bilibili-danmaku-page",
+    "displayRoomId": 80397,
+    "guardNumber": 0,
+    "recordDir": "S:\\Video",
+    "isWithCookie": false,
+    "isAutoRecord": false,
+    "onlyMyselfRoom": true,
+    "isWatchLottery": false,
+    "optionstring": "",
+    "isAutoReply": true,
+    "autoReplyRules": [
+        {
+            "priority": 0,
+            "text": "感谢 {user.name} 赠送的 {gift.name}",
+            "onlyGold": false,
+            "isTextReply": false,
+            "isSpeakReply": false,
+            "isAutoReply": false
+        }
+    ],
+    "isSpeakReply": false,
+    "realRoomId": 80397,
+    "windowX": 1499,
+    "windowY": 134,
+    "isAlwaysOnTop": false,
+    "medalId": 13139,
+    "medalName": "小孩梓"
 }
-
 if (isTest) {
   init(test)
 }
