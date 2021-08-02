@@ -190,7 +190,7 @@ export function parseGift(msg): GiftDTO {
 
 export function parseUser(data) {
   return {
-    uid: data.mid,
+    id: data.mid,
     name: data.name,
     avatar: data.face,
     sex: data.sex,
