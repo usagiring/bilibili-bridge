@@ -11,7 +11,7 @@ export default init
 
 const isTest = process.argv[2] === 'test'
 
-const test = {
+const testConfig = {
     "isShowAvatar": true,
     "isShowMemberShipIcon": true,
     "isShowFanMedal": true,
@@ -183,5 +183,5 @@ const test = {
     "medalName": "小孩梓"
 }
 if (isTest) {
-  init(test)
+  init(testConfig)
 }

@@ -1,15 +1,19 @@
 export interface Comment {
-  _id: string
-  roomId: number
-  sendAt: number
-  uid: number
-  name: string
-  isAdmin: boolean
-  guard: 0 | 1 | 2 | 3
-  role: 0 | 1 | 2 | 3  // duplicate 
+  // basic
+  _id?: string
   comment: string
-  avatar: string
-
+  
+  // common
+  sendAt: number
+  roomId: number
+  
+  // user
+  uid: number
+  uname: string
+  isAdmin: boolean
+  // guard: 0 | 1 | 2 | 3
+  role: 0 | 1 | 2 | 3 
+  avatar?: string
   medalLevel?: number
   medalName?: string
   medalRoomId?: number

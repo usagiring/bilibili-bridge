@@ -1,6 +1,6 @@
 export interface User {
   _id: string
-  uid: number
+  id: number
   name: string
   avatar: string
   sex: string

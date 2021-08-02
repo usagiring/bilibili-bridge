@@ -5,6 +5,9 @@ import global from '../global'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
 import { parseComment, parseGift, parseInteractWord, parseUser } from './'
+import { Gift } from '../../model/gift'
+import { Comment } from '../../model/comment'
+import { Interact } from '../../model/interact'
 
 const GET_USER_INFO_FREQUENCY_LIMIT = global.get('GET_USER_INFO_FREQUENCY_LIMIT')
 const SAVE_ALL_BILI_MESSAGE = global.get('SAVE_ALL_BILI_MESSAGE')
@@ -169,7 +172,7 @@ export async function getUserInfoThrottle(uid) {
   }
 }
 
-async function commentJob(comment) {
+async function commentJob(comment: Comment) {
   // console.log(`${comment.name}(${comment.uid}): ${comment.comment}`);
   if (global.get('isShowAvatar')) {
     await fillUserAvatar(comment)
@@ -182,7 +185,7 @@ async function commentJob(comment) {
   })
 }
 
-async function interactJob(interact) {
+async function interactJob(interact: Interact) {
   // console.log(`${interactWord.name}(${interactWord.uid}) 进入了直播间`);
   const data = await interactDB.insert(interact)
   wss.broadcast({
@@ -191,7 +194,7 @@ async function interactJob(interact) {
   })
 }
 
-async function giftJob(gift) {
+async function giftJob(gift: Gift) {
   if (!gift.avatar) {
     await fillUserAvatar(gift)
   }
@@ -224,7 +227,7 @@ async function giftJob(gift) {
       cmd: CMDS.SUPER_CHAT,
       payload: sc
     })
-  } else if (gift.type === "gift") {
+  } else if (gift.type === 'gift' || gift.type === 'guard') {
     let data
     if (gift.batchComboId) {
       const comboGift = await giftDB.findOne({
@@ -236,7 +239,7 @@ async function giftJob(gift) {
           { _id: comboGift._id },
           {
             $set: {
-              giftNumber: comboGift.giftNumber + gift.giftNumber,
+              count: comboGift.count + gift.count,
             },
           },
           { returnUpdatedDocs: true }
