@@ -1,6 +1,7 @@
 import global from '../service/global'
 import giftService from '../service/gift'
-import { giftDB, QueryOptions } from '../service/nedb'
+import { QueryOptions } from '../service/nedb'
+import { Model as GiftModel } from '../model/gift'
 
 const routes = [
   {
@@ -56,7 +57,7 @@ async function query(ctx) {
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
   if (query?.name?.$regex) { query.name.$regex = new RegExp(query.name.$regex)}
-  const gifts = await giftDB.find(query, options)
+  const gifts = await GiftModel.find(query, options)
   ctx.body = {
     message: 'ok',
     data: gifts
@@ -65,7 +66,7 @@ async function query(ctx) {
 
 async function count(ctx) {
   const { query } = ctx.__body
-  const count = await giftDB.count(query)
+  const count = await GiftModel.count(query)
   ctx.body = {
     message: 'ok',
     data: count

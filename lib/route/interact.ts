@@ -1,4 +1,5 @@
-import { interactDB, QueryOptions } from '../service/nedb'
+import { QueryOptions } from '../service/nedb'
+import { Model as InteractModel } from '../model/interact'
 
 const routes = [
   {
@@ -37,7 +38,7 @@ async function query(ctx) {
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
   if (query?.name?.$regex) { query.name.$regex = new RegExp(query.name.$regex) }
-  const interacts = await interactDB.find(query, options)
+  const interacts = await InteractModel.find(query, options)
   ctx.body = {
     message: 'ok',
     data: interacts
@@ -46,7 +47,7 @@ async function query(ctx) {
 
 async function count(ctx) {
   const { query } = ctx.__body
-  const count = await interactDB.count(query)
+  const count = await InteractModel.count(query)
   ctx.body = {
     message: 'ok',
     data: count

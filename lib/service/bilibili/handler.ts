@@ -1,3 +1,4 @@
+import moment from 'moment'
 import event from '../event'
 import { EVENTS, CMDS, BILI_CMDS } from '../const'
 // import { userDB, commentDB, interactDB, giftDB, lotteryDB, otherDB } from '../nedb'
@@ -117,10 +118,14 @@ event.on(EVENTS.MESSAGE, async (data) => {
         })
 
         for (const awardUser of awardUsers) {
-          await LotteryModel.insert(Object.assign({}, awardUser, {
-            time: Date.now(),
+          const lotteryData: LotteryDTO = {
+            uid: awardUser.uid,
+            uname: awardUser.uname,
+            avatar: awardUser.face,
+            awardedAt: Date.now(),
             description: `${award_name} (天选时刻)`
-          }))
+          }
+          await LotteryModel.insert(lotteryData)
         }
       }
 
@@ -232,6 +237,13 @@ async function giftJob(gift: GiftDTO) {
     })
   } else if (gift.type === 1 || gift.type === 2) {
     let data
+    // 辣条
+    // fix: 辣条没有 batchComboId 导致无法正常堆叠
+    if (gift.id === 1) {
+      // batch:gift:combo_id:{uid}:{giftId}:{roomId}:{startOfMinute} 
+      gift.batchComboId = `batch:gift:combo_id:${gift.uid}:${gift.id}:${gift.roomId}:${moment().startOf('minute').valueOf()}`
+    }
+
     if (gift.batchComboId) {
       const comboGift = await GiftModel.findOne({
         roomId: global.get('roomId'),
@@ -271,7 +283,7 @@ async function fillUserAvatar(item): Promise<UserDTO> {
       const data = await getUserInfoThrottle(item.uid)
       // 统一格式化用户数据
       user = parseUser(data)
-      data.createdAt = new Date()
+      // data.createdAt = new Date()
       UserModel.insert(user)
     } catch (e) {
       // throw new Error("getUserInfo limit");

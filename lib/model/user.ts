@@ -2,7 +2,7 @@ import { userDB, wrapper2Async } from "../service/nedb"
 
 export interface UserDTO {
   _id?: string
-  id: number
+  uid: number
   name: string
   avatar: string
   sex: string

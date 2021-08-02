@@ -75,9 +75,15 @@ export async function insert(data): Promise<InteractDTO> {
   return deTransfer(interact)
 }
 
+export async function count(query): Promise<number> {
+  const count = await DB.count(query)
+  return count
+}
+
 export const Model = {
   find,
-  insert
+  insert,
+  count
 }
 
 function transfer(data) {
@@ -87,9 +93,9 @@ function transfer(data) {
     const transfered = {}
     for (const key in item) {
       if (FIELD_MAP[key]) {
-        transfered[FIELD_MAP[key]] = data[key]
+        transfered[FIELD_MAP[key]] = item[key]
       } else {
-        transfered[key] = data[key]
+        transfered[key] = item[key]
       }
     }
     return transfered
@@ -104,9 +110,9 @@ function deTransfer(data) {
     const transfered = {}
     for (const key in item) {
       if (REVERSE_FIELD_MAP[key]) {
-        transfered[REVERSE_FIELD_MAP[key]] = data[key]
+        transfered[REVERSE_FIELD_MAP[key]] = item[key]
       } else {
-        transfered[key] = data[key]
+        transfered[key] = item[key]
       }
     }
     return transfered

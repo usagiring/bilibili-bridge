@@ -1,4 +1,5 @@
-import { commentDB, QueryOptions } from '../service/nedb'
+import { QueryOptions } from '../service/nedb'
+import { Model as CommentModel } from '../model/comment'
 
 const routes = [
   {
@@ -38,7 +39,7 @@ async function query(ctx) {
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
   if (query?.name?.$regex) { query.name.$regex = new RegExp(query.name.$regex) }
-  const comments = await commentDB.find(query, options)
+  const comments = await CommentModel.find(query, options)
   ctx.body = {
     message: 'ok',
     data: comments
@@ -47,7 +48,7 @@ async function query(ctx) {
 
 async function count(ctx) {
   const { query } = ctx.__body
-  const count = await commentDB.count(query)
+  const count = await CommentModel.count(query)
   ctx.body = {
     message: 'ok',
     data: count

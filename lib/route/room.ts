@@ -3,8 +3,9 @@ import { COMMON_RESPONSE, ERRORS, EVENTS } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
 import { getRoomInfoV2 } from '../service/bilibili/sdk'
 import event from '../service/event'
-import { commentDB, giftDB, interactDB } from '../service/nedb'
-
+import { Model as GiftModel } from '../model/gift'
+import { Model as CommentModel } from '../model/comment'
+import { Model as InteractModel } from '../model/interact'
 const bilibiliWSClient = new BilibiliWSClient()
 
 const routes = [
@@ -82,22 +83,22 @@ async function getRealTimeViewersCount(ctx) {
   if (!startedAt) startedAt = Date.now() - 1000 * 60 * 10
 
   const [comments, gifts, interacts] = await Promise.all([
-    commentDB.find(
+    CommentModel.find(
       { roomId, sendAt: { $gte: startedAt } },
       { projection: { uid: 1 } }
     ),
-    giftDB.find(
+    GiftModel.find(
       { roomId, sendAt: { $gte: startedAt } },
       { projection: { uid: 1 } }
     ),
-    interactDB.find(
+    InteractModel.find(
       { roomId, sendAt: { $gte: startedAt } },
       { projection: { uid: 1 } }
     ),
   ])
   const countMap = comments
-    .concat(gifts)
-    .concat(interacts)
+    .concat(gifts as any)
+    .concat(interacts as any)
     .reduce((map, i) => {
       map[i.uid] = 1
       return map

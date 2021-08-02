@@ -106,7 +106,7 @@ export function parseGift(msg): GiftDTO {
       roomId: global.get('roomId'),
       sendAt: now,
       // user
-      uid,
+      uid: Number(uid),
       uname: uname,
       avatar: face,
       role: guard_level,
@@ -140,7 +140,7 @@ export function parseGift(msg): GiftDTO {
     return {
       roomId: global.get('roomId'),
       sendAt: now,
-      uid,
+      uid: Number(uid),
       uname: username,
 
       role: guard_level,
@@ -171,7 +171,7 @@ export function parseGift(msg): GiftDTO {
     return {
       roomId: global.get('roomId'),
       sendAt: now,
-      uid,
+      uid: Number(uid),
       uname: uname,
       avatar: face,
       role: guard_level,
@@ -190,7 +190,7 @@ export function parseGift(msg): GiftDTO {
 
 export function parseUser(data) {
   return {
-    id: data.mid,
+    uid: data.mid,
     name: data.name,
     avatar: data.face,
     sex: data.sex,

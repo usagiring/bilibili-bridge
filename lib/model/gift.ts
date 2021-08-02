@@ -55,9 +55,15 @@ export async function update(query, data, options): Promise<GiftDTO> {
   return gift
 }
 
+export async function count(query): Promise<number> {
+  const count = await DB.count(query)
+  return count
+}
+
 export const Model = {
   find,
   findOne,
   update,
   insert,
+  count
 }
