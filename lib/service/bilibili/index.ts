@@ -15,14 +15,16 @@ export function parseComment(msg): CommentDTO {
   if (!~msg.cmd.indexOf("DANMU_MSG")) return
   const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
-  let voice
+  let emoji = msg.info[0][13] || {}
+  let voice = msg.info[0][14] || {}
   try {
-    voice = JSON.parse(msg.info[0][14])
+    emoji = typeof emoji === 'string' ? JSON.parse(emoji) : emoji
+    voice = typeof voice === 'string' ? JSON.parse(voice) : voice
   } catch (e) {
-
+    // silence
   }
-  const voiceUrl = voice.voice_url
-  const fileDuration = voice.file_duration
+  const { voice_url: voiceUrl, file_duration: fileDuration } = voice
+  const { url: emojiUrl } = emoji
   const comment = {
     roomId: global.get('roomId'),
     sendAt: msg.info[0][4],
@@ -46,6 +48,11 @@ export function parseComment(msg): CommentDTO {
     Object.assign(comment, {
       voiceUrl,
       fileDuration
+    })
+  }
+  if (emojiUrl) {
+    Object.assign(comment, {
+      emojiUrl
     })
   }
   return comment
