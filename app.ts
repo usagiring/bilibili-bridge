@@ -10,6 +10,7 @@ import serve from 'koa-static'
 // 注册事件
 import './lib/service/bilibili/handler'
 import './lib/service/gift/handler'
+import './lib/service/handler'
 
 const PORT = global.get('PORT') || 3000
 

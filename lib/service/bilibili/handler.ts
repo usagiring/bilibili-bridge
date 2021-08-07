@@ -6,6 +6,7 @@ import global from '../global'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
 import { parseComment, parseGift, parseInteractWord, parseUser } from './'
+import { parseAutoReplyMessage } from '../handler'
 import { GiftDTO, Model as GiftModel } from '../../model/gift'
 import { CommentDTO, Model as CommentModel } from '../../model/comment'
 import { UserDTO, Model as UserModel } from '../../model/user'
@@ -191,6 +192,8 @@ async function commentJob(comment: CommentDTO) {
     cmd: CMDS.COMMENT,
     payload: data
   })
+
+  event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'comment'))
 }
 
 async function interactJob(interact: InteractDTO) {
@@ -200,6 +203,8 @@ async function interactJob(interact: InteractDTO) {
     cmd: CMDS.INTERACT,
     payload: data
   })
+
+  event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
 }
 
 async function giftJob(gift: GiftDTO) {
@@ -235,6 +240,8 @@ async function giftJob(gift: GiftDTO) {
       cmd: CMDS.SUPER_CHAT,
       payload: sc
     })
+
+    event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
   } else if (gift.type === 1 || gift.type === 2) {
     let data
     // 辣条
@@ -268,9 +275,8 @@ async function giftJob(gift: GiftDTO) {
       cmd: CMDS.GIFT,
       payload: data
     })
-    if (global.get('isAutoReply')) {
-      event.emit(EVENTS.AUTO_REPLY, data)
-    }
+
+    event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
   }
 }
 
