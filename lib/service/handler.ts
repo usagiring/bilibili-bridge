@@ -15,6 +15,7 @@ interface Message {
     medalName?: string
     role?: number
     content?: string
+    coinType?: string
     giftId?: string
     giftName?: string
 }
@@ -47,6 +48,7 @@ export function parseAutoReplyMessage(message, type): Message {
     if (type === 'gift') {
         result.giftId = message.id
         result.giftName = message.name
+        result.coinType = message.coinType
     }
     return result
 }
