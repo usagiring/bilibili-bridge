@@ -15,7 +15,7 @@ const routes = [
     validator: {
       type: 'object',
       properties: {
-        type: { type: 'string' },
+        category: { type: 'string' },
         data: { type: 'object' }
       }
     }
@@ -47,9 +47,9 @@ async function clear(ctx) {
 }
 
 async function sendExampleMessages(ctx) {
-  const { type, data } = ctx.__body
+  const { category, data } = ctx.__body
   let cmd = ''
-  switch (type) {
+  switch (category) {
     case 'comment':
       cmd = CMDS.EXAMPLE_COMMENT
       break
