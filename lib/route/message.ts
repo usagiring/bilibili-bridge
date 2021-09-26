@@ -10,6 +10,18 @@ const routes = [
   },
   {
     verb: 'post',
+    uri: '/messages/send',
+    middlewares: [sendMessages],
+    validator: {
+      type: 'object',
+      properties: {
+        category: { type: 'string' },
+        data: { type: 'object' }
+      }
+    }
+  },
+  {
+    verb: 'post',
     uri: '/messages/examples/send',
     middlewares: [sendExampleMessages],
     validator: {
@@ -44,6 +56,31 @@ async function clear(ctx) {
   ctx.body = {
     message: 'ok'
   }
+}
+
+async function sendMessages(ctx) {
+  const { category, data } = ctx.__body
+  let cmd = ''
+  switch (category) {
+    case 'comment':
+      cmd = CMDS.COMMENT
+      break
+    case 'gift':
+      cmd = CMDS.GIFT
+      break
+    case 'interact':
+      cmd = CMDS.INTERACT
+      break
+    case 'superChat':
+      cmd = CMDS.SUPER_CHAT
+      break
+  }
+  wss.broadcast({
+    cmd,
+    payload: data
+  })
+
+  ctx.body = COMMON_RESPONSE
 }
 
 async function sendExampleMessages(ctx) {
