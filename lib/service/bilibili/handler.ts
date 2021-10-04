@@ -14,7 +14,7 @@ import { InteractDTO, Model as InteractModel } from '../../model/interact'
 import { LotteryDTO, Model as LotteryModel } from '../../model/lottery'
 import { Model as OtherModel } from '../../model/other'
 
-const GET_USER_INFO_FREQUENCY_LIMIT = global.get('GET_USER_INFO_FREQUENCY_LIMIT')
+const GET_USER_INFO_FREQUENCY_LIMIT = global.get('userInfoFrequencyLimit')
 const SAVE_ALL_BILI_MESSAGE = global.get('SAVE_ALL_BILI_MESSAGE')
 
 event.on(EVENTS.NINKI, async (data) => {

@@ -56,7 +56,7 @@ async function query(ctx) {
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
-  if (query?.name?.$regex) { query.name.$regex = new RegExp(query.name.$regex)}
+  if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex)}
   const gifts = await GiftModel.find(query, options)
   ctx.body = {
     message: 'ok',
