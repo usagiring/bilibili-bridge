@@ -73,12 +73,12 @@ const DB = wrapper2Async(commentDB)
 
 export async function find(query, options): Promise<CommentDTO[]> {
   const comments: Comment[] = await DB.find(transfer(query), options)
-  return deTransfer(comments)
+  return deTransfer(comments) as CommentDTO[]
 }
 
 export async function insert(data): Promise<CommentDTO> {
   const comment: Comment = await DB.insert(transfer(data))
-  return deTransfer(comment)
+  return deTransfer(comment) as CommentDTO
 }
 
 export async function count(query): Promise<number> {

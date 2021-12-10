@@ -13,7 +13,7 @@ import lotteryAPIs from './lottery'
 
 interface RouteInfo {
   verb: string
-  middlewares: Function[]
+  middlewares: any[]
   uri: string
   validator?: any
 }

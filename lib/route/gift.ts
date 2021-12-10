@@ -2,6 +2,7 @@ import global from '../service/global'
 import giftService from '../service/gift'
 import { QueryOptions } from '../service/nedb'
 import { Model as GiftModel } from '../model/gift'
+import { parseQueryRegexp } from '../service/util'
 
 const routes = [
   {
@@ -56,7 +57,8 @@ async function query(ctx) {
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
-  if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex)}
+  // if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex)}
+  parseQueryRegexp(query)
   const gifts = await GiftModel.find(query, options)
   ctx.body = {
     message: 'ok',

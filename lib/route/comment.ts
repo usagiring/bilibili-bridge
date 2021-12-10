@@ -1,5 +1,6 @@
 import { QueryOptions } from '../service/nedb'
 import { Model as CommentModel } from '../model/comment'
+import { parseQueryRegexp } from '../service/util'
 
 const routes = [
   {
@@ -38,7 +39,8 @@ async function query(ctx) {
   if (skip) { options.skip = skip }
   if (limit) { options.limit = limit }
   if (projection) { options.projection = projection }
-  if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex) }
+  // if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex) }
+  parseQueryRegexp(query)
   const comments = await CommentModel.find(query, options)
   ctx.body = {
     message: 'ok',

@@ -10,7 +10,7 @@ export interface InteractDTO {
   // common
   roomId: number
   sendAt: number
-  
+
   // user
   uid: number
   uname: string
@@ -32,7 +32,7 @@ export interface Interact {
   // common
   roomId: number
   sendAt: number
-  
+
   // user
   uid: number
   uname: string
@@ -67,12 +67,12 @@ const DB = wrapper2Async(interactDB)
 
 export async function find(query, options): Promise<InteractDTO[]> {
   const interacts: Interact[] = await DB.find(transfer(query), options)
-  return deTransfer(interacts)
+  return deTransfer(interacts) as InteractDTO[]
 }
 
 export async function insert(data): Promise<InteractDTO> {
   const interact: Interact = await DB.insert(transfer(data))
-  return deTransfer(interact)
+  return deTransfer(interact) as InteractDTO
 }
 
 export async function count(query): Promise<number> {

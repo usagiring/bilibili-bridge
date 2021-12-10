@@ -1,7 +1,6 @@
 import moment from 'moment'
 import event from '../event'
 import { EVENTS, CMDS, BILI_CMDS } from '../const'
-// import { userDB, commentDB, interactDB, giftDB, lotteryDB, otherDB } from '../nedb'
 import global from '../global'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
@@ -224,7 +223,7 @@ async function giftJob(gift: GiftDTO) {
         sc = await GiftModel.update(
           { _id: sc._id },
           {
-            $set: { commentJPN: gift.contentJPN },
+            $set: { contentJPN: gift.contentJPN },
           },
           { returnUpdatedDocs: true }
         )
