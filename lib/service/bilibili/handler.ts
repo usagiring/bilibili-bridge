@@ -145,10 +145,10 @@ event.on(EVENTS.MESSAGE, async (data) => {
       })
       return
     }
-
-    if (SAVE_ALL_BILI_MESSAGE) {
-      await OtherModel.insert({ raw: data, format: 'item' })
-    }
+  }
+  
+  if (SAVE_ALL_BILI_MESSAGE) {
+    await OtherModel.insert({ raw: data, format: 'item' })
   }
 })
 
