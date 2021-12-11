@@ -128,10 +128,6 @@ event.on(EVENTS.MESSAGE, async (data) => {
           await LotteryModel.insert(lotteryData)
         }
       }
-
-      if (SAVE_ALL_BILI_MESSAGE) {
-        await OtherModel.insert({ raw: msg, format: 'array' })
-      }
     }
   } else {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
@@ -146,9 +142,9 @@ event.on(EVENTS.MESSAGE, async (data) => {
       return
     }
   }
-  
+
   if (SAVE_ALL_BILI_MESSAGE) {
-    await OtherModel.insert({ raw: data, format: 'item' })
+    await OtherModel.insert({ raw: data })
   }
 })
 
