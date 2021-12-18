@@ -4,6 +4,7 @@ export interface CommentDTO {
   // basic
   _id?: string
   content: string
+  type: number
 
   // common
   sendAt: number
@@ -21,6 +22,9 @@ export interface CommentDTO {
   medalColorBorder?: string
   medalColorStart?: string
   medalColorEnd?: string
+
+  // tokenization
+  
 }
 interface Comment {
   // basic

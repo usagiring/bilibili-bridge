@@ -33,6 +33,7 @@ export function parseComment(msg): CommentDTO {
     isAdmin,
     role: msg.info[7],
     content: msg.info[1],
+    type: msg.info[0][9] // 0：普通弹幕 1：节奏风暴 2：天选时刻
   }
   if (medalLevel && medalName) {
     Object.assign(comment, {

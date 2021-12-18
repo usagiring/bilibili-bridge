@@ -35,7 +35,7 @@ type Gift = GiftDTO
 
 const DB = wrapper2Async(giftDB)
 
-export async function find(query, options): Promise<GiftDTO[]> {
+export async function find(query, options?): Promise<GiftDTO[]> {
   const gifts: Gift[] = await DB.find(query, options)
   return gifts
 }
@@ -50,7 +50,7 @@ export async function findOne(query): Promise<GiftDTO> {
   return gift
 }
 
-export async function update(query, data, options): Promise<GiftDTO> {
+export async function update(query, data, options?): Promise<GiftDTO> {
   const gift: Gift = await DB.update(query, data, options)
   return gift
 }

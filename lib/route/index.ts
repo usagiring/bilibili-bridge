@@ -10,6 +10,7 @@ import messageAPIs from './message'
 import commentAPIs from './comment'
 import interactAPIs from './interact'
 import lotteryAPIs from './lottery'
+import statisticAPIs from './statistic'
 
 interface RouteInfo {
   verb: string
@@ -32,6 +33,7 @@ apiRouter.get('/touch', (ctx) => {
   ...commentAPIs,
   ...interactAPIs,
   ...lotteryAPIs,
+  ...statisticAPIs,
 ]
   .forEach(({ verb, middlewares, uri, validator }: RouteInfo) => {
     if (validator) {
