@@ -24,3 +24,5 @@ export const parseQueryRegexp = (query: any) => {
         }
     }
 }
+
+export const parseNumber = (number) => Number.isSafeInteger(number) ? Number(Number(number).toFixed(0)) : Number(Number(number).toFixed(1))

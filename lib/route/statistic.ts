@@ -1,5 +1,7 @@
 import statisticService from '../service/statistic'
 import { COMMON_RESPONSE } from '../service/const'
+import { dateFormat } from '../service/util'
+import { Readable } from 'stream'
 
 const routes = [
   {
@@ -43,6 +45,20 @@ const routes = [
       }
     }
   },
+
+  {
+    verb: 'post',
+    uri: '/export',
+    middlewares: [exportFile],
+    validator: {
+      type: 'object',
+      properties: {
+        roomId: { type: 'number' },
+        start: { type: 'string' },
+        end: { type: 'string' },
+      }
+    }
+  },
 ]
 
 async function statistic(ctx) {
@@ -68,5 +84,25 @@ async function wordExtract(ctx) {
     data: result
   }
 }
+
+async function exportFile(ctx) {
+  const { roomId, start, end } = ctx.__body
+
+  const filename = `${roomId}_${dateFormat(new Date(), 'YYYYMMDD_HHmmss')}_.csv`
+
+  const str = await statisticService.generateCSV({ roomId, start, end })
+  ctx.set(
+    'Content-Disposition',
+    `attachment;filename=${encodeURIComponent(filename)}`
+  )
+  // ctx.statusCode = 200
+  const s = new Readable()
+
+  // ctx.body = str
+  s.push(str)
+  s.push(null)
+  ctx.body = s
+}
+
 
 export default routes
