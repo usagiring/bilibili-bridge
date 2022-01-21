@@ -3,10 +3,10 @@ import cookie from 'cookie'
 import event from './event'
 import global from './global'
 import { CMDS, EVENTS } from './const'
-import wss, { SocketPayload } from './wss'
 // import giftService from './'
-import { sendMessage } from './bilibili/sdk'
+import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
 import tts from './tts'
+import wss from './wss'
 
 interface Message {
     type: 'comment' | 'gift' | 'interact' | 'superchat'
@@ -157,7 +157,7 @@ async function isPassed(message, rule) {
             }
         }
         if (tag.key === 'GIFT') {
-            if(!Number.isFinite(message.giftId)) return false
+            if (!Number.isFinite(message.giftId)) return false
             const { giftIds } = tag.data || {}
             if (giftIds && giftIds.length && Number.isFinite(message.giftId)) {
                 if (!giftIds.includes(`${message.giftId}`)) {
@@ -186,3 +186,103 @@ async function isPassed(message, rule) {
 
     return true
 }
+
+let muteCommandCache = {}
+setInterval(() => {
+    // TODO
+    muteCommandCache = {}
+}, 60 * 1000 * 10) // 10min
+
+event.on(EVENTS.DANMAKU_COMMAND, async (comment) => {
+    const muteCommandSetting = global.get('muteCommandSetting')
+    if (!muteCommandSetting) return
+    const userCookie = global.get('userCookie')
+    if (!userCookie) return
+    const { count, enable, roles, useHintText } = muteCommandSetting
+    if (!enable) return
+
+    const { content, roomId, isAdmin, role, uid } = comment
+    const keyword = muteCommandSetting.keyword || '#禁言:'
+    if (!content.startsWith(keyword)) return
+    const username = content.replace(keyword, '').trim()
+    // [] = all
+    // [1, 2, 3, admin, owner]
+    // 当前房间主播ID
+    const roomUserId = global.get('roomUserId')
+    const isOwner = roomUserId && `${roomUserId}` === `${uid}`
+    if (
+        roles?.length &&
+        !roles.includes(`${role}`) &&
+        !(isAdmin && roles.includes('admin')) &&
+        !(isOwner && roles.includes('owner'))
+    ) {
+        return
+    }
+
+    if (muteCommandCache[content] && muteCommandCache[content].expiredAt > new Date().getTime()) {
+        if (!muteCommandCache[content].uids?.[uid]) {
+            muteCommandCache[content].current++
+            muteCommandCache[content].uids[uid] = true
+        }
+    } else {
+        muteCommandCache[content] = {
+            uids: { [uid]: true },
+            expiredAt: new Date().getTime() + 60 * 1000, // 1min
+            current: 1,
+            count: count,
+            isSendHintText: false
+        }
+    }
+
+    const { current: __current, count: __count, isSendHintText } = muteCommandCache[content]
+    if (__current < __count) {
+        // sendHintText()
+        if (!useHintText) return
+        if (isSendHintText) return
+        let hintText = muteCommandSetting.hintText
+        hintText = hintText.replace('{user}', username)
+        hintText = hintText.replace('{count}', __count)
+        sendMessage({
+            roomId,
+            message: hintText,
+        }, userCookie)
+        muteCommandCache[content].isSendHintText = true
+        return
+    }
+
+    try {
+        const { data } = await searchUser({ name: username }, userCookie)
+        const user = data?.items?.[0]
+        if (!user) return
+        // {
+        //  "uid": 0,
+        //  "face": "",
+        //  "uname": ""
+        // }
+
+        // 成功与否都返回 {}
+        await addSilentUser({
+            roomId,
+            tuid: user.uid,
+        }, userCookie)
+
+        wss.broadcast({
+            cmd: CMDS.DANMAKU_COMMAND_RESULT,
+            payload: {
+                status: 'success',
+                type: 'mute',
+                message: 'ok',
+                user
+            }
+        })
+    } catch (e) {
+        wss.broadcast({
+            cmd: CMDS.DANMAKU_COMMAND_RESULT,
+            payload: {
+                status: 'failed',
+                type: 'mute',
+                message: e.message,
+            }
+        })
+    }
+})

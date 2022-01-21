@@ -56,53 +56,65 @@ const routes = [
 async function get(ctx) {
   const { path } = ctx.__body
   const data = path ? global.get(path) : global.all()
-  delete data.userCookie
+  const res = {
+    ...data,
+    userCookie: null,
+  }
   if (!data) throw HTTP_ERRORS.NOT_FOUND
   ctx.body = {
     message: 'ok',
-    data
+    data: res
   }
 }
 
 function update(ctx) {
   const payload = ctx.__body
   const settings = global.update(payload)
-  delete settings.userCookie
+  const res = {
+    ...settings,
+    userCookie: null,
+  }
   wss.broadcast({
     cmd: CMDS.SETTING,
-    payload: settings
+    payload: res
   })
   ctx.body = {
     message: 'ok',
-    data: settings
+    data: res
   }
 }
 
 function merge(ctx) {
   const payload = ctx.__body
   const settings = global.merge(payload)
-  delete settings.userCookie
+  const res = {
+    ...settings,
+    userCookie: null,
+  }
   wss.broadcast({
     cmd: CMDS.SETTING,
-    payload: pick(settings, Object.keys(payload))
+    payload: pick(res, Object.keys(payload))
   })
   ctx.body = {
     message: 'ok',
-    data: payload
+    data: res
   }
 }
 
 function replace(ctx) {
   const payload = ctx.__body
   const settings = global.replace(payload)
-  delete settings.userCookie
+  const res = {
+    ...settings,
+    userCookie: null,
+  }
   wss.broadcast({
     cmd: CMDS.SETTING,
-    payload: settings
+    payload: res
   })
   ctx.body = {
     message: 'ok',
-    data: settings
+    data: res
   }
 }
 

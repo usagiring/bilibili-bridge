@@ -145,5 +145,47 @@ export async function sendBagGift(data, userCookie) {
     // adapter: httpAdapter
   })
   return res
+}
 
+export async function searchUser(data, userCookie) {
+  const { name } = data
+  const res = await axios.get(
+    `https://api.live.bilibili.com/banned_service/v2/Silent/search_user?search=${encodeURIComponent(name)}`,
+    {
+      headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+      // adapter: httpAdapter
+    }
+  )
+  return res.data
+}
+
+interface AddSilentUserOption {
+  roomId: number
+  tuid: number
+  mobile_app?: string
+  visit_id?: string // 12dim random string? eg.1qhhblrij268
+}
+
+export async function addSilentUser(data: AddSilentUserOption, userCookie) {
+  const { roomId, tuid, mobile_app, visit_id } = data
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
+  const params = querystring.stringify({
+    room_id: roomId,
+    tuid,
+    mobile_app: mobile_app || 'web',
+    csrf_token: csrf,
+    csrf: csrf,
+    visit_id: visit_id || '',
+  })
+
+  const res = await axios.post(
+    `https://api.live.bilibili.com/xlive/web-ucenter/v1/banned/AddSilentUser`,
+    params,
+    {
+      headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+      // adapter: httpAdapter
+    }
+  )
+  return res.data
 }

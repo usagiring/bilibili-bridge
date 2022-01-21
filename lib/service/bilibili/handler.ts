@@ -189,6 +189,7 @@ async function commentJob(comment: CommentDTO) {
   })
 
   event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'comment'))
+  event.emit(EVENTS.DANMAKU_COMMAND, data)
 }
 
 async function interactJob(interact: InteractDTO) {
