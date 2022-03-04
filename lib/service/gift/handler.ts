@@ -4,7 +4,7 @@ import wss, { SocketPayload } from '../wss'
 import giftService from './'
 
 event.on(EVENTS.GET_GIFT_CONFIG, async ({ roomId }) => {
-  const giftConfigMap = giftService.getConfig({ roomId })
+  const giftConfigMap = await giftService.getConfig({ roomId })
 
   const data: SocketPayload = {
     cmd: CMDS.GIFT_CONFIG,
