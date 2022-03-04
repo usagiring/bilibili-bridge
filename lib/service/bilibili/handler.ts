@@ -128,6 +128,17 @@ event.on(EVENTS.MESSAGE, async (data) => {
           await LotteryModel.insert(lotteryData)
         }
       }
+
+      if (msg.cmd === BILI_CMDS.WATCHED_CHANGE) {
+        // {"num":3727,"text_small":"3727","text_large":"3727人看过"}
+        const { num } = msg.data
+        wss.broadcast({
+          cmd: CMDS.WATCHED_CHANGE,
+          payload: {
+            watchedNumber: num,
+          }
+        })
+      }
     }
   } else {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
