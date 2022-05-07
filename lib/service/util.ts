@@ -26,3 +26,5 @@ export const parseQueryRegexp = (query: any) => {
 }
 
 export const parseNumber = (number) => Number.isSafeInteger(number) ? Number(Number(number).toFixed(0)) : Number(Number(number).toFixed(1))
+
+export const transformColorNumber2String = (number) => `#${number.toString(16).padStart(6, '0')}`

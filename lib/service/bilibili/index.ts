@@ -2,6 +2,7 @@ import { CommentDTO } from '../../model/comment'
 import { GiftDTO } from '../../model/gift'
 import { InteractDTO } from '../../model/interact'
 import global from '../global'
+import { transformColorNumber2String } from '../util'
 
 export default {
   parseComment,
@@ -33,6 +34,7 @@ export function parseComment(msg): CommentDTO {
     isAdmin,
     role: msg.info[7],
     content: msg.info[1],
+    color: transformColorNumber2String(msg.info[0][3]),
     type: msg.info[0][9] // 0：普通弹幕 1：节奏风暴 2：天选时刻
   }
   if (medalLevel && medalName) {
@@ -40,9 +42,9 @@ export function parseComment(msg): CommentDTO {
       medalLevel,
       medalName,
       medalRoomId,
-      medalColorBorder: `#${medalColorBorder.toString(16).padStart(6, '0')}`,
-      medalColorStart: `#${medalColorStart.toString(16).padStart(6, '0')}`,
-      medalColorEnd: `#${medalColorEnd.toString(16).padStart(6, '0')}`,
+      medalColorBorder: transformColorNumber2String(medalColorBorder),
+      medalColorStart: transformColorNumber2String(medalColorStart),
+      medalColorEnd: transformColorNumber2String(medalColorEnd),
     })
   }
   if (voiceUrl && fileDuration) {
@@ -78,9 +80,9 @@ export function parseInteractWord(msg): InteractDTO {
       // medalGuardLevel: guard_level,
       medalLevel: medal_level,
       medalName: medal_name,
-      medalColorBorder: `#${medal_color_border.toString(16).padStart(6, '0')}`,
-      medalColorStart: `#${medal_color_start.toString(16).padStart(6, '0')}`,
-      medalColorEnd: `#${medal_color_end.toString(16).padStart(6, '0')}`,
+      medalColorBorder: transformColorNumber2String(medal_color_border),
+      medalColorStart: transformColorNumber2String(medal_color_start),
+      medalColorEnd: transformColorNumber2String(medal_color_end),
     })
   }
   return interact
