@@ -1,5 +1,9 @@
 import ffmpeg from 'fluent-ffmpeg'
 
+export function setFfmpegPath(path) {
+    ffmpeg.setFfmpegPath(path)
+}
+
 // https://trac.ffmpeg.org/wiki/audio%20types
 // alicloud: pcm 16bit 16000K singleChannel
 export function getAudioStream({ url }) {

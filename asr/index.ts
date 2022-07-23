@@ -1,6 +1,6 @@
 import { SpeechTranscription as AliSpeechTranscription } from "alibabacloud-nls"
 import AliClient from './src/alicloud/client'
-import { getAudioStream } from './src/ffmpeg'
+import { getAudioStream, setFfmpegPath } from './src/ffmpeg'
 
 interface SpeechTranscriptionOption {
     // service?: 'alicloud'
@@ -8,6 +8,7 @@ interface SpeechTranscriptionOption {
     appKey: string
     accessKeyId: string
     accessKeySecret: string
+    ffmpegPath?: string
 }
 
 type Event = 'change' | 'begin' | 'end'
@@ -27,9 +28,12 @@ export default class ASR {
         appKey,
         accessKeyId,
         accessKeySecret,
+        ffmpegPath,
     }: SpeechTranscriptionOption) {
+        if (ffmpegPath) {
+            setFfmpegPath(ffmpegPath)
+        }
         const aliClient = new AliClient({ accessKeyId, accessKeySecret })
-        console.log(appKey, serviceUrl)
         this.asr = new AliSpeechTranscription({
             url: serviceUrl, // wss://nls-gateway-cn-shanghai.aliyuncs.com/ws/v1
             token: await aliClient.getToken(),

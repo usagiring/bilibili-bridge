@@ -1,0 +1,19 @@
+{
+  "name": "mt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@alicloud/alimt20181012": "^1.0.3",
+    "@alicloud/openapi-client": "^0.3.8"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  }
+}

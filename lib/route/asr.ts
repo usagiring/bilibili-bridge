@@ -1,4 +1,6 @@
 import ASR from '@tokine/asr'
+import Alimt from '@tokine/mt'
+
 import global from '../service/global'
 import { CMDS, COMMON_RESPONSE } from '../service/const'
 import wss, { SocketPayload } from '../service/wss'
@@ -19,6 +21,11 @@ const routes = [
         uri: '/asr/close',
         middlewares: [close],
     },
+    {
+        verb: 'post',
+        uri: '/translate',
+        middlewares: [translate],
+    }
 ]
 
 async function status(ctx) {
@@ -46,6 +53,7 @@ async function initial(ctx) {
         accessKeySecret: accessKeySecret,
         serviceUrl: serviceUrl,
         appKey: appKey,
+        ffmpegPath,
     })
 
     asr.start({
@@ -68,6 +76,24 @@ async function initial(ctx) {
         wss.broadcast(data)
     })
 
+    // {
+    //     "header": {
+    //         "namespace": "SpeechTranscriber",
+    //         "name": "TranscriptionResultChanged",
+    //         "status": 20000000,
+    //         "message_id": "053e0932f3b541898073268e2bdf5c1b",
+    //         "task_id": "0af33d971fc24020966e2acef8d2f5d7",
+    //         "status_text": "Gateway:SUCCESS:Success."
+    //     },
+    //     "payload": {
+    //         "index": 15,
+    //         "time": 77940,
+    //         "result": "有你等他收拾一下等他",
+    //         "confidence": 0.87,
+    //         "words": [],
+    //         "status": 0
+    //     }
+    // }
     asr.on('change', (msg) => {
         const data: SocketPayload = {
             cmd: CMDS.ASR_SENTENCE_CHANGE,
@@ -94,6 +120,38 @@ async function close(ctx) {
 
     global.set('asrInstance', null)
     ctx.body = COMMON_RESPONSE
+}
+
+async function translate(ctx) {
+    const { from, to, text, accessKeyId, accessKeySecret, payload } = ctx.__body
+
+    let mtInstance = global.get('mtInstance')
+    if (!mtInstance) {
+        mtInstance = new Alimt({
+            accessKeyId,
+            accessKeySecret,
+        })
+        global.set('mtInstance', mtInstance)
+    }
+
+    const result = await mtInstance.translateGeneral({
+        text,
+        from,
+        to
+    })
+
+    const data: SocketPayload = {
+        cmd: CMDS.MECHINE_TRANSLATE,
+        payload: {
+            ...payload,
+            message: result?.body?.data?.translated
+        }
+    }
+    wss.broadcast(data)
+    
+    ctx.body = {
+        message: result?.body?.data?.translated
+    }
 }
 
 
