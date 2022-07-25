@@ -24,7 +24,6 @@ export interface CommentDTO {
   medalColorEnd?: string
 
   // tokenization
-  
 }
 interface Comment {
   // basic
