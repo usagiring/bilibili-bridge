@@ -35,7 +35,12 @@ const routes = [
     verb: 'post',
     uri: '/translate/close',
     middlewares: [translateClose],
-  }
+  },
+  {
+    verb: 'get',
+    uri: '/translate/status',
+    middlewares: [translateStatus],
+  },
 ]
 
 async function status(ctx) {
@@ -218,6 +223,20 @@ async function translateClose(ctx) {
   global.set('mtInstanceStatus', false)
   global.set('mtInstance', null)
   ctx.body = COMMON_RESPONSE
+}
+
+async function translateStatus(ctx) {
+  const isOpen = global.get('mtInstanceStatus')
+  const fromLang = global.get('mtInstanceFromLang')
+  const toLang = global.get('mtInstanceToLang')
+  const message = isOpen ? '1' : '0'
+  ctx.body = {
+    message,
+    data: {
+      fromLang,
+      toLang
+    }
+  }
 }
 
 export default routes
