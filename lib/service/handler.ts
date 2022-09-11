@@ -5,7 +5,7 @@ import global from './global'
 import { CMDS, EVENTS } from './const'
 // import giftService from './'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
-import tts from './tts'
+// import tts from './tts'
 import wss from './wss'
 
 interface Message {
@@ -53,12 +53,12 @@ export function parseAutoReplyMessage(message, type): Message {
     return result
 }
 
-let isReadySpeak = true
+// let isReadySpeak = true
 // [uid]: { sendAt, name }
-let sendUserCache = {}
-setInterval(() => {
-    sendUserCache = {}
-}, 60 * 1000 * 10) // TODO config
+// let sendUserCache = {}
+// setInterval(() => {
+//     sendUserCache = {}
+// }, 60 * 1000 * 10) // TODO config
 
 event.on(EVENTS.AUTO_REPLY, async (message) => {
     const autoReplyRules = global.get('autoReplyRules')
@@ -66,8 +66,8 @@ event.on(EVENTS.AUTO_REPLY, async (message) => {
     const isConnected = global.get('isConnected')
     if (!roomId || !isConnected || !autoReplyRules || !autoReplyRules.length) return
 
-    const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
-    if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
+    // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
+    // if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
 
     const autoReplyRulesSorted: Rule[] = orderBy(autoReplyRules, ['priority'], ['desc']).filter(rule => rule.type === message.type)
     for (const rule of autoReplyRulesSorted) {
@@ -101,28 +101,40 @@ event.on(EVENTS.AUTO_REPLY, async (message) => {
                 }, userCookie)
 
                 // 记录被回复的uid，一段时间内不再回复
-                sendUserCache[cacheKey] = {
-                    sendAt: Date.now(),
-                    name: message.uname
-                }
+                // sendUserCache[cacheKey] = {
+                //     sendAt: Date.now(),
+                //     name: message.uname
+                // }
             }
 
-            if (tag.key === 'SPEAK_REPLY' && isReadySpeak) {
-                isReadySpeak = false
-                const { voice, speed } = tag.data
-                tts(text, {
-                    voice,
-                    speed
-                })
-                    .then(() => {
-                        isReadySpeak = true
-                    })
+            // if (tag.key === 'SPEAK_REPLY' && isReadySpeak) {
+            //     isReadySpeak = false
+            //     const { voice, speed } = tag.data
+            //     tts(text, {
+            //         voice,
+            //         speed
+            //     })
+            //         .then(() => {
+            //             isReadySpeak = true
+            //         })
 
-                // 记录被回复的uid，一段时间内不再回复
-                sendUserCache[cacheKey] = {
-                    sendAt: Date.now(),
-                    name: message.uname
-                }
+            //     // 记录被回复的uid，一段时间内不再回复
+            //     sendUserCache[cacheKey] = {
+            //         sendAt: Date.now(),
+            //         name: message.uname
+            //     }
+            // }
+
+            if (tag.key === 'SPEAK_REPLY') {
+                const { voice, speed } = tag.data
+                wss.broadcast({
+                    cmd: CMDS.SPEAK,
+                    payload: {
+                        text,
+                        voice,
+                        speed,
+                    }
+                })
             }
         }
 
