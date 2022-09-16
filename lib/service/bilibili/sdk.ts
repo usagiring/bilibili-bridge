@@ -14,10 +14,12 @@ const defaultHeaders = {
   "sec-fetch-site": "same-site",
   accept: "application/json, text/javascript, */*; q=0.01",
   "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,ja;q=0.7",
-  "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-  "user-agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36",
+  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
 }
+
+const postHeader = Object.assign({}, defaultHeaders, {
+  "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+})
 
 export async function getRoomInfoV1(roomId) {
   const res = await axios.get(`${baseLiveUrl}/room/v1/Room/get_info?room_id=${roomId}&from=room`)
@@ -49,6 +51,10 @@ export async function getGiftConfig(roomId, platform = 'pc') {
 
 export async function getUserInfo(userId) {
   const res = await axios.get(`${baseUrl}/x/space/acc/info?mid=${userId}&jsonp=jsonp`, {
+    headers: Object.assign({}, defaultHeaders, {
+      origin: "https://space.bilibili.com",
+      referer: `https://space.bilibili.com/${userId}`
+    }),
     timeout: 1000
   })
   return res.data
@@ -88,7 +94,7 @@ export async function sendMessage(data, userCookie) {
   })
 
   const res = await axios.post(`https://api.live.bilibili.com/msg/send`, params, {
-    headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+    headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
   return res
@@ -105,7 +111,7 @@ export async function wearMedal(medalId, userCookie) {
   })
 
   const res = await axios.post(`https://api.live.bilibili.com/xlive/web-room/v1/fansMedal/wear`, params, {
-    headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+    headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
   return res
@@ -113,7 +119,7 @@ export async function wearMedal(medalId, userCookie) {
 
 export async function getBagList(roomId, userCookie) {
   const res = await axios.get(`https://api.live.bilibili.com/xlive/web-room/v1/gift/bag_list?t=${Date.now()}&room_id=${roomId}`, {
-    headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+    headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
   return res
@@ -141,7 +147,7 @@ export async function sendBagGift(data, userCookie) {
   })
 
   const res = await axios.post(`https://api.live.bilibili.com/gift/v2/live/bag_send`, params, {
-    headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+    headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
   return res
@@ -152,7 +158,7 @@ export async function searchUser(data, userCookie) {
   const res = await axios.get(
     `https://api.live.bilibili.com/banned_service/v2/Silent/search_user?search=${encodeURIComponent(name)}`,
     {
-      headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+      headers: Object.assign({}, postHeader, { cookie: userCookie }),
       // adapter: httpAdapter
     }
   )
@@ -183,7 +189,7 @@ export async function addSilentUser(data: AddSilentUserOption, userCookie) {
     `https://api.live.bilibili.com/xlive/web-ucenter/v1/banned/AddSilentUser`,
     params,
     {
-      headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+      headers: Object.assign({}, postHeader, { cookie: userCookie }),
       // adapter: httpAdapter
     }
   )

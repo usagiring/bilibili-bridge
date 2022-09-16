@@ -178,6 +178,7 @@ export async function getUserInfoThrottle(uid) {
 
   try {
     const { data } = await getUserInfo(uid)
+    if (!data.mid) throw new Error('user data error')
     return data
   } catch (e) {
     if (e.message === 'Request failed with status code 412') {
