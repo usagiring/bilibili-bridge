@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run build:asr && npm run build:mt && tsc",
+    "build": "rm -rf dist && npm run build:asr && npm run build:mt && tsc",
     "start": "node ./dist/index",
     "start:test": "node ./bin/run-test.js",
     "dev": "nodemon --watch 'lib/**' --ext 'ts,json' --exec 'ts-node index.ts test'",
@@ -13,8 +13,7 @@
     "test": "mocha",
     "prepublish": "npm run build",
     "lint": "eslint lib/**/*",
-    "release": "rm -rf dist && npm run build && npm publish",
-    "link": "rm -rf dist && npm run build && npm link",
+    "release": "npm run build && npm publish",
     "build:asr": "cd asr && npm run build",
     "build:mt": "cd mt && npm run build"
   },
