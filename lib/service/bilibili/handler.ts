@@ -139,6 +139,16 @@ event.on(EVENTS.MESSAGE, async (data) => {
           }
         })
       }
+      if (msg.cmd === BILI_CMDS.LIKE_CHANGE) {
+        // {"cmd":"LIKE_INFO_V3_UPDATE","data":{"click_count":6291}}
+        const { click_count } = msg.data
+        wss.broadcast({
+          cmd: CMDS.LIKE_CHANGE,
+          payload: {
+            likeNumber: click_count,
+          }
+        })
+      }
     }
   } else {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
