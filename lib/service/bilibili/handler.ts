@@ -291,7 +291,10 @@ async function giftJob(gift: GiftDTO) {
     }
     wss.broadcast({
       cmd: CMDS.GIFT,
-      payload: data
+      payload: {
+        ...data,
+        singleCount: gift.count
+      }
     })
 
     event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
