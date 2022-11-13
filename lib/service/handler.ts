@@ -161,7 +161,7 @@ async function isPassed(message, rule) {
         }
         if (tag.key === 'FILTER') {
             const { filter } = tag.data || {}
-            if (!filter && message.content) {
+            if (filter && message.content) {
                 const regexp = new RegExp(filter)
                 if (!regexp.test(message.content)) {
                     return false
