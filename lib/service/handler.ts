@@ -92,8 +92,12 @@ event.on(EVENTS.AUTO_REPLY, async (message) => {
                 // 当前房间主播ID
                 const roomUserId = global.get('roomUserId')
 
-                // 仅在自己直播间生效
-                if (`${me}` !== `${roomUserId}`) continue
+                // 仅在自己直播间生效 或者 开启所有用户回复设置
+                if (tag.data?.allowAllUserDanmakuReply || `${me}` === `${roomUserId}`) {
+                    // do nothing
+                } else {
+                    continue
+                }
 
                 sendMessage({
                     roomId,
