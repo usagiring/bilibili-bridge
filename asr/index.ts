@@ -122,7 +122,7 @@ export default class ASR {
 
   async start({ url }) {
     const self = this
-    const stream = getAudioStream({ url })
+    const stream = await getAudioStream({ url })
     stream.on('data', (chunk) => {
       const data = Buffer.from(chunk, "binary")
       const result = self.asr.sendAudio(data)
