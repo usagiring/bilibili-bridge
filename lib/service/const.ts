@@ -69,5 +69,9 @@ export const HTTP_ERRORS = {
   PARAMS_ERROR: {
     status: 400,
     message: 'PARAMS_ERROR'
+  },
+  SYSTEM_ERROR: {
+    status: 500,
+    message: 'SYSTEM_ERROR'
   }
 }

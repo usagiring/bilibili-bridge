@@ -8,3 +8,5 @@ function init(options) {
 }
 
 export default init
+
+export const asr = global.get('asrInstance')

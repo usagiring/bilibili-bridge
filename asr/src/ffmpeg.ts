@@ -7,8 +7,8 @@ export function setFfmpegPath(path) {
 
 // https://trac.ffmpeg.org/wiki/audio%20types
 // alicloud: pcm 16bit 16000K singleChannel
-export function getAudioStream({ url }) {
-    return axios({
+export async function getAudioStream({ url }) {
+    const response = await axios({
         method: 'get',
         url,
         responseType: 'stream',
@@ -16,31 +16,18 @@ export function getAudioStream({ url }) {
             referer: 'https://api.live.bilibili.com/',
             "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36'
         }
-    }).then(response => {
-        return ffmpeg(response.data)
-            // .inputFormat('flv')
-            .noVideo()
-            .audioCodec('pcm_s16le')
-            .audioBitrate(16)
-            .audioChannels(1)
-            .audioFrequency(16000)
-            .format('wav')
-            .on('error', function (err) {
-                console.log('An error occurred: ' + err.message)
-            })
-            .pipe()
     })
 
-    // return ffmpeg(url)
-    //     // .inputFormat('flv')
-    //     .noVideo()
-    //     .audioCodec('pcm_s16le')
-    //     .audioBitrate(16)
-    //     .audioChannels(1)
-    //     .audioFrequency(16000)
-    //     .format('wav')
-    //     .on('error', function (err) {
-    //         console.log('An error occurred: ' + err.message)
-    //     })
-    //     .pipe()
+    return ffmpeg(response.data)
+        // .inputFormat('flv')
+        .noVideo()
+        .audioCodec('pcm_s16le')
+        .audioBitrate(16)
+        .audioChannels(1)
+        .audioFrequency(16000)
+        .format('wav')
+        .on('error', function (err) {
+            console.log('An error occurred: ' + err.message)
+        })
+        .pipe()
 }

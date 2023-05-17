@@ -1,8 +1,8 @@
-import ASR from '@tokine/asr'
+import { AliASR, ffmpeg } from '@tokine/asr'
 import Alimt from '@tokine/mt'
 
 import global from '../service/global'
-import { CMDS, COMMON_RESPONSE } from '../service/const'
+import { CMDS, COMMON_RESPONSE, HTTP_ERRORS } from '../service/const'
 import wss, { SocketPayload } from '../service/wss'
 
 const routes = [
@@ -18,8 +18,13 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/asr/close',
-    middlewares: [close],
+    uri: '/asr/live/start',
+    middlewares: [liveStreamStart],
+  },
+  {
+    verb: 'post',
+    uri: '/asr/live/close',
+    middlewares: [liveStreamClose],
   },
   {
     verb: 'post',
@@ -52,27 +57,22 @@ async function status(ctx) {
 }
 
 async function initial(ctx) {
-  const { serviceUrl, appKey, accessKeyId, accessKeySecret, playUrl, ffmpegPath } = ctx.__body
-
-  const instance = global.get('asrInstance')
-  if (instance) {
-    ctx.body = {
-      message: 'exist asr instance'
+  const { appKey, accessKeyId, accessKeySecret, playUrl, ffmpegPath } = ctx.__body
+  const oldAsr = global.get('asrInstance')
+  if (oldAsr) {
+    try {
+      await oldAsr.close()
+    } catch (e) {
+      console.log(e)
     }
-    return
+
+    global.set('asrInstance', null)
   }
 
-  const asr = new ASR()
-  await asr.init({
+  const asr = await AliASR.initial({
     accessKeyId: accessKeyId,
     accessKeySecret: accessKeySecret,
-    serviceUrl: serviceUrl,
     appKey: appKey,
-    ffmpegPath,
-  })
-
-  asr.start({
-    url: playUrl
   })
 
   asr.on('begin', (msg) => {
@@ -84,11 +84,11 @@ async function initial(ctx) {
   })
 
   asr.on('end', (msg) => {
-    const data: SocketPayload = {
+    const socket: SocketPayload = {
       cmd: CMDS.ASR_SENTENCE_END,
       payload: msg
     }
-    wss.broadcast(data)
+    wss.broadcast(socket)
 
     if (global.get('mtInstanceStatus')) {
       if (!msg.payload?.result) return
@@ -109,17 +109,18 @@ async function initial(ctx) {
         to: toLang
       })
         .then(result => {
-          const data: SocketPayload = {
+          const socket: SocketPayload = {
             cmd: CMDS.MECHINE_TRANSLATE,
             payload: {
               id: msg.header?.message_id,
               message: result?.body?.data?.translated
             }
           }
-          wss.broadcast(data)
+          wss.broadcast(socket)
         })
     }
   })
+
 
   // {
   //     "header": {
@@ -152,18 +153,60 @@ async function initial(ctx) {
   ctx.body = COMMON_RESPONSE
 }
 
-async function close(ctx) {
+async function liveStreamStart(ctx) {
+  const { playUrl, ffmpegPath } = ctx.__body
   const asr = global.get('asrInstance')
+  if (!asr) {
+    throw HTTP_ERRORS.PARAMS_ERROR
+    // message: 'no found asr instance'
+  }
 
-  if (asr) {
+  if (ffmpegPath) {
+    ffmpeg.setFfmpegPath(ffmpegPath)
+  }
+
+  const stream = await ffmpeg.getAudioStream({ url: playUrl })
+  stream.on('data', (chunk) => {
     try {
-      await asr.close()
+      const data = Buffer.from(chunk, "binary")
+      const result = asr.sendAudio(data)
+      // if (!result) {
+      // asr.close()
+      // }
+    } catch (e) {
+      console.error("send audio failed")
+      console.error(e)
+    }
+  })
+  stream.on('close', () => {
+    console.log('stream close')
+    // asr.close()
+  })
+  stream.on('end', () => {
+    console.log('stream end')
+    // asr.close()
+  })
+  stream.on('error', () => {
+    console.log('stream error')
+    // asr.close()
+  })
+
+  global.set('liveStream', stream)
+
+  ctx.body = COMMON_RESPONSE
+}
+
+async function liveStreamClose(ctx) {
+  const stream = global.get('liveStream')
+  if (stream) {
+    try {
+      stream.end(null)
     } catch (e) {
       console.log(e)
     }
   }
 
-  global.set('asrInstance', null)
+  global.set('liveStream', null)
   ctx.body = COMMON_RESPONSE
 }
 
