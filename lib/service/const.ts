@@ -6,6 +6,7 @@ export const EVENTS = {
   MESSAGE: 'MESSAGE',
   AUTO_REPLY: 'AUTO_REPLY',
   DANMAKU_COMMAND: 'DANMAKU_COMMAND',
+  AUDIO: 'AUDIO',
 }
 
 export const CMDS = {

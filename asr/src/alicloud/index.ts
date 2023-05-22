@@ -5,6 +5,7 @@ import AliClient from './client'
 type Event = 'changed' | 'begin' | 'end' | 'started' | 'completed' | 'closed' | 'failed'
 
 const HOST = 'nls-gateway.aliyuncs.com'
+// const HOST = 'nls-gateway-cn-shanghai.aliyuncs.com'
 let asr: SpeechTranscription
 
 

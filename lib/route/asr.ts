@@ -28,6 +28,11 @@ const routes = [
   },
   {
     verb: 'post',
+    uri: '/asr/close',
+    middlewares: [close],
+  },
+  {
+    verb: 'post',
     uri: '/translate/sentence',
     middlewares: [translateSentence],
   },
@@ -57,7 +62,7 @@ async function status(ctx) {
 }
 
 async function initial(ctx) {
-  const { appKey, accessKeyId, accessKeySecret, playUrl, ffmpegPath } = ctx.__body
+  const { appKey, accessKeyId, accessKeySecret } = ctx.__body
   const oldAsr = global.get('asrInstance')
   if (oldAsr) {
     try {
@@ -75,7 +80,7 @@ async function initial(ctx) {
     appKey: appKey,
   })
 
-  asr.on('begin', (msg) => {
+  AliASR.on('begin', (msg) => {
     const data: SocketPayload = {
       cmd: CMDS.ASR_SENTENCE_BEGIN,
       payload: msg
@@ -83,7 +88,7 @@ async function initial(ctx) {
     wss.broadcast(data)
   })
 
-  asr.on('end', (msg) => {
+  AliASR.on('end', (msg) => {
     const socket: SocketPayload = {
       cmd: CMDS.ASR_SENTENCE_END,
       payload: msg
@@ -140,13 +145,15 @@ async function initial(ctx) {
   //         "status": 0
   //     }
   // }
-  asr.on('change', (msg) => {
+  AliASR.on('changed', (msg) => {
     const data: SocketPayload = {
       cmd: CMDS.ASR_SENTENCE_CHANGE,
       payload: msg
     }
     wss.broadcast(data)
   })
+
+  await AliASR.start()
 
   global.set('asrInstance', asr)
 
@@ -169,10 +176,13 @@ async function liveStreamStart(ctx) {
   stream.on('data', (chunk) => {
     try {
       const data = Buffer.from(chunk, "binary")
+
       const result = asr.sendAudio(data)
-      // if (!result) {
-      // asr.close()
-      // }
+      if (!result) {
+        stream.end(null)
+        asr.close()
+        global.set('asrInstance', null)
+      }
     } catch (e) {
       console.error("send audio failed")
       console.error(e)
@@ -207,6 +217,22 @@ async function liveStreamClose(ctx) {
   }
 
   global.set('liveStream', null)
+  ctx.body = COMMON_RESPONSE
+}
+
+async function close(ctx) {
+  const oldAsr = global.get('asrInstance')
+
+  if (oldAsr) {
+    global.set('asrInstance', null)
+
+    try {
+      await oldAsr.close()
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   ctx.body = COMMON_RESPONSE
 }
 

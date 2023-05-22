@@ -1,6 +1,7 @@
 import http from 'http'
 import WebSocket from 'ws'
 import { EVENTS } from './const'
+import global from './global'
 
 export interface SocketPayload {
   cmd: string
@@ -22,6 +23,10 @@ class WSS {
         switch (payload.event) {
           case EVENTS.PING: {
             pong({ ws, payload: payload.payload })
+            break
+          }
+          case EVENTS.AUDIO: {
+            audio(payload.data)
             break
           }
         }
@@ -58,4 +63,18 @@ function pong({ ws, payload }) {
     payload: payload
   }
   ws.send(JSON.stringify(msg))
+}
+
+
+function audio(data) {
+  const asr = global.get('asrInstance')
+  if (!asr) return
+
+  const buffer = new Int16Array(JSON.parse(data))
+  // const c = Buffer.from(b)
+  const result = asr.sendAudio(buffer)
+  if (!result) {
+    console.log('result: ', result)
+    asr.close()
+  }
 }
