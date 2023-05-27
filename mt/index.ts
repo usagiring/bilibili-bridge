@@ -48,4 +48,20 @@ export default class Client {
             // Util.assertAsString(error.message)
         }
     }
+
+    async getDetectLanguage({ text }) {
+        const getDetectLanguageRequest = new $alimt20181012.GetDetectLanguageRequest({
+            sourceText: text,
+        })
+        // let runtime = new $Util.RuntimeOptions({})
+        try {
+            // 复制代码运行请自行打印 API 的返回值
+            const result = await this.client.getDetectLanguage(getDetectLanguageRequest)
+            return result
+        } catch (error) {
+            // 如有需要，请打印 error
+            // Util.assertAsString(error.message)
+            console.error(error)
+        }
+    }
 }

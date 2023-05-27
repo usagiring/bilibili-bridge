@@ -88,42 +88,43 @@ async function initial(ctx) {
     wss.broadcast(data)
   })
 
-  AliASR.on('end', (msg) => {
+  AliASR.on('end', async (msg) => {
     const socket: SocketPayload = {
       cmd: CMDS.ASR_SENTENCE_END,
       payload: msg
     }
     wss.broadcast(socket)
 
-    if (global.get('mtInstanceStatus')) {
-      if (!msg.payload?.result) return
+    if (!msg?.payload?.result) return
 
-      let mtInstance = global.get('mtInstance')
-      if (!mtInstance) {
-        mtInstance = new Alimt({
-          accessKeyId,
-          accessKeySecret,
-        })
-        global.set('mtInstance', mtInstance)
-      }
-      const fromLang = global.get('mtInstanceFromLang')
-      const toLang = global.get('mtInstanceToLang')
-      mtInstance.translateGeneral({
-        text: msg.payload?.result,
-        from: fromLang,
-        to: toLang
-      })
-        .then(result => {
-          const socket: SocketPayload = {
-            cmd: CMDS.MECHINE_TRANSLATE,
-            payload: {
-              id: msg.header?.message_id,
-              message: result?.body?.data?.translated
-            }
-          }
-          wss.broadcast(socket)
-        })
+    const mtInstance = global.get('mtInstance')
+    if (!mtInstance) { return }
+
+    const fromLang = global.get('mtFromLang')
+    const toLang = global.get('mtToLang')
+
+    let __fromLang = fromLang
+    if (fromLang === 'auto') {
+      const result = await mtInstance.getDetectLanguage({ text: msg.payload?.result })
+      __fromLang = result.body.detectedLanguage
     }
+
+    if (__fromLang === toLang) return
+
+    mtInstance.translateGeneral({
+      text: msg.payload?.result,
+      from: __fromLang,
+      to: toLang
+    }).then(result => {
+      const socket: SocketPayload = {
+        cmd: CMDS.MECHINE_TRANSLATE,
+        payload: {
+          id: msg.header?.message_id,
+          message: result?.body?.data?.translated
+        }
+      }
+      wss.broadcast(socket)
+    })
   })
 
 
@@ -269,35 +270,33 @@ async function translateSentence(ctx) {
 }
 
 async function translateOpen(ctx) {
-  // const { accessKeyId, accessKeySecret } = ctx.__body
+  const { accessKeyId, accessKeySecret } = ctx.__body
   const { fromLang, toLang } = ctx.__body
 
-  // let mtInstance = global.get('mtInstance')
-  // if (!mtInstance) {
-  //   mtInstance = new Alimt({
-  //     accessKeyId,
-  //     accessKeySecret,
-  //   })
-  //   global.set('mtInstance', mtInstance)
-  // }
-  global.set('mtInstanceFromLang', fromLang)
-  global.set('mtInstanceToLang', toLang)
-  global.set('mtInstanceStatus', true)
+  let mtInstance = global.get('mtInstance')
+  if (!mtInstance) {
+    mtInstance = new Alimt({
+      accessKeyId,
+      accessKeySecret,
+    })
+    global.set('mtInstance', mtInstance)
+  }
+  global.set('mtFromLang', fromLang)
+  global.set('mtToLang', toLang)
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateClose(ctx) {
-  global.set('mtInstanceFromLang', null)
-  global.set('mtInstanceToLang', null)
-  global.set('mtInstanceStatus', false)
+  global.set('mtFromLang', null)
+  global.set('mtToLang', null)
   global.set('mtInstance', null)
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateStatus(ctx) {
-  const isOpen = global.get('mtInstanceStatus')
-  const fromLang = global.get('mtInstanceFromLang')
-  const toLang = global.get('mtInstanceToLang')
+  const isOpen = global.get('mtInstance')
+  const fromLang = global.get('mtFromLang')
+  const toLang = global.get('mtToLang')
   const message = isOpen ? '1' : '0'
   ctx.body = {
     message,

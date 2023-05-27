@@ -61,7 +61,8 @@ export async function start() {
   // }
   const defaultParams = asr.defaultStartParams()
   const params = {
-    ...defaultParams
+    ...defaultParams,
+    // enable_semantic_sentence_detection: true,
   }
 
   await asr.start(
