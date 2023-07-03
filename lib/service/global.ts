@@ -1,6 +1,7 @@
 import { get, merge, pick } from 'lodash'
 class Global {
   options: any = {}
+  inner: any = {}
 
   all() {
     const allKeys = Object.keys(this.options).filter(key => key !== 'bilibiliWSClient')
@@ -39,6 +40,25 @@ class Global {
       this.options[key] = options[key]
     }
     return pick(this.options, Object.keys(options))
+  }
+
+  //TODO 以后再改吧
+  getInner(key: string) {
+    return get(this.inner, key)
+  }
+
+  setInner(path: string, data) {
+    const paths = path.split('.')
+    const last = paths.pop()
+
+    let part = this.inner
+    for (const cursor of paths) {
+      if (!part[cursor]) { part[cursor] = {} }
+      part = part[cursor]
+    }
+    part[last] = data
+    return data
+    // return Object.assign(this.options, { [key]: data })
   }
 }
 

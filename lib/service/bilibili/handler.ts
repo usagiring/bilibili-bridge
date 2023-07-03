@@ -166,7 +166,7 @@ event.on(EVENTS.MESSAGE, async (data) => {
       wss.broadcast({
         cmd: CMDS.LOG_IN_NOTICE,
       })
-      const bilibiliWSClient = global.get('bilibiliWSClient')
+      const bilibiliWSClient = global.getInner('bilibiliWSClient')
       if (bilibiliWSClient) {
         bilibiliWSClient.reconnect()
       }

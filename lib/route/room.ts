@@ -61,7 +61,7 @@ async function connect(ctx) {
   await bilibiliWSClient.connect({ uid: Number(uid) || 0, roomId: Number(roomId) })
   global.set('roomId', roomId)
   global.set('isConnected', true)
-  global.set('bilibiliWSClient', bilibiliWSClient)
+  global.setInner('bilibiliWSClient', bilibiliWSClient)
 
   event.emit(EVENTS.GET_GIFT_CONFIG, { roomId })
 
@@ -75,7 +75,7 @@ async function disconnect(ctx) {
   }
   await bilibiliWSClient.close()
   global.set('isConnected', false)
-  global.set('bilibiliWSClient', null)
+  global.setInner('bilibiliWSClient', null)
   ctx.body = COMMON_RESPONSE
 }
 
