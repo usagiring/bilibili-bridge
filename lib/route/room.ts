@@ -57,10 +57,11 @@ async function getRoomInfo(ctx) {
 }
 
 async function connect(ctx) {
-  const { roomId } = ctx.__body
-  await bilibiliWSClient.connect({ roomId: Number(roomId) })
+  const { roomId, uid } = ctx.__body
+  await bilibiliWSClient.connect({ uid: Number(uid) || 0, roomId: Number(roomId) })
   global.set('roomId', roomId)
   global.set('isConnected', true)
+  global.set('bilibiliWSClient', bilibiliWSClient)
 
   event.emit(EVENTS.GET_GIFT_CONFIG, { roomId })
 
@@ -74,6 +75,7 @@ async function disconnect(ctx) {
   }
   await bilibiliWSClient.close()
   global.set('isConnected', false)
+  global.set('bilibiliWSClient', null)
   ctx.body = COMMON_RESPONSE
 }
 

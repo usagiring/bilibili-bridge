@@ -3,7 +3,8 @@ class Global {
   options: any = {}
 
   all() {
-    return this.options
+    const allKeys = Object.keys(this.options).filter(key => key !== 'bilibiliWSClient')
+    return pick(this.options, allKeys)
   }
 
   get(key: string) {

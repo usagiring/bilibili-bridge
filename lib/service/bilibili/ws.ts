@@ -3,6 +3,7 @@ import { inflate } from 'pako'
 import WebSocket from 'ws'
 import event from '../event'
 import { EVENTS } from '../const'
+import decompress from 'brotli/decompress'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:2245/sub"
 
@@ -44,12 +45,21 @@ class WSClient {
     this.autoReConnect = true
     console.log(`room connect, roomId: ${roomId}`)
 
+    // const authParams = {
+    //   uid,
+    //   roomid: roomId,
+    //   protover: 2,
+    //   platform: "web",
+    //   clientver: "1.5.15"
+    // }
+
     const authParams = {
       uid,
       roomid: roomId,
-      protover: 2,
+      protover: 3,
       platform: "web",
-      clientver: "1.5.15"
+      type: 2,
+      buvid: ''
     }
 
     return new Promise((resolve, reject) => {
@@ -106,6 +116,11 @@ class WSClient {
     if (!this.ws) return
     // error code not work...
     this.ws.close(4001, 'manual close')
+  }
+
+  reconnect() {
+    if (!this.ws) return
+    this.ws.close(4002, 'close for reconnect')
   }
 
   isConnected() {
@@ -209,9 +224,10 @@ function convertToObject(arraybuffer) {
       o = dataview.getInt32(i)
       u = dataview.getInt16(i + 4)
       try {
-        if (output.ver === 2) {
+        if (output.ver === 3) {
           const l = arraybuffer.slice(i + u, i + o)
-          const f = inflate(l)
+          // const f = inflate(l)
+          const f = decompress(new Uint8Array(l))
           c = convertToObject(f.buffer).body
         } else {
           c = JSON.parse(decoder.decode(arraybuffer.slice(i + u, i + o)))

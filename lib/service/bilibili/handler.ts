@@ -160,12 +160,21 @@ event.on(EVENTS.MESSAGE, async (data) => {
           fansClubNumber: fans_club
         }
       })
-      return
+    }
+
+    if (data.cmd === BILI_CMDS.LOG_IN_NOTICE) {
+      wss.broadcast({
+        cmd: CMDS.LOG_IN_NOTICE,
+      })
+      const bilibiliWSClient = global.get('bilibiliWSClient')
+      if (bilibiliWSClient) {
+        bilibiliWSClient.reconnect()
+      }
     }
   }
 
   if (SAVE_ALL_BILI_MESSAGE) {
-    await OtherModel.insert({ raw: data })
+    OtherModel.insert({ raw: data })
   }
 })
 
