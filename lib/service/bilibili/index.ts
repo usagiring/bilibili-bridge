@@ -18,15 +18,17 @@ export function parseComment(msg): CommentDTO {
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   let emoji = msg.info[0][13] || {}
   let voice = msg.info[0][14] || {}
+  let { extra } = msg.info[0][15] || {}
   try {
     emoji = typeof emoji === 'string' ? JSON.parse(emoji) : emoji
     voice = typeof voice === 'string' ? JSON.parse(voice) : voice
+    extra = typeof extra === 'string' ? JSON.parse(extra) : extra
   } catch (e) {
     // silence
   }
   const { voice_url: voiceUrl, file_duration: fileDuration } = voice
   const { url: emojiUrl } = emoji
-  const comment = {
+  const comment: CommentDTO = {
     roomId: global.get('roomId'),
     sendAt: msg.info[0][4],
     uid,
@@ -57,6 +59,9 @@ export function parseComment(msg): CommentDTO {
     Object.assign(comment, {
       emojiUrl
     })
+  }
+  if (extra) {
+    comment.emots = extra.emots
   }
   return comment
 }

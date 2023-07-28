@@ -213,14 +213,17 @@ async function commentJob(comment: CommentDTO) {
     await fillUserAvatar(comment)
   }
 
-  const data = await CommentModel.insert(comment)
   wss.broadcast({
     cmd: CMDS.COMMENT,
-    payload: data
+    payload: comment
   })
 
-  event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'comment'))
-  event.emit(EVENTS.DANMAKU_COMMAND, data)
+  event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
+  event.emit(EVENTS.DANMAKU_COMMAND, comment)
+
+  delete comment.emots
+  CommentModel.insert(comment)
+    .catch(e => console.error(e))
 }
 
 async function interactJob(interact: InteractDTO) {

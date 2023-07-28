@@ -23,6 +23,18 @@ export interface CommentDTO {
   medalColorStart?: string
   medalColorEnd?: string
 
+  color?: string
+  emots?: {
+    [x: string]: {
+      emoticon_id: number
+      emoji: string
+      descript: string
+      url: string
+      width: number
+      height: number
+      emoticon_unique: string
+    }
+  }
   // tokenization
 }
 interface Comment {
