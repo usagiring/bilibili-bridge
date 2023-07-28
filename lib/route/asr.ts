@@ -54,7 +54,7 @@ const routes = [
 ]
 
 async function status(ctx) {
-  const asr = global.get('asrInstance')
+  const asr = global.getInner('asrInstance')
   const message = asr ? '1' : '0'
   ctx.body = {
     message
@@ -63,7 +63,7 @@ async function status(ctx) {
 
 async function initial(ctx) {
   const { appKey, accessKeyId, accessKeySecret } = ctx.__body
-  const oldAsr = global.get('asrInstance')
+  const oldAsr = global.getInner('asrInstance')
   if (oldAsr) {
     try {
       await oldAsr.close()
@@ -71,7 +71,7 @@ async function initial(ctx) {
       console.log(e)
     }
 
-    global.set('asrInstance', null)
+    global.setInner('asrInstance', null)
   }
 
   const asr = await AliASR.initial({
@@ -97,7 +97,7 @@ async function initial(ctx) {
 
     if (!msg?.payload?.result) return
 
-    const mtInstance = global.get('mtInstance')
+    const mtInstance = global.getInner('mtInstance')
     if (!mtInstance) { return }
 
     const fromLang = global.get('mtFromLang')
@@ -156,14 +156,14 @@ async function initial(ctx) {
 
   await AliASR.start()
 
-  global.set('asrInstance', asr)
+  global.setInner('asrInstance', asr)
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamStart(ctx) {
   const { playUrl, ffmpegPath } = ctx.__body
-  const asr = global.get('asrInstance')
+  const asr = global.getInner('asrInstance')
   if (!asr) {
     throw HTTP_ERRORS.PARAMS_ERROR
     // message: 'no found asr instance'
@@ -182,7 +182,7 @@ async function liveStreamStart(ctx) {
       if (!result) {
         stream.end(null)
         asr.close()
-        global.set('asrInstance', null)
+        global.setInner('asrInstance', null)
       }
     } catch (e) {
       console.error("send audio failed")
@@ -202,13 +202,13 @@ async function liveStreamStart(ctx) {
     // asr.close()
   })
 
-  global.set('liveStream', stream)
+  global.setInner('liveStream', stream)
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamClose(ctx) {
-  const stream = global.get('liveStream')
+  const stream = global.getInner('liveStream')
   if (stream) {
     try {
       stream.end(null)
@@ -217,15 +217,15 @@ async function liveStreamClose(ctx) {
     }
   }
 
-  global.set('liveStream', null)
+  global.setInner('liveStream', null)
   ctx.body = COMMON_RESPONSE
 }
 
 async function close(ctx) {
-  const oldAsr = global.get('asrInstance')
+  const oldAsr = global.getInner('asrInstance')
 
   if (oldAsr) {
-    global.set('asrInstance', null)
+    global.setInner('asrInstance', null)
 
     try {
       await oldAsr.close()
@@ -240,13 +240,13 @@ async function close(ctx) {
 async function translateSentence(ctx) {
   const { from, to, text, accessKeyId, accessKeySecret, payload } = ctx.__body
 
-  let mtInstance = global.get('mtInstance')
+  let mtInstance = global.getInner('mtInstance')
   if (!mtInstance) {
     mtInstance = new Alimt({
       accessKeyId,
       accessKeySecret,
     })
-    global.set('mtInstance', mtInstance)
+    global.setInner('mtInstance', mtInstance)
   }
 
   const result = await mtInstance.translateGeneral({
@@ -273,13 +273,13 @@ async function translateOpen(ctx) {
   const { accessKeyId, accessKeySecret } = ctx.__body
   const { fromLang, toLang } = ctx.__body
 
-  let mtInstance = global.get('mtInstance')
+  let mtInstance = global.getInner('mtInstance')
   if (!mtInstance) {
     mtInstance = new Alimt({
       accessKeyId,
       accessKeySecret,
     })
-    global.set('mtInstance', mtInstance)
+    global.setInner('mtInstance', mtInstance)
   }
   global.set('mtFromLang', fromLang)
   global.set('mtToLang', toLang)
@@ -289,12 +289,12 @@ async function translateOpen(ctx) {
 async function translateClose(ctx) {
   global.set('mtFromLang', null)
   global.set('mtToLang', null)
-  global.set('mtInstance', null)
+  global.setInner('mtInstance', null)
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateStatus(ctx) {
-  const isOpen = global.get('mtInstance')
+  const isOpen = global.getInner('mtInstance')
   const fromLang = global.get('mtFromLang')
   const toLang = global.get('mtToLang')
   const message = isOpen ? '1' : '0'

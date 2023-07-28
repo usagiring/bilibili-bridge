@@ -4,7 +4,7 @@ class Global {
   inner: any = {}
 
   all() {
-    const allKeys = Object.keys(this.options).filter(key => key !== 'bilibiliWSClient')
+    const allKeys = Object.keys(this.options)
     return pick(this.options, allKeys)
   }
 

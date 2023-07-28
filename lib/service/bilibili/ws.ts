@@ -1,5 +1,4 @@
 import util from 'util'
-import { inflate } from 'pako'
 import WebSocket from 'ws'
 import event from '../event'
 import { EVENTS } from '../const'
