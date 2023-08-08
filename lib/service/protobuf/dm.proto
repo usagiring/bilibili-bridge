@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+message Unknown12 {
+  int32 unknown1 = 1; // 5
+  string unknown2 = 2; // #1453BAFF,#4C2263A2,#3353BAFF 颜色值
+}
+
+message Unknown13 {
+  string unknown1 = 1; // title-154-1
+  string unknown2 = 2; // title-154-1
+}
+
+message Emot {
+  string id = 1;
+  string image = 2;
+  int32 unknown4 = 4;
+  int32 unknown5 = 5;
+  int32 weight = 6;
+  int32 height = 7;
+}
+
+message Emots {
+  string content = 1;
+  Emot emot = 2;
+}
+
+message Unknown19 {
+  string unknown1 = 1; // 44E262A3
+  int64 timestamp = 2; // 1691496513
+}
+
+message Medal {
+  int32 level = 1;
+  string name = 2;
+  int32 color = 4;
+  int32 color3 = 6; // border color
+  int32 color1 = 7; // start color
+  int32 color2 = 8; // end color
+  int32 unknown9 = 9; // 3
+  int32 unknown10 = 10; // 1
+}
+
+message UserUnknown12 {
+  int32 unknown1 = 1; // 15
+  int32 unknown2 = 2; // 6406234
+  string unknown3 = 3; // >50000
+}
+
+message BiliLive {
+  int32 level = 1;
+}
+
+message User {
+  int64 uid = 1;
+  string uname = 2;
+  string color = 3; // #00D1F1 可能是舰长名字颜色
+  string face = 4;
+  int32 unknown7 = 7; // 10000
+  int32 unknown8 = 8; // 1
+  int32 isAdmin = 10;
+  Medal medal = 11;
+  UserUnknown12 userUnknown12 = 12;
+  BiliLive biliLive = 15;
+}
+
+message Liver {
+  int64 uid = 1;
+  string uname = 2;
+  int32 roomId = 3;
+}
+
+message DM {
+  string id = 1;
+  int32 unknown2 = 2; // 1
+  int32 unknown3 = 3; // 25
+  int32 color = 4; // 14893055
+  string unknown5 = 5; // 928da784
+  string content = 6;
+  int64 timestamp = 7;
+  int64 unknown9 = 9; // 18446744073498326772
+  Unknown12 unknown12 = 12;
+  Unknown13 unknown13 = 13; // 特殊头衔
+  repeated Emots emots = 14;
+  Unknown19 unknown19 = 19;
+  User user = 20;
+  Liver liver = 21;
+}

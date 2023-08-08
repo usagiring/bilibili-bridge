@@ -14,6 +14,16 @@ export default {
 
 export function parseComment(msg): CommentDTO {
   if (!~msg.cmd.indexOf("DANMU_MSG")) return
+  const dmV2 = msg.dm_v2
+
+  let face: string
+  if (dmV2) {
+    const dmV2Decoder = global.getInner('dmV2Decoder')
+    if (dmV2Decoder) {
+      const dm = dmV2Decoder(dmV2)
+      face = dm?.user?.face
+    }
+  }
   const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   let emoji = msg.info[0][13] || {}
@@ -26,6 +36,7 @@ export function parseComment(msg): CommentDTO {
   } catch (e) {
     // silence
   }
+
   const { voice_url: voiceUrl, file_duration: fileDuration } = voice
   const { url: emojiUrl } = emoji
   const comment: CommentDTO = {
@@ -37,7 +48,8 @@ export function parseComment(msg): CommentDTO {
     role: msg.info[7],
     content: msg.info[1],
     color: transformColorNumber2String(msg.info[0][3]),
-    type: msg.info[0][9] // 0：普通弹幕 1：节奏风暴 2：天选时刻
+    type: msg.info[0][9], // 0：普通弹幕 1：节奏风暴 2：天选时刻
+    avatar: face,
   }
   if (medalLevel && medalName) {
     Object.assign(comment, {

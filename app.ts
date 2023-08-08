@@ -12,6 +12,8 @@ import './lib/service/bilibili/handler'
 import './lib/service/gift/handler'
 import './lib/service/handler'
 
+import './lib/service/protobuf'
+
 const PORT = global.get('PORT') || 3000
 
 const app = new Koa()

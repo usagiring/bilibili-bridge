@@ -209,9 +209,9 @@ export async function getUserInfoThrottle(uid) {
 
 async function commentJob(comment: CommentDTO) {
   // console.log(`${comment.name}(${comment.uid}): ${comment.comment}`);
-  if (global.get('isShowAvatar')) {
-    await fillUserAvatar(comment)
-  }
+  // if (global.get('isShowAvatar')) {
+  //   await fillUserAvatar(comment)
+  // }
 
   wss.broadcast({
     cmd: CMDS.COMMENT,

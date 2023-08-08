@@ -42,7 +42,6 @@ class Global {
     return pick(this.options, Object.keys(options))
   }
 
-  //TODO 以后再改吧
   getInner(key: string) {
     return get(this.inner, key)
   }
