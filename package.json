@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && npm run build:asr && npm run build:mt && tsc",
+    "build": "npm run build:asr && npm run build:mt && npm run build:self",
     "build:self": "rm -rf dist && tsc && npm run copyproto",
     "copyproto": "cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
     "start": "node ./dist/index",
