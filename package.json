@@ -13,7 +13,6 @@
     "dev": "nodemon --watch 'lib/**' --ext 'ts,json' --exec 'ts-node index.ts test'",
     "dev:win": "nodemon --watch \"lib/**\" --ext \"ts,json\" --exec \"ts-node index.ts test\"",
     "test": "mocha",
-    "prepublish": "npm run build",
     "lint": "eslint lib/**/*",
     "release": "npm run build && npm publish",
     "build:asr": "cd asr && npm run build",
