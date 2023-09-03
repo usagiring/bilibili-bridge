@@ -1,10 +1,14 @@
 import util from 'util'
 import WebSocket from 'ws'
-import event from '../event'
-import { EVENTS } from '../const'
+import cookie from 'cookie'
 import decompress from 'brotli/decompress'
 
-const URI = "wss://broadcastlv.chat.bilibili.com:2245/sub"
+import event from '../event'
+import { EVENTS } from '../const'
+import { getDamankuInfo, getFinger } from './sdk'
+import global from '../global'
+
+const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
 interface ConnectOption {
   uid?: number
@@ -35,14 +39,31 @@ class WSClient {
       return
     }
 
+    // rid: 房主UID
+    const { uid: rid = 0, roomId } = this.options
+
+    const userCookie = global.get('userCookie')
+    let me: number
+    let buvid: string
+    if (userCookie) {
+      const cookies = cookie.parse(userCookie)
+      me = Number(cookies.DedeUserID)
+      buvid = cookies.buvid3
+    }
+    const danmakuInfo = await getDamankuInfo(roomId, userCookie)
+
+    if (!buvid) {
+      const finger = await getFinger()
+      buvid = finger.data.b_3
+    }
+
+    this.autoReConnect = true
+    console.log(`room connect, roomId: ${roomId}`)
+
     const ws = new WebSocket(URI)
     ws.binaryType = "arraybuffer"
 
     this.ws = ws
-
-    const { uid = 0, roomId } = this.options
-    this.autoReConnect = true
-    console.log(`room connect, roomId: ${roomId}`)
 
     // const authParams = {
     //   uid,
@@ -53,12 +74,13 @@ class WSClient {
     // }
 
     const authParams = {
-      uid,
+      uid: me || rid || 0,
       roomid: roomId,
       protover: 3,
       platform: "web",
       type: 2,
-      buvid: ''
+      buvid: buvid || '',
+      key: danmakuInfo.data.token || ''
     }
 
     return new Promise((resolve, reject) => {

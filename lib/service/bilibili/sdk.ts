@@ -21,31 +21,58 @@ const postHeader = Object.assign({}, defaultHeaders, {
   "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
 })
 
+interface BaseResponse {
+  code: number,
+  message: string
+}
+
 export async function getRoomInfoV1(roomId) {
   const res = await axios.get(`${baseLiveUrl}/room/v1/Room/get_info?room_id=${roomId}&from=room`)
   return res.data
 }
 
 export async function getRoomInfoV2(roomId) {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?room_id=${roomId}`)
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?room_id=${roomId}`, {
+    headers: defaultHeaders
+  })
   return res.data
 }
 
-export async function getInfoByUser(roomId, cookie) {
+export async function getInfoByUser(roomId, userCookie) {
   const res = await axios.get(`https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByUser?room_id=${roomId}&from=0`, {
-    headers: Object.assign({}, defaultHeaders, { cookie }),
+    headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
     // adapter: httpAdapter
   })
   return res.data
 }
 
-export async function getDamankuInfo(roomId) {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?id=${roomId}&type=0`)
+export async function getDamankuInfo(roomId, userCookie): Promise<BaseResponse & {
+  ttl: number
+  data: {
+    group: string
+    business_id: number
+    refresh_row_factor: number
+    refresh_rate: number
+    max_delay: number
+    token: string
+    host_list: {
+      host: string
+      port: number
+      wss_port: number
+      ws_port: number
+    }[]
+  }
+}> {
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?id=${roomId}&type=0`, {
+    headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders
+  })
   return res.data
 }
 
 export async function getGiftConfig(roomId, platform = 'pc') {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/giftPanel/giftConfig?platform=${platform}&room_id=${roomId}`)
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/giftPanel/giftConfig?platform=${platform}&room_id=${roomId}`, {
+    headers: defaultHeaders
+  })
   return res.data
 }
 
@@ -193,5 +220,30 @@ export async function addSilentUser(data: AddSilentUserOption, userCookie) {
       // adapter: httpAdapter
     }
   )
+  return res.data
+}
+
+// 获取游客 buvid, 有cookie则从cookie中拿
+export async function getFinger(): Promise<BaseResponse & {
+  data: {
+    b_3: string
+    b_4: string
+  }
+}> {
+  const res = await axios.get(`${baseUrl}/x/frontend/finger/spi`, {
+    headers: defaultHeaders
+  })
+  return res.data
+}
+
+export async function checkCookie(userCookie): Promise<BaseResponse & {
+  data: {
+    refresh: boolean
+    timestamp: number
+  }
+}> {
+  const res = await axios.get(`https://passport.bilibili.com/x/passport-login/web/cookie/info`, {
+    headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
+  })
   return res.data
 }
