@@ -162,15 +162,15 @@ event.on(EVENTS.MESSAGE, async (data) => {
       })
     }
 
-    if (data.cmd === BILI_CMDS.LOG_IN_NOTICE) {
-      wss.broadcast({
-        cmd: CMDS.LOG_IN_NOTICE,
-      })
-      const bilibiliWSClient = global.getInner('bilibiliWSClient')
-      if (bilibiliWSClient) {
-        bilibiliWSClient.reconnect()
-      }
-    }
+    // if (data.cmd === BILI_CMDS.LOG_IN_NOTICE) {
+    //   wss.broadcast({
+    //     cmd: CMDS.LOG_IN_NOTICE,
+    //   })
+    //   const bilibiliWSClient = global.getInner('bilibiliWSClient')
+    //   if (bilibiliWSClient) {
+    //     bilibiliWSClient.reconnect()
+    //   }
+    // }
   }
 
   if (SAVE_ALL_BILI_MESSAGE) {

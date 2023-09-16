@@ -40,7 +40,7 @@ class WSClient {
     }
 
     // rid: 房主UID
-    const { uid: rid = 0, roomId } = this.options
+    const { uid, roomId } = this.options
 
     const userCookie = global.get('userCookie')
     let me: number
@@ -74,7 +74,7 @@ class WSClient {
     // }
 
     const authParams = {
-      uid: me || rid || 0,
+      uid: me || 0,
       roomid: roomId,
       protover: 3,
       platform: "web",

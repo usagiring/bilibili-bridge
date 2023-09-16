@@ -12,15 +12,21 @@ const routes = [
 
 async function isNeedRefreshCookie(ctx) {
   const userCookie = global.get('userCookie')
-  const { data } = await checkCookie(userCookie)
-
+  const result = {
+    isNeedRefreshCookie: true,
+    timestamp: Date.now(),
+  }
+  try {
+    const { data } = await checkCookie(userCookie)
+    result.isNeedRefreshCookie = data.refresh
+    result.timestamp = data.timestamp
+  } catch (e) {
+    // 
+  }
 
   ctx.body = {
     message: 'ok',
-    data: {
-      isNeedRefreshCookie: data.refresh,
-      timestamp: data.timestamp,
-    }
+    data: result
   }
 }
 
