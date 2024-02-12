@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-export const wait = (ms: number) => setTimeout(Promise.resolve, ms)
+export const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 export const dateFormat = (date, formatter = "YYYY-MM-DD HH:mm:ss") => moment(date).format(formatter)
 
 export const parseQueryRegexp = (query: any) => {

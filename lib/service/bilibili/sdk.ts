@@ -26,6 +26,17 @@ interface BaseResponse {
   message: string
 }
 
+export interface SendMessage {
+  message: string
+  roomId: number
+  color?: number
+  fontsize?: number
+  mode?: number
+  rnd?: number
+  bubble?: number
+  replyMid?: number
+}
+
 export async function getRoomInfoV1(roomId) {
   const res = await axios.get(`${baseLiveUrl}/room/v1/Room/get_info?room_id=${roomId}&from=room`)
   return res.data
@@ -104,13 +115,14 @@ export async function getPlayUrl(roomId) {
   return res.data
 }
 
-export async function sendMessage(data, userCookie) {
-  const { message, roomId, color, fontsize, mode, rnd, bubble } = data
+export async function sendMessage(data: SendMessage, userCookie: string) {
+  const { message, roomId, color, fontsize, mode, rnd, bubble, replyMid } = data
   const cookies = cookie.parse(userCookie)
   const csrf = cookies.bili_jct
   const params = querystring.stringify({
     color: color || 16777215,
     fontsize: fontsize || 25,
+    reply_mid: replyMid, // @用户ID
     mode: mode || 1,
     msg: message,
     rnd: rnd || Math.floor(Date.now() / 1000 - 10000),

@@ -1,9 +1,11 @@
-import { AliASR, ffmpeg } from '@tokine/asr'
+import { AliASR, ffmpeg, AliSpeechRecognition } from '@tokine/asr'
 import Alimt from '@tokine/mt'
+import { chunk } from 'lodash'
 
 import global from '../service/global'
 import { CMDS, COMMON_RESPONSE, HTTP_ERRORS } from '../service/const'
 import wss, { SocketPayload } from '../service/wss'
+import { wait } from '../service/util'
 
 const routes = [
   {
@@ -51,6 +53,16 @@ const routes = [
     uri: '/translate/status',
     middlewares: [translateStatus],
   },
+  {
+    verb: 'post',
+    uri: '/speech-recognition/initial',
+    middlewares: [srInitial],
+  },
+  {
+    verb: 'post',
+    uri: '/speech-recognition/speech-to-text',
+    middlewares: [speechToText],
+  }
 ]
 
 async function status(ctx) {
@@ -305,6 +317,112 @@ async function translateStatus(ctx) {
       toLang
     }
   }
+}
+
+async function srInitial(ctx) {
+  const { appKey, accessKeyId, accessKeySecret } = ctx.__body
+  // const oldSr = global.getInner('speechRecognitionInstance')
+  // if (oldSr) {
+  //   try {
+  //     await oldSr.close()
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+
+  //   global.setInner('speechRecognitionInstance', null)
+  // }
+
+  // const sr = await AliSpeechRecognition.initial({
+  //   accessKeyId: accessKeyId,
+  //   accessKeySecret: accessKeySecret,
+  //   appKey: appKey,
+  // })
+
+  // sr.on('started', async (msg) => {
+  //   const data: SocketPayload = {
+  //     cmd: CMDS.SR_STARTED,
+  //     payload: msg
+  //   }
+  //   wss.broadcast(data)
+  // })
+
+  // sr.on('completed', async (msg) => {
+  //   console.log('completed', msg)
+  //   const data: SocketPayload = {
+  //     cmd: CMDS.SR_COMPLETED,
+  //     payload: msg
+  //   }
+  //   wss.broadcast(data)
+  // })
+
+  // // await AliSpeechRecognition.start()
+
+  // global.setInner('speechRecognitionInstance', sr)
+
+  // 由于每次start/close sr实例都会发送多次重复事件，怀疑有oom风险
+  // 这里仅获取Token，之后每次调用都初始化新实例
+  const token = await AliSpeechRecognition.getToken({ accessKeyId, accessKeySecret })
+  global.setInner('aliToken', token)
+
+  ctx.body = COMMON_RESPONSE
+}
+
+async function speechToText(ctx) {
+  const { appKey, payload } = ctx.__body
+  const token = global.getInner('aliToken')
+  if (!token) {
+    throw HTTP_ERRORS.PARAMS_ERROR
+  }
+
+  const sr = AliSpeechRecognition.initial({
+    token,
+    appKey,
+  })
+
+  sr.on('started', async (msg) => {
+    const data: SocketPayload = {
+      cmd: CMDS.SR_STARTED,
+      payload: JSON.parse(msg)
+    }
+    wss.broadcast(data)
+  })
+
+  sr.on('completed', async (msg) => {
+    const data: SocketPayload = {
+      cmd: CMDS.SR_COMPLETED,
+      payload: JSON.parse(msg)
+    }
+    wss.broadcast(data)
+  })
+
+  const params = sr.defaultStartParams()
+  params.enable_inverse_text_normalization = true
+  params.enable_intermediate_result = false
+  params.max_start_silence = 5000
+  params.max_end_silence = 3000
+
+  try {
+    await sr.start(params, true, 6000)
+  } catch (error) {
+    console.log("error on start:", error)
+    throw error
+  }
+
+  for (const __chunk of chunk(JSON.parse(payload), 1024)) {
+    const buffer = new Int16Array(__chunk)
+    sr.sendAudio(buffer)
+    await wait(20)
+  }
+
+  try {
+    console.log("close...")
+    await sr.close()
+
+  } catch (error) {
+    console.log("error on close:", error)
+  }
+
+  ctx.body = COMMON_RESPONSE
 }
 
 export default routes

@@ -67,7 +67,7 @@ function pong({ ws, payload }) {
 
 
 function audio(data) {
-  const asr = global.get('asrInstance')
+  const asr = global.getInner('asrInstance')
   if (!asr) return
 
   const buffer = new Int16Array(JSON.parse(data))

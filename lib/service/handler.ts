@@ -5,6 +5,7 @@ import global from './global'
 import { CMDS, EVENTS } from './const'
 // import giftService from './'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
+import type { SendMessage } from './bilibili/sdk'
 // import tts from './tts'
 import wss from './wss'
 
@@ -60,7 +61,7 @@ export function parseAutoReplyMessage(message, type): Message {
 //     sendUserCache = {}
 // }, 60 * 1000 * 10) // TODO config
 
-event.on(EVENTS.AUTO_REPLY, async (message) => {
+event.on(EVENTS.AUTO_REPLY, async (message: Message) => {
     const autoReplyRules = global.get('autoReplyRules')
     const roomId = global.get('roomId')
     const isConnected = global.get('isConnected')
@@ -78,9 +79,22 @@ event.on(EVENTS.AUTO_REPLY, async (message) => {
         let text = rule.text
         if (!text) continue
         text = text.replace('{user.name}', message.uname)
+        text = text.replace('{user}', message.uname)
+
         text = text.replace('{gift.name}', message.giftName)
+        text = text.replace('{gift}', message.giftName)
+
         text = text.replace('{comment.content}', message.content)
+        text = text.replace('{comment}', message.content)
+
         text = text.replace('{superchat.content}', message.content)
+        text = text.replace('{superchat}', message.content)
+
+        let isAtUser = false
+        if (text.includes('{@user}')) {
+            isAtUser = true
+            text = text.replace('{@user}', '')
+        }
 
         for (const tag of rule.tags) {
             const userCookie = global.get('userCookie')
@@ -99,10 +113,14 @@ event.on(EVENTS.AUTO_REPLY, async (message) => {
                     continue
                 }
 
-                sendMessage({
+                const data: SendMessage = {
                     roomId,
                     message: text,
-                }, userCookie)
+                }
+                if (isAtUser) {
+                    data.replyMid = message.uid
+                }
+                sendMessage(data, userCookie)
 
                 // 记录被回复的uid，一段时间内不再回复
                 // sendUserCache[cacheKey] = {

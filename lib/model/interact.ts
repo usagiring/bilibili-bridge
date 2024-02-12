@@ -13,6 +13,7 @@ export interface InteractDTO {
 
   // user
   uid: number
+  face?: string
   uname: string
   unameColor?: string
   medalLevel?: number

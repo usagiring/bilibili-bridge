@@ -11,6 +11,101 @@ export default {
   parseUser
 }
 
+interface MessageInfo_0_15 {
+  mode: number
+  extra: string
+  user: {
+    uid: number
+    base: {
+      name: string
+      face: string
+      name_color: number
+      is_mystery: boolean
+      risk_ctrl_info: {
+        name: string
+        face: string
+      }
+      origin_info: {
+        name: string
+        face: string
+      }
+      official_info: {
+        role: number
+        title: string
+        desc: string
+        type: number
+      }
+    }
+    medal: any
+    wealth: {
+      level: number
+      dm_icon_key: string
+    }
+    guard: any
+    uhead_frame: any
+    guard_leader: {
+      is_guard_leader: boolean
+    }
+  }
+}
+
+interface MessageInfo_0_15_extra {
+  emots?: {
+    [x: string]: {
+      emoticon_id: number
+      emoji: string
+      descript: string
+      url: string
+      width: number
+      height: number
+      emoticon_unique: string
+    }
+  }
+}
+
+interface InteractData {
+  identities: number[]
+  is_mystery: boolean
+  msg_type: 1 | 2 | 3
+  timestamp: number
+  roomid: number
+  fans_medal: {
+    anchor_roomid: number
+    guard_level: number
+    icon_id: number
+    is_lighted: number
+    medal_color: number
+    medal_color_border: number
+    medal_color_end: number
+    medal_color_start: number
+    medal_level: number
+    medal_name: string
+    score: number
+    special: string
+    target_id: number
+  }
+  uid: number
+  score: number
+  uname: string
+  uname_color: string
+  uinfo: {
+    uid: number
+    base: {
+      name: string
+      face: string
+      name_color: number
+      is_mystery: boolean
+      risk_ctrl_info: {
+        name: string
+        face: string
+      }
+      origin_info: {
+        name: string
+        face: string
+      }
+    }
+  }
+}
 
 export function parseComment(msg): CommentDTO {
   if (!~msg.cmd.indexOf("DANMU_MSG")) return
@@ -28,17 +123,22 @@ export function parseComment(msg): CommentDTO {
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   let emoji = msg.info[0][13] || {}
   let voice = msg.info[0][14] || {}
-  let { extra } = msg.info[0][15] || {}
+  const { extra: extraString, user } = (msg.info[0][15] || {}) as MessageInfo_0_15
+  let extra: MessageInfo_0_15_extra
   try {
     emoji = typeof emoji === 'string' ? JSON.parse(emoji) : emoji
     voice = typeof voice === 'string' ? JSON.parse(voice) : voice
-    extra = typeof extra === 'string' ? JSON.parse(extra) : extra
+    extra = typeof extraString === 'string' ? JSON.parse(extraString) : extraString
   } catch (e) {
     // silence
   }
 
   const { voice_url: voiceUrl, file_duration: fileDuration } = voice
   const { url: emojiUrl } = emoji
+  if (user) {
+    face = user.base?.face
+  }
+
   const comment: CommentDTO = {
     roomId: global.get('roomId'),
     sendAt: msg.info[0][4],
@@ -80,7 +180,17 @@ export function parseComment(msg): CommentDTO {
 
 export function parseInteractWord(msg): InteractDTO {
   if (msg.cmd !== "INTERACT_WORD") return
-  const { identities, msg_type: type, roomid: roomId, score, timestamp, uid, uname, uname_color: unameColor, fans_medal } = msg.data
+  const {
+    identities,
+    msg_type: type,
+    roomid: roomId,
+    score, timestamp,
+    uid,
+    uname,
+    uname_color: unameColor,
+    fans_medal,
+    uinfo,
+  } = msg.data as InteractData
   const interact = {
     identities,
     roomId,
@@ -90,6 +200,7 @@ export function parseInteractWord(msg): InteractDTO {
     uid,
     uname,
     unameColor: unameColor,
+    face: uinfo?.base?.face
   }
   if (fans_medal && fans_medal.medal_name) {
     const { guard_level, medal_color_border, medal_color_end, medal_color_start, medal_level, medal_name } = fans_medal
