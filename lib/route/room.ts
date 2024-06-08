@@ -1,4 +1,4 @@
-import global from '../service/global'
+import runtime from '../service/runtime'
 import { COMMON_RESPONSE, ERRORS, EVENTS } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
 import { getRoomInfoV2 } from '../service/bilibili/sdk'
@@ -6,7 +6,6 @@ import event from '../service/event'
 import { Model as GiftModel } from '../model/gift'
 import { Model as CommentModel } from '../model/comment'
 import { Model as InteractModel } from '../model/interact'
-const bilibiliWSClient = new BilibiliWSClient()
 
 const routes = [
   {
@@ -58,10 +57,19 @@ async function getRoomInfo(ctx) {
 
 async function connect(ctx) {
   const { roomId, uid } = ctx.__body
+
+  const bilibiliWSClient = new BilibiliWSClient()
   await bilibiliWSClient.connect({ uid: Number(uid) || 0, roomId: Number(roomId) })
-  global.set('roomId', roomId)
-  global.set('isConnected', true)
-  global.setInner('bilibiliWSClient', bilibiliWSClient)
+
+  // global.set('roomId', roomId)
+  // global.set('isConnected', true)
+  // global.setInner('bilibiliWSClient', bilibiliWSClient)
+
+  runtime.set(`connectionPoolMap.${roomId}`, {
+    roomId,
+    isConnected: true,
+    wsClient: bilibiliWSClient
+  })
 
   event.emit(EVENTS.GET_GIFT_CONFIG, { roomId })
 
@@ -69,13 +77,16 @@ async function connect(ctx) {
 }
 
 async function disconnect(ctx) {
-  // const { roomId } = ctx.__body
+  const { roomId } = ctx.__body
+  const bilibiliWSClient = runtime.get(`connectionPoolMap.${roomId}.wsClient`)
   if (!bilibiliWSClient) {
     throw new Error(ERRORS.SYSTEM_ERROR)
   }
   await bilibiliWSClient.close()
-  global.set('isConnected', false)
-  global.setInner('bilibiliWSClient', null)
+  // global.set('isConnected', false)
+  // global.setInner('bilibiliWSClient', null)
+
+  runtime.unset(`connectionPoolMap.${roomId}`)
   ctx.body = COMMON_RESPONSE
 }
 
@@ -114,7 +125,8 @@ async function getRealTimeViewersCount(ctx) {
 
 async function getStatus(ctx) {
   const { roomId } = ctx.__body
-  const isConnected = bilibiliWSClient.isConnected()
+  const isConnected = runtime.get(`connectionPoolMap.${roomId}.isConnected`)
+
   const data = {
     roomId: roomId,
     isConnected,

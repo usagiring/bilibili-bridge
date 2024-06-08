@@ -18,7 +18,6 @@ const PORT = global.get('PORT') || 3000
 
 const app = new Koa()
 
-
 app.use(cors({
   origin: '*',
   allowMethods: ['POST', 'OPTIONS', 'PUT', 'HEAD', 'DELETE', 'PATCH']
@@ -47,7 +46,7 @@ app.use(async (ctx, next) => {
 
 app
   .use(router.routes())
-  .use(router.allowedMethods())
+  // .use(router.allowedMethods())
 
 const server = app.listen(PORT)
 

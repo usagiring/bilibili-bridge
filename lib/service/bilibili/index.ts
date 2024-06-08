@@ -2,6 +2,7 @@ import { CommentDTO } from '../../model/comment'
 import { GiftDTO } from '../../model/gift'
 import { InteractDTO } from '../../model/interact'
 import global from '../global'
+import runtime from '../runtime'
 import { transformColorNumber2String } from '../util'
 
 export default {
@@ -113,7 +114,7 @@ export function parseComment(msg): CommentDTO {
 
   let face: string
   if (dmV2) {
-    const dmV2Decoder = global.getInner('dmV2Decoder')
+    const dmV2Decoder = runtime.get('dmV2Decoder')
     if (dmV2Decoder) {
       const dm = dmV2Decoder(dmV2)
       face = dm?.user?.face

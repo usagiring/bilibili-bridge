@@ -1,5 +1,6 @@
-import global from '../global'
+// import global from '../global'
 import { getGiftConfig } from '../bilibili/sdk'
+import runtime from '../runtime'
 
 export default {
   getConfig
@@ -9,7 +10,7 @@ export async function getConfig({ roomId }) {
   const result = await getGiftConfig(roomId)
   const gifts = result.data.list
 
-  const giftConfigMap = gifts.reduce((map, gift) => {
+  const giftMap = gifts.reduce((map, gift) => {
     return Object.assign(map, {
       [gift.id]: {
         webp: gift.webp,
@@ -19,6 +20,8 @@ export async function getConfig({ roomId }) {
     })
   }, {})
 
-  global.set('giftConfig', giftConfigMap)
-  return giftConfigMap
+  // global.set('giftConfig', giftMap)
+
+  runtime.set(`connectionPoolMap.${roomId}.giftMap`, giftMap)
+  return giftMap
 }
