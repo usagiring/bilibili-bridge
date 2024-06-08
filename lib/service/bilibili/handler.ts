@@ -1,7 +1,7 @@
 import moment from 'moment'
 import event from '../event'
 import { EVENTS, CMDS, BILI_CMDS } from '../const'
-import global from '../global'
+import global from '../state'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
 import { parseComment, parseGift, parseInteractWord, parseUser } from './'

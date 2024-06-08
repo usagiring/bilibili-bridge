@@ -1,7 +1,7 @@
 import http from 'http'
 import WebSocket from 'ws'
 import { EVENTS } from './const'
-import global from './global'
+import runtime from './runtime'
 
 export interface SocketPayload {
   cmd: string
@@ -67,7 +67,7 @@ function pong({ ws, payload }) {
 
 
 function audio(data) {
-  const asr = global.getInner('asrInstance')
+  const asr = runtime.get('asrInstance')
   if (!asr) return
 
   const buffer = new Int16Array(JSON.parse(data))

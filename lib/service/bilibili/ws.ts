@@ -6,7 +6,7 @@ import decompress from 'brotli/decompress'
 import event from '../event'
 import { EVENTS } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
-import global from '../global'
+import global from '../state'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 

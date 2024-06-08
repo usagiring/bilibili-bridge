@@ -1,4 +1,4 @@
-import global from '../service/global'
+import global from '../service/state'
 import giftService from '../service/gift'
 import { QueryOptions } from '../service/nedb'
 import { Model as GiftModel } from '../model/gift'
@@ -7,7 +7,7 @@ import { parseQueryRegexp } from '../service/util'
 const routes = [
   {
     verb: 'get',
-    uri: '/room/:roomId/gift/list',
+    uri: '/room/:roomId/gift/map',
     middlewares: [getConfig],
   },
   {

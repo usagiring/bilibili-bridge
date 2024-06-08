@@ -5,7 +5,7 @@ import path from 'path'
 import bodyParser from 'koa-bodyparser'
 import router from './lib/route'
 import wss from './lib/service/wss'
-import global from './lib/service/global'
+import global from './lib/service/state'
 import serve from 'koa-static'
 // 注册事件
 import './lib/service/bilibili/handler'

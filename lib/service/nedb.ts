@@ -1,7 +1,7 @@
 import Datastore from 'nedb'
 import fs from 'fs'
 import path from 'path'
-import global from './global'
+import global from './state'
 import { dateFormat } from './util'
 
 const USER_DATA_PATH = global.get('USER_DATA_PATH') || 'db'

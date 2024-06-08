@@ -1,5 +1,5 @@
 import { checkCookie } from '../service/bilibili/sdk'
-import global from '../service/global'
+import global from '../service/state'
 
 const routes = [
   {

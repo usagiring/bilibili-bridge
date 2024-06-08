@@ -1,4 +1,4 @@
-import global from './global'
+import global from './state'
 import jwt from 'jsonwebtoken'
 
 export function generateJWT() {

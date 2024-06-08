@@ -1,6 +1,6 @@
 import wss from '../service/wss'
 import { CMDS, COMMON_RESPONSE } from '../service/const'
-import global from '../service/global'
+import global from '../service/state'
 
 const routes = [
   {

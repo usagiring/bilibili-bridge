@@ -2,7 +2,8 @@ import { AliASR, ffmpeg, AliSpeechRecognition } from '@tokine/asr'
 import Alimt from '@tokine/mt'
 import { chunk } from 'lodash'
 
-import global from '../service/global'
+import state from '../service/state'
+import runtime from '../service/runtime'
 import { CMDS, COMMON_RESPONSE, HTTP_ERRORS } from '../service/const'
 import wss, { SocketPayload } from '../service/wss'
 import { wait } from '../service/util'
@@ -66,7 +67,7 @@ const routes = [
 ]
 
 async function status(ctx) {
-  const asr = global.getInner('asrInstance')
+  const asr = runtime.get('asrInstance')
   const message = asr ? '1' : '0'
   ctx.body = {
     message
@@ -75,7 +76,7 @@ async function status(ctx) {
 
 async function initial(ctx) {
   const { appKey, accessKeyId, accessKeySecret } = ctx.__body
-  const oldAsr = global.getInner('asrInstance')
+  const oldAsr = runtime.get('asrInstance')
   if (oldAsr) {
     try {
       await oldAsr.close()
@@ -83,7 +84,7 @@ async function initial(ctx) {
       console.log(e)
     }
 
-    global.setInner('asrInstance', null)
+    runtime.set('asrInstance', null)
   }
 
   const asr = await AliASR.initial({
@@ -109,11 +110,11 @@ async function initial(ctx) {
 
     if (!msg?.payload?.result) return
 
-    const mtInstance = global.getInner('mtInstance')
+    const mtInstance = runtime.get('mtInstance')
     if (!mtInstance) { return }
 
-    const fromLang = global.get('mtFromLang')
-    const toLang = global.get('mtToLang')
+    const fromLang = state.get('mtFromLang')
+    const toLang = state.get('mtToLang')
 
     let __fromLang = fromLang
     if (fromLang === 'auto') {
@@ -168,14 +169,14 @@ async function initial(ctx) {
 
   await AliASR.start()
 
-  global.setInner('asrInstance', asr)
+  runtime.set('asrInstance', asr)
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamStart(ctx) {
   const { playUrl, ffmpegPath } = ctx.__body
-  const asr = global.getInner('asrInstance')
+  const asr = runtime.get('asrInstance')
   if (!asr) {
     throw HTTP_ERRORS.PARAMS_ERROR
     // message: 'no found asr instance'
@@ -194,7 +195,7 @@ async function liveStreamStart(ctx) {
       if (!result) {
         stream.end(null)
         asr.close()
-        global.setInner('asrInstance', null)
+        runtime.set('asrInstance', null)
       }
     } catch (e) {
       console.error("send audio failed")
@@ -214,13 +215,13 @@ async function liveStreamStart(ctx) {
     // asr.close()
   })
 
-  global.setInner('liveStream', stream)
+  runtime.set('liveStream', stream)
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamClose(ctx) {
-  const stream = global.getInner('liveStream')
+  const stream = runtime.get('liveStream')
   if (stream) {
     try {
       stream.end(null)
@@ -229,15 +230,15 @@ async function liveStreamClose(ctx) {
     }
   }
 
-  global.setInner('liveStream', null)
+  runtime.set('liveStream', null)
   ctx.body = COMMON_RESPONSE
 }
 
 async function close(ctx) {
-  const oldAsr = global.getInner('asrInstance')
+  const oldAsr = runtime.get('asrInstance')
 
   if (oldAsr) {
-    global.setInner('asrInstance', null)
+    runtime.set('asrInstance', null)
 
     try {
       await oldAsr.close()
@@ -252,13 +253,13 @@ async function close(ctx) {
 async function translateSentence(ctx) {
   const { from, to, text, accessKeyId, accessKeySecret, payload } = ctx.__body
 
-  let mtInstance = global.getInner('mtInstance')
+  let mtInstance = runtime.get('mtInstance')
   if (!mtInstance) {
     mtInstance = new Alimt({
       accessKeyId,
       accessKeySecret,
     })
-    global.setInner('mtInstance', mtInstance)
+    runtime.set('mtInstance', mtInstance)
   }
 
   const result = await mtInstance.translateGeneral({
@@ -285,30 +286,30 @@ async function translateOpen(ctx) {
   const { accessKeyId, accessKeySecret } = ctx.__body
   const { fromLang, toLang } = ctx.__body
 
-  let mtInstance = global.getInner('mtInstance')
+  let mtInstance = runtime.get('mtInstance')
   if (!mtInstance) {
     mtInstance = new Alimt({
       accessKeyId,
       accessKeySecret,
     })
-    global.setInner('mtInstance', mtInstance)
+    runtime.set('mtInstance', mtInstance)
   }
-  global.set('mtFromLang', fromLang)
-  global.set('mtToLang', toLang)
+  state.set('mtFromLang', fromLang)
+  state.set('mtToLang', toLang)
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateClose(ctx) {
-  global.set('mtFromLang', null)
-  global.set('mtToLang', null)
-  global.setInner('mtInstance', null)
+  state.set('mtFromLang', null)
+  state.set('mtToLang', null)
+  runtime.set('mtInstance', null)
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateStatus(ctx) {
-  const isOpen = global.getInner('mtInstance')
-  const fromLang = global.get('mtFromLang')
-  const toLang = global.get('mtToLang')
+  const isOpen = runtime.get('mtInstance')
+  const fromLang = state.get('mtFromLang')
+  const toLang = state.get('mtToLang')
   const message = isOpen ? '1' : '0'
   ctx.body = {
     message,
@@ -321,7 +322,7 @@ async function translateStatus(ctx) {
 
 async function srInitial(ctx) {
   const { appKey, accessKeyId, accessKeySecret } = ctx.__body
-  // const oldSr = global.getInner('speechRecognitionInstance')
+  // const oldSr = state.getInner('speechRecognitionInstance')
   // if (oldSr) {
   //   try {
   //     await oldSr.close()
@@ -329,7 +330,7 @@ async function srInitial(ctx) {
   //     console.log(e)
   //   }
 
-  //   global.setInner('speechRecognitionInstance', null)
+  //   state.setInner('speechRecognitionInstance', null)
   // }
 
   // const sr = await AliSpeechRecognition.initial({
@@ -357,19 +358,19 @@ async function srInitial(ctx) {
 
   // // await AliSpeechRecognition.start()
 
-  // global.setInner('speechRecognitionInstance', sr)
+  // state.setInner('speechRecognitionInstance', sr)
 
   // 由于每次start/close sr实例都会发送多次重复事件，怀疑有oom风险
   // 这里仅获取Token，之后每次调用都初始化新实例
   const token = await AliSpeechRecognition.getToken({ accessKeyId, accessKeySecret })
-  global.setInner('aliToken', token)
+  runtime.set('aliToken', token)
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function speechToText(ctx) {
   const { appKey, payload } = ctx.__body
-  const token = global.getInner('aliToken')
+  const token = runtime.get('aliToken')
   if (!token) {
     throw HTTP_ERRORS.PARAMS_ERROR
   }

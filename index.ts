@@ -1,4 +1,4 @@
-import global from './lib/service/global'
+import global from './lib/service/state'
 
 // 初始化配置
 function init(options) {

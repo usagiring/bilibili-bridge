@@ -1,7 +1,7 @@
 import { orderBy } from 'lodash'
 import cookie from 'cookie'
 import event from './event'
-import global from './global'
+import global from './state'
 import { CMDS, EVENTS } from './const'
 // import giftService from './'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'

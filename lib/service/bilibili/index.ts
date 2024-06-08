@@ -1,7 +1,7 @@
 import { CommentDTO } from '../../model/comment'
 import { GiftDTO } from '../../model/gift'
 import { InteractDTO } from '../../model/interact'
-import global from '../global'
+import global from '../state'
 import runtime from '../runtime'
 import { transformColorNumber2String } from '../util'
 

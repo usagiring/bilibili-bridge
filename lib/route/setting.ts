@@ -1,6 +1,6 @@
 import { pick } from 'lodash'
 import { CMDS, HTTP_ERRORS } from '../service/const'
-import global from '../service/global'
+import state from '../service/state'
 import wss from '../service/wss'
 import speak, { getInstalledVoices } from '../service/tts/system'
 
@@ -12,14 +12,14 @@ const routes = [
     validator: {
       type: 'object',
       properties: {
-        key: { type: 'string' }
+        keys: { type: 'array', items: { type: 'string' } }
       }
     }
   },
   {
     verb: 'put',
     uri: '/setting',
-    middlewares: [updateV2],
+    middlewares: [update],
     validator: {
       type: 'object',
       properties: {
@@ -82,8 +82,8 @@ const routes = [
 ]
 
 async function get(ctx) {
-  const { key } = ctx.__body
-  const data = key ? global.get(key) : global.all()
+  const { keys } = ctx.__body
+  const data = keys?.length ? state.getByKeys(keys) : state.all()
   const res = {
     ...data,
     userCookie: null,
@@ -96,58 +96,31 @@ async function get(ctx) {
 }
 
 function update(ctx) {
-  const payload = ctx.__body
-  const settings = global.update(payload)
-  const res = {
-    ...settings,
-    userCookie: null,
+  const { upsert, replace, remove } = ctx.__body
+  let result: any = {}
+
+  if (upsert) {
+    result = state.upsert(upsert)
   }
+
+  if (remove?.length) {
+    state.remove(remove)
+  }
+
+  if (replace) {
+    result = state.replace(replace)
+  }
+
+  delete result.userCookie
+
   wss.broadcast({
     cmd: CMDS.SETTING,
-    payload: res
+    payload: result
   })
+
   ctx.body = {
     message: 'ok',
-    data: res
-  }
-}
-
-function updateV2(ctx) {
-  const { upsert, replace, remove } = ctx.__body 
-
-}
-
-function merge(ctx) {
-  const payload = ctx.__body
-  const settings = global.merge(payload)
-  const res = {
-    ...settings,
-    userCookie: null,
-  }
-  wss.broadcast({
-    cmd: CMDS.SETTING,
-    payload: pick(res, Object.keys(payload))
-  })
-  ctx.body = {
-    message: 'ok',
-    data: res
-  }
-}
-
-function replace(ctx) {
-  const payload = ctx.__body
-  const settings = global.replace(payload)
-  const res = {
-    ...settings,
-    userCookie: null,
-  }
-  wss.broadcast({
-    cmd: CMDS.SETTING,
-    payload: res
-  })
-  ctx.body = {
-    message: 'ok',
-    data: res
+    data: result
   }
 }
 
