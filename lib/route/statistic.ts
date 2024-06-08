@@ -20,21 +20,7 @@ const routes = [
 
   {
     verb: 'post',
-    uri: '/comments/tokenization',
-    middlewares: [tokenization],
-    validator: {
-      type: 'object',
-      properties: {
-        roomId: { type: 'number' },
-        start: { type: 'string' },
-        end: { type: 'string' },
-      }
-    }
-  },
-
-  {
-    verb: 'post',
-    uri: '/comments/word-extract',
+    uri: '/statistic/comment/keyword-extract',
     middlewares: [wordExtract],
     validator: {
       type: 'object',
@@ -48,7 +34,7 @@ const routes = [
 
   {
     verb: 'post',
-    uri: '/export',
+    uri: '/statistic/gift/export',
     middlewares: [exportFile],
     validator: {
       type: 'object',
@@ -68,12 +54,6 @@ async function statistic(ctx) {
     message: 'ok',
     data: result
   }
-}
-
-async function tokenization(ctx) {
-  const { roomId, start, end } = ctx.__body
-  await statisticService.tokenization({ roomId, start, end })
-  ctx.body = COMMON_RESPONSE
 }
 
 async function wordExtract(ctx) {

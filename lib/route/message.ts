@@ -5,12 +5,12 @@ import global from '../service/global'
 const routes = [
   {
     verb: 'post',
-    uri: '/messages/clear',
+    uri: '/message/clear',
     middlewares: [clear],
   },
   {
     verb: 'post',
-    uri: '/messages/send',
+    uri: '/message/send',
     middlewares: [sendMessages],
     validator: {
       type: 'object',
@@ -22,7 +22,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/messages/examples/send',
+    uri: '/message/example/send',
     middlewares: [sendExampleMessages],
     validator: {
       type: 'object',
@@ -34,17 +34,17 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/messages/examples',
+    uri: '/message/example',
     middlewares: [getInitialMessages],
   },
   {
     verb: 'post',
-    uri: '/messages/examples/clear',
+    uri: '/message/example/clear',
     middlewares: [clearExampleMessages],
   },
   {
     verb: 'post',
-    uri: '/messages/examples/restore',
+    uri: '/message/example/restore',
     middlewares: [restoreExampleMessages],
   }
 ]

@@ -3,7 +3,7 @@ import { backup, deleteDB } from '../service/nedb'
 const routes = [
   {
     verb: 'post',
-    uri: '/dbs/backup',
+    uri: '/db/backup',
     middlewares: [dbBackup],
     validator: {
       type: 'object',
@@ -14,7 +14,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/dbs/clear',
+    uri: '/db/clear',
     middlewares: [dbClear],
     validator: {
       type: 'object',

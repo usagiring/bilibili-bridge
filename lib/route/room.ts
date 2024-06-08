@@ -11,12 +11,12 @@ const bilibiliWSClient = new BilibiliWSClient()
 const routes = [
   {
     verb: 'get',
-    uri: '/rooms/:roomId',
+    uri: '/room/:roomId',
     middlewares: [getRoomInfo]
   },
   {
     verb: 'post',
-    uri: '/rooms/:roomId/connect',
+    uri: '/room/:roomId/connect',
     middlewares: [connect],
     validator: {
       type: 'object',
@@ -27,12 +27,12 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/rooms/:roomId/disconnect',
+    uri: '/room/:roomId/disconnect',
     middlewares: [disconnect]
   },
   {
     verb: 'get',
-    uri: '/rooms/:roomId/real-time/viewers/count',
+    uri: '/room/:roomId/real-time/viewer/count',
     middlewares: [getRealTimeViewersCount],
     validator: {
       type: 'object',
@@ -45,7 +45,7 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/rooms/:roomId/status',
+    uri: '/room/:roomId/status',
     middlewares: [getStatus],
   }
 ]

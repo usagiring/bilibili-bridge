@@ -1,0 +1,497 @@
+openapi: 3.0.3
+info:
+  title: Bilibili-bridge
+  description: |-
+    Used By Bilibili-live-danmaku()
+tags:
+  - name: room
+    description: Everything about your Pets
+  - name: store
+    description: Access to Petstore orders
+  - name: user
+    description: Operations about user
+  - name: setting
+    description: 
+paths:
+  /room/{roomId}:
+    get:
+      tags:
+        - room
+      summary: Get room info
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # 
+  /room/{roomId}/connect:
+    post:
+      tags:
+        - room
+      summary: Connect room
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Create a new pet in the store
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid:
+                  type: string
+                  default: '0'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /room/{roomId}/disconnect:
+    post:
+      tags:
+        - room
+      summary: 断开房间连接
+      operationId: findPetsByStatus
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /room/{roomId}/real-time/viewer/count:
+    get:
+      tags:
+        - room
+      summary: 获取实时观看数
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        count:
+                          type: number
+  /room/{roomId}/status:
+    get:
+      tags:
+        - room
+      summary: 获取房间连接状态
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        isConnected:
+                          type: boolean
+  /setting:
+    get:
+      tags:
+        - setting
+      summary: 获取设置
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+  /setting:
+    put:
+      tags:
+        - setting
+      summary: 更新设置
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                upsert:
+                  type: object
+                replace:
+                  type: object
+                remove:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /statistic:
+    post:
+      tags:
+        - statistic
+      summary: 统计
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomId:
+                  type: number
+                start:
+                  type: object
+                end:
+                  type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /statistic/comment/keyword-extract:
+    post:
+      tags:
+        - statistic
+      summary: 评论关键词提取、统计
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomId:
+                  type: number
+                start:
+                  type: object
+                end:
+                  type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /statistic/gift/export:
+    post:
+      tags:
+        - statistic
+      summary: 礼物导出CSV格式
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomId:
+                  type: number
+                start:
+                  type: object
+                end:
+                  type: string
+      responses:
+        "200":
+          description: successful operation
+          # content:
+          #   application/octet-stream:
+  # /lottery/history/query:
+  #   post:
+  #     tags:
+  #       - lottery
+  #     summary: 抽奖
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               roomId:
+  #                 type: number
+  #               start:
+  #                 type: object
+  #               end:
+  #                 type: string
+  #     responses:
+  #       "200":
+  #         description: successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #                 properties:
+  #                   message:
+  #                     type: string
+  #                   data:
+  #                     type: object
+  /interact/query:
+    post:
+      tags:
+        - interact
+      summary: 交互消息查询
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+                sort:
+                  type: object
+                skip:
+                  type: number
+                limit:
+                  type: number
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /interact/count:
+    post:
+      tags:
+        - interact
+      summary: 交互消息查询数量
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /comment/query:
+    post:
+      tags:
+        - comment
+      summary: 弹幕查询
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+                sort:
+                  type: object
+                skip:
+                  type: number
+                limit:
+                  type: number
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /comment/count:
+    post:
+      tags:
+        - interact
+      summary: 弹幕查询数量
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /gift/query:
+    post:
+      tags:
+        - gift
+      summary: 礼物查询
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+                sort:
+                  type: object
+                skip:
+                  type: number
+                  default: 0
+                limit:
+                  type: number
+                  default: 20
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /gift/count:
+    post:
+      tags:
+        - gift
+      summary: 礼物查询数量
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object
+  /room/:roomId/gift/list:
+    get:
+      tags:
+        - room
+        - gift
+      summary: 查询B站礼物列表
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                  properties:
+                    message:
+                      type: string
+                    data:
+                      type: object

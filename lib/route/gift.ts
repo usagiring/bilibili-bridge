@@ -7,12 +7,12 @@ import { parseQueryRegexp } from '../service/util'
 const routes = [
   {
     verb: 'get',
-    uri: '/gifts/config',
+    uri: '/room/:roomId/gift/list',
     middlewares: [getConfig],
   },
   {
     verb: 'post',
-    uri: '/gifts/query',
+    uri: '/gift/query',
     middlewares: [query],
     validator: {
       type: 'object',
@@ -27,7 +27,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/gifts/count',
+    uri: '/gift/count',
     middlewares: [count],
     validator: {
       type: 'object',

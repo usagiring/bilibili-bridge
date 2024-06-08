@@ -5,7 +5,7 @@ import { parseQueryRegexp } from '../service/util'
 const routes = [
   {
     verb: 'post',
-    uri: '/interacts/query',
+    uri: '/interact/query',
     middlewares: [query],
     validator: {
       type: 'object',
@@ -20,7 +20,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/interacts/count',
+    uri: '/interact/count',
     middlewares: [count],
     validator: {
       type: 'object',

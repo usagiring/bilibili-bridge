@@ -5,7 +5,7 @@ import { COMMON_RESPONSE } from '../service/const'
 const routes = [
   {
     verb: 'post',
-    uri: '/lottery-histories/query',
+    uri: '/lottery/history/query',
     middlewares: [query],
     validator: {
       type: 'object',
@@ -20,7 +20,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/lottery-histories/count',
+    uri: '/lottery/history/count',
     middlewares: [count],
     validator: {
       type: 'object',
@@ -31,7 +31,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/lottery-histories',
+    uri: '/lottery/history',
     middlewares: [create],
     validator: {
       type: 'object',
@@ -40,7 +40,7 @@ const routes = [
   },
   {
     verb: 'delete',
-    uri: '/lottery-histories',
+    uri: '/lottery/history',
     middlewares: [remove],
     validator: {
       type: 'object',

@@ -7,55 +7,83 @@ import speak, { getInstalledVoices } from '../service/tts/system'
 const routes = [
   {
     verb: 'get',
-    uri: '/settings',
+    uri: '/setting',
     middlewares: [get],
     validator: {
       type: 'object',
       properties: {
-        path: { type: 'string' }
+        key: { type: 'string' }
       }
     }
   },
   {
     verb: 'put',
-    uri: '/settings/update',
-    middlewares: [update]
-  },
-  {
-    verb: 'put',
-    uri: '/settings/merge',
-    middlewares: [merge]
-  },
-  {
-    verb: 'put',
-    uri: '/settings/replace',
-    middlewares: [replace]
-  },
-
-  {
-    verb: 'get',
-    uri: '/voices',
-    middlewares: [getVoices]
-  },
-  {
-    verb: 'post',
-    uri: '/speak',
-    middlewares: [playVoice],
+    uri: '/setting',
+    middlewares: [updateV2],
     validator: {
       type: 'object',
-      required: ['text'],
       properties: {
-        text: { type: 'string' },
-        voice: { type: 'string' },
-        speed: { type: 'number' }
+        upsert: {
+          type: 'object',
+          properties: {
+
+          }
+        },
+        remove: {
+          type: 'array',
+          items: {
+            type: 'string'
+          }
+        },
+        replace: {
+          type: 'object',
+          properties: {
+
+          }
+        }
       }
     }
-  }
+  },
+  // {
+  //   verb: 'put',
+  //   uri: '/setting/update',
+  //   middlewares: [update]
+  // },
+  // {
+  //   verb: 'put',
+  //   uri: '/setting/merge',
+  //   middlewares: [merge]
+  // },
+  // {
+  //   verb: 'put',
+  //   uri: '/setting/replace',
+  //   middlewares: [replace]
+  // },
+
+  // {
+  //   verb: 'get',
+  //   uri: '/voice',
+  //   middlewares: [getVoices]
+  // },
+  // {
+  //   verb: 'post',
+  //   uri: '/speak',
+  //   middlewares: [playVoice],
+  //   validator: {
+  //     type: 'object',
+  //     required: ['text'],
+  //     properties: {
+  //       text: { type: 'string' },
+  //       voice: { type: 'string' },
+  //       speed: { type: 'number' }
+  //     }
+  //   }
+  // }
 ]
 
 async function get(ctx) {
-  const { path } = ctx.__body
-  const data = path ? global.get(path) : global.all()
+  const { key } = ctx.__body
+  const data = key ? global.get(key) : global.all()
   const res = {
     ...data,
     userCookie: null,
@@ -82,6 +110,11 @@ function update(ctx) {
     message: 'ok',
     data: res
   }
+}
+
+function updateV2(ctx) {
+  const { upsert, replace, remove } = ctx.__body 
+
 }
 
 function merge(ctx) {
