@@ -1,8 +1,8 @@
-import global from '../service/state'
 import giftService from '../service/gift'
 import { QueryOptions } from '../service/nedb'
 import { Model as GiftModel } from '../model/gift'
 import { parseQueryRegexp } from '../service/util'
+import runtime from '../service/runtime'
 
 const routes = [
   {
@@ -40,13 +40,14 @@ const routes = [
 
 async function getConfig(ctx) {
   const { roomId } = ctx.__body
-  let giftConfig = global.get('giftConfig')
-  if(!giftConfig) {
-    giftConfig = giftService.getConfig({ roomId: roomId || global.get('roomId') || 1 }) || {}
+  let giftMap = runtime.get(`connectionPoolMap.${roomId}.giftMap`)
+
+  if (!giftMap) {
+    giftMap = await giftService.getConfig({ roomId: roomId }) || {}
   }
   ctx.body = {
     message: 'ok',
-    data: giftConfig
+    data: giftMap
   }
 }
 

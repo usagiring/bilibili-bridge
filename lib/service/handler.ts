@@ -1,13 +1,14 @@
 import { orderBy } from 'lodash'
 import cookie from 'cookie'
 import event from './event'
-import global from './state'
+import state from './state'
 import { CMDS, EVENTS } from './const'
 // import giftService from './'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
 import type { SendMessage } from './bilibili/sdk'
 // import tts from './tts'
 import wss from './wss'
+import runtime from './runtime'
 
 interface Message {
     type: 'comment' | 'gift' | 'interact' | 'superchat'
@@ -19,6 +20,7 @@ interface Message {
     coinType?: string
     giftId?: string
     giftName?: string
+    roomId: number
 }
 
 interface Rule {
@@ -45,6 +47,7 @@ export function parseAutoReplyMessage(message, type): Message {
         uname: message.uname,
         role: message.role,
         medalName: message.medalName,
+        roomId: message.roomId,
     }
     if (type === 'gift') {
         result.giftId = message.id
@@ -62,10 +65,10 @@ export function parseAutoReplyMessage(message, type): Message {
 // }, 60 * 1000 * 10) // TODO config
 
 event.on(EVENTS.AUTO_REPLY, async (message: Message) => {
-    const autoReplyRules = global.get('autoReplyRules')
-    const roomId = global.get('roomId')
-    const isConnected = global.get('isConnected')
-    if (!roomId || !isConnected || !autoReplyRules || !autoReplyRules.length) return
+    const autoReplyRules = state.get('autoReplyRules')
+    const roomId = message.roomId
+    const isConnected = runtime.get(`connectionPoolMap.${roomId}.isConnected`)
+    if (!roomId || !isConnected || !autoReplyRules?.length) return
 
     // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
     // if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
@@ -97,14 +100,13 @@ event.on(EVENTS.AUTO_REPLY, async (message: Message) => {
         }
 
         for (const tag of rule.tags) {
-            const userCookie = global.get('userCookie')
+            const userCookie = state.get('userCookie')
             if (tag.key === 'TEXT_REPLY' && userCookie) {
-                const roomId = global.get('roomId')
                 const cookies = cookie.parse(userCookie)
                 const me = cookies.DedeUserID
 
                 // 当前房间主播ID
-                const roomUserId = global.get('roomUserId')
+                const roomUserId = state.get('roomUserId')
 
                 // 仅在自己直播间生效 或者 开启所有用户回复设置
                 if (tag.data?.allowAllUserDanmakuReply || `${me}` === `${roomUserId}`) {
@@ -201,7 +203,7 @@ async function isPassed(message, rule) {
         }
         if (tag.key === 'MEDAL') {
             if (!message.medalName) return false
-            const medalName = global.get('medalName')
+            const medalName = state.get('medalName')
             if (message.medalName !== medalName) {
                 return false
             }
@@ -228,9 +230,9 @@ setInterval(() => {
 }, 60 * 1000 * 10) // 10min
 
 event.on(EVENTS.DANMAKU_COMMAND, async (comment) => {
-    const muteCommandSetting = global.get('muteCommandSetting')
+    const muteCommandSetting = state.get('muteCommandSetting')
     if (!muteCommandSetting) return
-    const userCookie = global.get('userCookie')
+    const userCookie = state.get('userCookie')
     if (!userCookie) return
     const { count, enable, roles, useHintText } = muteCommandSetting
     if (!enable) return
@@ -242,7 +244,7 @@ event.on(EVENTS.DANMAKU_COMMAND, async (comment) => {
     // [] = all
     // [1, 2, 3, admin, owner]
     // 当前房间主播ID
-    const roomUserId = global.get('roomUserId')
+    const roomUserId = state.get('roomUserId')
     const isOwner = roomUserId && `${roomUserId}` === `${uid}`
     if (
         roles?.length &&

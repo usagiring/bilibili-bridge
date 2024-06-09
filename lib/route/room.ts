@@ -71,10 +71,10 @@ const routes = [
     middlewares: [cancelRecord],
     validator: {
       type: 'object',
-      required: ['roomId', 'id'],
+      required: ['roomId', 'recordId'],
       properties: {
         roomId: { type: 'string' },
-        id: { type: 'string' }
+        recordId: { type: 'string' }
       }
     }
   },
@@ -106,8 +106,6 @@ async function connect(ctx) {
     isConnected: true,
     wsClient: bilibiliWSClient
   })
-
-  event.emit(EVENTS.GET_GIFT_CONFIG, { roomId })
 
   ctx.body = COMMON_RESPONSE
 }
@@ -200,8 +198,8 @@ async function startRecord(ctx) {
 }
 
 async function cancelRecord(ctx) {
-  const { roomId, id } = ctx.__body
-  await biliRecordService.cancel({ id })
+  const { roomId, recordId } = ctx.__body
+  await biliRecordService.cancel({ id: recordId })
 
   state.unset(`recordMap.${roomId}`)
 
@@ -211,7 +209,7 @@ async function cancelRecord(ctx) {
 async function getRecordStatus(ctx) {
   const { roomId } = ctx.__body
 
-  const status = state.get(`recordMap.${roomId}`)
+  const status = state.get(`recordMap.${roomId}`) || {}
 
   ctx.body = {
     message: 'ok',

@@ -55,6 +55,15 @@ const routes = [
     verb: 'get',
     uri: '/bilibili/room/:roomId/playurl',
     middlewares: [getPlayUrl],
+    validator: {
+      type: 'object',
+      required: ['roomId'],
+      properties: {
+        roomId: { type: 'string' },
+        qn: { type: 'number' },
+        withCookie: { type: 'boolean' },
+      }
+    }
   },
 
   {
@@ -145,10 +154,11 @@ async function getMedalList(ctx) {
 }
 
 async function getPlayUrl(ctx) {
-  const { roomId, withCookie } = ctx.__body
+  const { roomId, qn, withCookie } = ctx.__body
 
   const playUrl = await getRandomPlayUrl({
     roomId,
+    qn,
     userCookie: withCookie ? state.get('userCookie') : null
   })
 

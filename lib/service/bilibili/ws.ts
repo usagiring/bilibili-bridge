@@ -6,7 +6,7 @@ import decompress from 'brotli/decompress'
 import event from '../event'
 import { EVENTS } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
-import global from '../state'
+import state from '../state'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
@@ -42,7 +42,7 @@ class WSClient {
     // rid: 房主UID
     const { uid, roomId } = this.options
 
-    const userCookie = global.get('userCookie')
+    const userCookie = state.get('userCookie')
     let me: number
     let buvid: string
     if (userCookie) {
@@ -99,7 +99,10 @@ class WSClient {
         }
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
-            event.emit(EVENTS.MESSAGE, item)
+            event.emit(EVENTS.MESSAGE, {
+              data: item,
+              roomId
+            })
           })
         }
 
@@ -115,7 +118,10 @@ class WSClient {
 
         // 报错重连
         if (self.autoReConnect) {
-          self.connect(options)
+          console.log('after 3s auto reconnect...')
+          setTimeout(() => {
+            self.connect(options)
+          }, 3000)
         }
       })
 
@@ -125,7 +131,10 @@ class WSClient {
 
         // 报错重连
         if (self.autoReConnect) {
-          self.connect(options)
+          console.log('after 3s auto reconnect...')
+          setTimeout(() => {
+            self.connect(options)
+          }, 3000)
         }
       })
     })

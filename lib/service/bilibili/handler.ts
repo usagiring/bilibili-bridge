@@ -26,11 +26,11 @@ event.on(EVENTS.NINKI, async (data) => {
   })
 })
 
-event.on(EVENTS.MESSAGE, async (data) => {
+event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
   if (Array.isArray(data)) {
     for (const msg of data) {
       if (~msg.cmd.indexOf("DANMU_MSG")) {
-        const comment = parseComment(msg)
+        const comment = parseComment(msg, roomId)
         await commentJob(comment)
         continue
       }
@@ -47,7 +47,7 @@ event.on(EVENTS.MESSAGE, async (data) => {
         msg.cmd === 'GUARD_BUY' ||
         msg.cmd === 'SEND_GIFT'
       ) {
-        const gift = parseGift(msg)
+        const gift = parseGift(msg, roomId)
         await giftJob(gift)
         continue
       }
@@ -244,7 +244,7 @@ async function giftJob(gift: GiftDTO) {
 
   if (gift.type === 3) {
     let sc = await GiftModel.findOne({
-      roomId: global.get('roomId'),
+      roomId: gift.roomId,
       SCId: gift.SCId,
     })
 
@@ -283,7 +283,7 @@ async function giftJob(gift: GiftDTO) {
 
     if (gift.batchComboId) {
       const comboGift = await GiftModel.findOne({
-        roomId: global.get('roomId'),
+        roomId: gift.roomId,
         batchComboId: gift.batchComboId,
       })
       if (comboGift) {

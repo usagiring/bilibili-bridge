@@ -108,7 +108,7 @@ interface InteractData {
   }
 }
 
-export function parseComment(msg): CommentDTO {
+export function parseComment(msg, roomId): CommentDTO {
   if (!~msg.cmd.indexOf("DANMU_MSG")) return
   const dmV2 = msg.dm_v2
 
@@ -141,7 +141,7 @@ export function parseComment(msg): CommentDTO {
   }
 
   const comment: CommentDTO = {
-    roomId: global.get('roomId'),
+    roomId: roomId,
     sendAt: msg.info[0][4],
     uid,
     uname: name,
@@ -217,7 +217,7 @@ export function parseInteractWord(msg): InteractDTO {
   return interact
 }
 
-export function parseGift(msg): GiftDTO {
+export function parseGift(msg, roomId): GiftDTO {
   const now = Date.now()
   const RATE = 1000
 
@@ -242,7 +242,7 @@ export function parseGift(msg): GiftDTO {
       gift_name
     } = gift
     return {
-      roomId: global.get('roomId'),
+      roomId: roomId,
       sendAt: now,
       // user
       uid: Number(uid),
@@ -277,7 +277,7 @@ export function parseGift(msg): GiftDTO {
     } = msg.data
 
     return {
-      roomId: global.get('roomId'),
+      roomId: roomId,
       sendAt: now,
       uid: Number(uid),
       uname: username,
@@ -308,7 +308,7 @@ export function parseGift(msg): GiftDTO {
       batch_combo_id
     } = msg.data
     return {
-      roomId: global.get('roomId'),
+      roomId: roomId,
       sendAt: now,
       uid: Number(uid),
       uname: uname,
