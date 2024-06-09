@@ -25,6 +25,7 @@
     "@koa/router": "^10.0.0",
     "@node-rs/jieba": "^1.4.1",
     "@tokine/asr": "file:./asr",
+    "@tokine/bilibili-recorder": "link:S:/Tokine/bilibili-recorder",
     "@tokine/mt": "file:./mt",
     "ajv": "^8.3.0",
     "axios": "^1.7.2",

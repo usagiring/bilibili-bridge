@@ -20,6 +20,9 @@ importers:
       '@tokine/asr':
         specifier: file:./asr
         version: asr@file:asr
+      '@tokine/bilibili-recorder':
+        specifier: link:S:/Tokine/bilibili-recorder
+        version: link:../bilibili-recorder
       '@tokine/mt':
         specifier: file:./mt
         version: mt@file:mt

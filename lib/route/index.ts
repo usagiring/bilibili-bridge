@@ -13,6 +13,7 @@ import lotteryAPIs from './lottery'
 import statisticAPIs from './statistic'
 import asrAPIs from './asr'
 import userAPIs from './user'
+import bilibiliProxyAPIs from './bilibili-proxy'
 
 interface RouteInfo {
   verb: string
@@ -38,6 +39,7 @@ apiRouter.get('/touch', (ctx) => {
   ...statisticAPIs,
   ...asrAPIs,
   ...userAPIs,
+  ...bilibiliProxyAPIs,
 ]
   .forEach(({ verb, middlewares, uri, validator }: RouteInfo) => {
     if (validator) {

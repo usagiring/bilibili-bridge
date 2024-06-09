@@ -6,11 +6,13 @@ import event from '../service/event'
 import { Model as GiftModel } from '../model/gift'
 import { Model as CommentModel } from '../model/comment'
 import { Model as InteractModel } from '../model/interact'
+import * as biliRecordService from '../service/bilibili/record'
+import state from '../service/state'
 
 const routes = [
   {
     verb: 'get',
-    uri: '/room/:roomId',
+    uri: '/room/:roomId/info',
     middlewares: [getRoomInfo]
   },
   {
@@ -20,7 +22,7 @@ const routes = [
     validator: {
       type: 'object',
       properties: {
-        roomId: { type: 'number' }
+        roomId: { type: 'string' }
       }
     }
   },
@@ -37,7 +39,7 @@ const routes = [
       type: 'object',
       required: ['roomId'],
       properties: {
-        roomId: { type: 'number' },
+        roomId: { type: 'string' },
         startedAt: { type: 'number' }
       }
     }
@@ -46,7 +48,41 @@ const routes = [
     verb: 'get',
     uri: '/room/:roomId/status',
     middlewares: [getStatus],
-  }
+  },
+  {
+    verb: 'post',
+    uri: '/room/:roomId/record/start',
+    middlewares: [startRecord],
+    validator: {
+      type: 'object',
+      required: ['roomId'],
+      properties: {
+        roomId: { type: 'string' },
+        output: { type: 'string' },
+        qn: { type: 'number' },
+        platform: { type: 'string' },
+        withCookie: { type: 'boolean' },
+      }
+    }
+  },
+  {
+    verb: 'post',
+    uri: '/room/:roomId/record/cancel',
+    middlewares: [cancelRecord],
+    validator: {
+      type: 'object',
+      required: ['roomId', 'id'],
+      properties: {
+        roomId: { type: 'string' },
+        id: { type: 'string' }
+      }
+    }
+  },
+  {
+    verb: 'get',
+    uri: '/room/:roomId/record/status',
+    middlewares: [getRecordStatus],
+  },
 ]
 
 async function getRoomInfo(ctx) {
@@ -134,6 +170,52 @@ async function getStatus(ctx) {
   ctx.body = {
     message: 'ok',
     data
+  }
+}
+
+async function startRecord(ctx) {
+  const { roomId, output, qn, platform, withCookie } = ctx.__body
+
+  const params = {
+    roomId,
+    output,
+    qn,
+    platform,
+    cookie: withCookie ? state.get('userCookie') : null
+  }
+  const { id } = await biliRecordService.record(params)
+
+  state.set(`recordMap.${roomId}`, {
+    recordId: id,
+    isRecording: true,
+    startAt: Date.now()
+  })
+
+  ctx.body = {
+    message: 'ok',
+    data: {
+      id
+    }
+  }
+}
+
+async function cancelRecord(ctx) {
+  const { roomId, id } = ctx.__body
+  await biliRecordService.cancel({ id })
+
+  state.unset(`recordMap.${roomId}`)
+
+  ctx.body = COMMON_RESPONSE
+}
+
+async function getRecordStatus(ctx) {
+  const { roomId } = ctx.__body
+
+  const status = state.get(`recordMap.${roomId}`)
+
+  ctx.body = {
+    message: 'ok',
+    data: status
   }
 }
 
