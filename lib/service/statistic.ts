@@ -225,7 +225,7 @@ async function generateCSV({ roomId, start, end }) {
     //     return map
     // }, {})
     let str = ''
-    const header = ['uid', '用户名', '房间号', '礼物名', '礼物数量', '价值', 'sendAt']
+    const header = ['uid', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', 'sendAt']
     str = str + header.join(',') + '\n'
     gifts.forEach(gift => {
         const line = [
