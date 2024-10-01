@@ -1,5 +1,5 @@
-import { AliASR, ffmpeg, AliSpeechRecognition } from '@tokine/asr'
-import Alimt from '@tokine/mt'
+import { AliASR, ffmpeg, AliSpeechRecognition } from 'asr'
+import Alimt from 'mt'
 import { chunk } from 'lodash'
 
 import state from '../service/state'
