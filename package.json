@@ -4,9 +4,6 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "build": "npm run build:asr && npm run build:mt && npm run build:self",
     "build:self": "rm -rf dist && tsc && npm run copyproto",
