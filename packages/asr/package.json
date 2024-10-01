@@ -1,6 +1,6 @@
 {
-  "name": "asr",
-  "version": "0.0.1",
+  "name": "@tokine/asr",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
