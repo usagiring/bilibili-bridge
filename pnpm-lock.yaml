@@ -25,7 +25,7 @@ importers:
         version: 8.17.1
       asr:
         specifier: workspace:*
-        version: link:asr
+        version: link:packages/asr
       axios:
         specifier: ^1.7.2
         version: 1.7.7
@@ -61,7 +61,7 @@ importers:
         version: 2.30.1
       mt:
         specifier: workspace:*
-        version: link:mt
+        version: link:packages/mt
       nedb:
         specifier: ^1.8.0
         version: 1.8.0
@@ -70,7 +70,7 @@ importers:
         version: 7.4.0
       say:
         specifier: github:usagiring/say.js
-        version: git+https://git@github.com:usagiring/say.js.git#57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0
+        version: https://codeload.github.com/usagiring/say.js/tar.gz/57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0
       ws:
         specifier: ^7.4.5
         version: 7.5.10(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -109,7 +109,7 @@ importers:
         specifier: ^4.2.4
         version: 4.7.4
 
-  asr:
+  packages/asr:
     dependencies:
       '@alicloud/pop-core':
         specifier: ^1.7.12
@@ -131,7 +131,7 @@ importers:
         specifier: ~4.7.4
         version: 4.7.4
 
-  mt:
+  packages/mt:
     dependencies:
       '@alicloud/alimt20181012':
         specifier: ^1.0.3
@@ -1430,8 +1430,8 @@ packages:
   sax@1.4.1:
     resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
 
-  say@git+https://git@github.com:usagiring/say.js.git#57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0:
-    resolution: {commit: 57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0, repo: git@github.com:usagiring/say.js.git, type: git}
+  say@https://codeload.github.com/usagiring/say.js/tar.gz/57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0:
+    resolution: {tarball: https://codeload.github.com/usagiring/say.js/tar.gz/57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0}
     version: 0.16.0
     engines: {node: '>=6.9'}
 
@@ -3189,7 +3189,7 @@ snapshots:
 
   sax@1.4.1: {}
 
-  say@git+https://git@github.com:usagiring/say.js.git#57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0:
+  say@https://codeload.github.com/usagiring/say.js/tar.gz/57e5dd5a037abfee7cf2fcc48c33be7ae503ffe0:
     dependencies:
       one-time: 0.0.4
 
