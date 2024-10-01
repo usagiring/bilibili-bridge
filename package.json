@@ -18,8 +18,8 @@
     "test": "mocha",
     "lint": "eslint lib/**/*",
     "release": "npm run build && npm publish",
-    "build:asr": "cd asr && npm run build",
-    "build:mt": "cd mt && npm run build"
+    "build:asr": "cd packages/asr && npm run build",
+    "build:mt": "cd packages/mt && npm run build"
   },
   "author": "其妙",
   "license": "MIT",
