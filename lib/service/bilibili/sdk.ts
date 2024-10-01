@@ -137,7 +137,7 @@ export async function sendMessage(data: SendMessage, userCookie: string) {
     headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
-  return res
+  return res.data
 }
 
 export async function wearMedal(medalId, userCookie) {
@@ -154,7 +154,7 @@ export async function wearMedal(medalId, userCookie) {
     headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
-  return res
+  return res.data
 }
 
 export async function getBagList(roomId, userCookie) {
@@ -162,7 +162,7 @@ export async function getBagList(roomId, userCookie) {
     headers: Object.assign({}, postHeader, { cookie: userCookie }),
     // adapter: httpAdapter
   })
-  return res
+  return res.data
 }
 
 export async function getRoomInfoByIds(ids: string[]) {
@@ -257,6 +257,20 @@ export async function checkCookie(userCookie): Promise<BaseResponse & {
     headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
   })
   return res.data
+}
+
+export async function getQrCode() {
+  const res = await axios.get(`https://passport.bilibili.com/x/passport-login/web/qrcode/generate`, {
+    headers: Object.assign({}, defaultHeaders),
+  })
+  return res.data
+}
+
+export async function loginFromQrCode(qrCodeKey) {
+  const res = await axios.get(`https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key=${qrCodeKey}`, {
+    headers: Object.assign({}, defaultHeaders),
+  })
+  return res
 }
 
 export async function getPlayUrl({

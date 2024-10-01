@@ -27,7 +27,7 @@ interface Rule {
     type: 'comment' | 'gift' | 'interact' | 'superchat'
     text: string
     enable: boolean
-    priority: number
+    // priority: number
     tags: Tag[]
 }
 
@@ -73,7 +73,7 @@ event.on(EVENTS.AUTO_REPLY, async (message: Message) => {
     // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
     // if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
 
-    const autoReplyRulesSorted: Rule[] = orderBy(autoReplyRules, ['priority'], ['desc']).filter(rule => rule.type === message.type)
+    const autoReplyRulesSorted: Rule[] = autoReplyRules.filter(rule => rule.type === message.type)
     for (const rule of autoReplyRulesSorted) {
         const isPass = await isPassed(message, rule)
         if (!isPass) continue
