@@ -1,8 +1,8 @@
 import axios from 'axios'
 import cookie from "cookie"
+import crypto from 'crypto'
 import querystring from "querystring"
 import state from '../state'
-import crypto from 'crypto'
 
 const baseUrl = 'https://api.bilibili.com'
 const baseLiveUrl = 'https://api.live.bilibili.com'
@@ -363,4 +363,120 @@ async function getSignedQueryString({ params }) {
   const wbi_sign = hash.digest('hex')
   // const wbi_sign = md5(querystring + mixinKey) // 计算 w_rid
   return `${querystring}&w_rid=${wbi_sign}`
+}
+
+/**
+ *    CorrespondPath = 生成CorrespondPath(当前毫秒时间戳)
+      refresh_csrf = 获取refresh_csrf(CorrespondPath, cookie)
+      refresh_token_old = refresh_token # 这一步必须保存旧的 refresh_token 备用
+      cookie, refresh_token = 刷新Cookie(refresh_token, refresh_csrf, cookie)
+      确认更新(refresh_token_old, cookie) # 这一步需要新的 Cookie 以及旧的 refresh_token
+ */
+export async function refreshCookie({ refreshToken, userCookie }): Promise<{ userCookie: string, refreshToken: string }> {
+  const correspondPath = await getCorrespondPath()
+  await new Promise(resolve => setTimeout(resolve, 4001))
+  const refreshCsrf = await getRefreshCsrf({ correspondPath, userCookie })
+  const result = await __refreshCookie({ userCookie, refreshCsrf: refreshCsrf, refreshToken })
+  await confirmRefresh({ userCookie: result.userCookie, refreshToken })
+  return result
+}
+
+async function getCorrespondPath() {
+  const publicKey = await globalThis.crypto.subtle.importKey(
+    "jwk",
+    {
+      kty: "RSA",
+      n: "y4HdjgJHBlbaBN04VERG4qNBIFHP6a3GozCl75AihQloSWCXC5HDNgyinEnhaQ_4-gaMud_GF50elYXLlCToR9se9Z8z433U3KjM-3Yx7ptKkmQNAMggQwAVKgq3zYAoidNEWuxpkY_mAitTSRLnsJW-NCTa0bqBFF6Wm1MxgfE",
+      e: "AQAB",
+    },
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    true,
+    ["encrypt"],
+  )
+
+  const ts = Date.now()
+  const data = new TextEncoder().encode(`refresh_${ts}`)
+  const encrypted = new Uint8Array(await globalThis.crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, data))
+  const correspondPath = encrypted.reduce((str, c) => str + c.toString(16).padStart(2, "0"), "")
+
+  return correspondPath
+}
+
+async function getRefreshCsrf({ correspondPath, userCookie }) {
+  const url = `https://www.bilibili.com/correspond/1/${correspondPath}`
+
+  console.log(url)
+  const res = await axios.get(url, {
+    headers: Object.assign({}, {
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+      'accept-encoding': 'gzip, deflate, br, zstd',
+      'sec-fetch-dest': 'document',
+      'sec-fetch-mode': 'navigate',
+      'sec-fetch-site': 'none',
+      'sec-fetch-user': '?1',
+      'cache-control': 'max-age=0',
+      'priority': 'u=0, i',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+      'cookie': userCookie,
+    }),
+  }).catch(e => {
+    console.error(e)
+    throw e
+  })
+
+  console.log(res.data)
+
+  const regexp = /<div id="1-name">(.+?)<\/div>/
+
+  const matches = res.data.match(regexp)
+  const refreshCsrf = matches?.[1] || null
+
+  console.log(refreshCsrf)
+  return refreshCsrf
+
+}
+
+async function __refreshCookie({ userCookie, refreshCsrf, source = 'main_web', refreshToken }) {
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
+
+  console.log({ userCookie, refreshCsrf, source, refreshToken, csrf })
+
+  const url = `https://passport.bilibili.com/x/passport-login/web/cookie/refresh`
+  const res = await axios.post(url, {
+    csrf: csrf,
+    refresh_csrf: refreshCsrf,
+    source,
+    refresh_token: refreshToken
+  }, {
+    headers: Object.assign({}, postHeader, {
+      'cookie': userCookie,
+    }),
+  })
+  console.log(res.data)
+
+  const newCookies = res.headers['set-cookie']
+  const newCookie = newCookies.map(cookie => cookie.split(';')[0]).join(';')
+
+  return {
+    userCookie: newCookie,
+    refreshToken: res.data.data.refresh_token
+  }
+}
+
+async function confirmRefresh({ userCookie, refreshToken }) {
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
+
+  const url = `https://passport.bilibili.com/x/passport-login/web/confirm/refresh`
+  const res = await axios.post(url, {
+    csrf,
+    refresh_token: refreshToken
+  }, {
+    headers: Object.assign({}, postHeader, {
+      'cookie': userCookie,
+    }),
+  })
+  console.log(res.data)
+  return res.data
 }

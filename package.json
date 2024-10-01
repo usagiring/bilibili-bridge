@@ -48,7 +48,7 @@
     "@types/koa": "^2.15.0",
     "@types/koa__router": "^8.0.4",
     "@types/nedb": "^1.8.11",
-    "@types/node": "^15.0.3",
+    "@types/node": "^22.7.4",
     "@types/ws": "^7.4.4",
     "@typescript-eslint/eslint-plugin": "^4.24.0",
     "@typescript-eslint/parser": "^4.24.0",
