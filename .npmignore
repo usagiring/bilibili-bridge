@@ -1,3 +1,5 @@
 tmp/
 db/
 bin/
+.vscode/
+node_modules/
