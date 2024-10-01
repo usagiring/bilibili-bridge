@@ -16,11 +16,19 @@ export interface InteractDTO {
   face?: string
   uname: string
   unameColor?: string
-  medalLevel?: number
-  medalName?: string
-  medalColorBorder?: string
-  medalColorStart?: string
-  medalColorEnd?: string
+
+  medal?: {
+    name: string
+    level: number
+    rid?: string
+    guard?: number
+    color: {
+      border: string
+      background: string
+      level: string
+      text: string
+    }
+  }
 }
 
 export interface Interact {
@@ -39,29 +47,19 @@ export interface Interact {
   uname: string
   unameColor?: string
 
-  // short for medal info
-  ML?: number
-  MN?: string
-  MCB?: string
-  MCS?: string
-  MCE?: string
-}
-
-
-const FIELD_MAP = {
-  medalLevel: 'ML',
-  medalName: 'MN',
-  medalColorBorder: 'MCB',
-  medalColorStart: 'MCS',
-  medalColorEnd: 'MCE',
-}
-
-const REVERSE_FIELD_MAP = {
-  ML: 'medalLevel',
-  MN: 'medalName',
-  MCB: 'medalColorBorder',
-  MCS: 'medalColorStart',
-  MCE: 'medalColorEnd',
+  // short for model size
+  ml?: {
+    ne: string // name
+    ll: number // level
+    rid?: string // roomId
+    gd?: number // guard
+    cr: { // color
+      br: string // border
+      bd: string // background
+      ll: string // level
+      tt: string // text
+    }
+  }
 }
 
 const DB = wrapper2Async(interactDB)
@@ -87,36 +85,53 @@ export const Model = {
   count
 }
 
-function transfer(data) {
+function transfer(data: InteractDTO[] | InteractDTO): Interact[] | Interact {
   const isArray = Array.isArray(data)
   const items = isArray ? data : [data]
   const transfereds = items.map(item => {
-    const transfered = {}
-    for (const key in item) {
-      if (FIELD_MAP[key]) {
-        transfered[FIELD_MAP[key]] = item[key]
-      } else {
-        transfered[key] = item[key]
+    const interact: Interact = item
+    if (item.medal) {
+      interact.ml = {
+        ne: item.medal.name,
+        ll: item.medal.level,
+        rid: item.medal.rid,
+        gd: item.medal.guard,
+        cr: {
+          br: item.medal.color?.border,
+          bd: item.medal.color?.background,
+          ll: item.medal.color?.level,
+          tt: item.medal.color?.text,
+        }
       }
+      delete item.medal
     }
-    return transfered
+    return interact
   })
+
   return isArray ? transfereds : transfereds[0]
 }
 
-function deTransfer(data) {
+function deTransfer(data: Interact[] | Interact): InteractDTO[] | InteractDTO {
   const isArray = Array.isArray(data)
   const items = isArray ? data : [data]
   const transfereds = items.map(item => {
-    const transfered = {}
-    for (const key in item) {
-      if (REVERSE_FIELD_MAP[key]) {
-        transfered[REVERSE_FIELD_MAP[key]] = item[key]
-      } else {
-        transfered[key] = item[key]
+    const interact: InteractDTO = item
+
+    if (item.ml) {
+      interact.medal = {
+        name: item.ml.ne,
+        level: item.ml.ll,
+        rid: item.ml.rid,
+        guard: item.ml.gd,
+        color: {
+          border: item.ml.cr?.br,
+          background: item.ml.cr?.bd,
+          level: item.ml.cr?.ll,
+          text: item.ml.cr?.tt,
+        }
       }
     }
-    return transfered
+    return interact
   })
   return isArray ? transfereds : transfereds[0]
 }

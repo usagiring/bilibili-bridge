@@ -105,6 +105,17 @@ interface InteractData {
         face: string
       }
     }
+    medal: {
+      ruid: number
+      name: string
+      level: number
+      guard_level: number,
+      v2_medal_color_border: string
+      v2_medal_color_end: string
+      v2_medal_color_level: string
+      v2_medal_color_start: string
+      v2_medal_color_text: string
+    }
   }
 }
 
@@ -152,16 +163,33 @@ export function parseComment(msg, roomId): CommentDTO {
     type: msg.info[0][9], // 0：普通弹幕 1：节奏风暴 2：天选时刻
     avatar: face,
   }
-  if (medalLevel && medalName) {
-    Object.assign(comment, {
-      medalLevel,
-      medalName,
-      medalRoomId,
-      medalColorBorder: transformColorNumber2String(medalColorBorder),
-      medalColorStart: transformColorNumber2String(medalColorStart),
-      medalColorEnd: transformColorNumber2String(medalColorEnd),
-    })
+
+  if (user?.medal) {
+    comment.medal = {
+      name: user.medal.name,
+      level: user.medal.level,
+      rid: medalRoomId, // TODO ruid?
+      color: {
+        background: user.medal.v2_medal_color_start,
+        border: user.medal.v2_medal_color_border,
+        level: user.medal.v2_medal_color_level,
+        text: user.medal.v2_medal_color_text,
+      }
+    }
+  } else if (medalLevel && medalName) {
+    comment.medal = {
+      name: medalName,
+      level: medalLevel,
+      rid: medalRoomId,
+      color: {
+        background: transformColorNumber2String(medalColorStart),
+        border: transformColorNumber2String(medalColorBorder),
+        level: '#FFFFFF',
+        text: '#FFFFFF',
+      }
+    }
   }
+
   if (voiceUrl && fileDuration) {
     Object.assign(comment, {
       voiceUrl,
@@ -192,10 +220,9 @@ export function parseInteractWord(msg): InteractDTO {
     fans_medal,
     uinfo,
   } = msg.data as InteractData
-  const interact = {
+  const interact: InteractDTO = {
     identities,
     roomId,
-    score,
     type, // 1 进入直播间 2 关注直播间 3 分享直播间
     sendAt: timestamp * 1000, // 
     uid,
@@ -203,16 +230,32 @@ export function parseInteractWord(msg): InteractDTO {
     unameColor: unameColor,
     face: uinfo?.base?.face
   }
-  if (fans_medal && fans_medal.medal_name) {
+
+  if (uinfo?.medal) {
+    interact.medal = {
+      name: uinfo.medal.name,
+      level: uinfo.medal.level,
+      guard: uinfo.medal.guard_level,
+      color: {
+        background: uinfo.medal.v2_medal_color_start,
+        border: uinfo.medal.v2_medal_color_border,
+        level: uinfo.medal.v2_medal_color_level,
+        text: uinfo.medal.v2_medal_color_text,
+      }
+    }
+  } else if (fans_medal && fans_medal.medal_name) {
     const { guard_level, medal_color_border, medal_color_end, medal_color_start, medal_level, medal_name } = fans_medal
-    Object.assign(interact, {
-      // medalGuardLevel: guard_level,
-      medalLevel: medal_level,
-      medalName: medal_name,
-      medalColorBorder: transformColorNumber2String(medal_color_border),
-      medalColorStart: transformColorNumber2String(medal_color_start),
-      medalColorEnd: transformColorNumber2String(medal_color_end),
-    })
+    interact.medal = {
+      name: medal_name,
+      level: medal_level,
+      guard: guard_level,
+      color: {
+        border: transformColorNumber2String(medal_color_border),
+        background: transformColorNumber2String(medal_color_start),
+        text: '#FFFFFF',
+        level: 'FFFFFF',
+      }
+    }
   }
   return interact
 }

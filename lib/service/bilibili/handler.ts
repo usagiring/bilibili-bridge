@@ -221,7 +221,7 @@ async function commentJob(comment: CommentDTO) {
   event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
   event.emit(EVENTS.DANMAKU_COMMAND, comment)
 
-  delete comment.emots
+  // TODO cloneDeep
   CommentModel.insert(comment)
     .catch(e => console.error(e))
 }
