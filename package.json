@@ -23,6 +23,7 @@
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@koa/router": "^13.1.0",
+    "@koa/send": "github:usagiring/send#master",
     "@node-rs/jieba": "^1.4.1",
     "@tokine/asr": "workspace:*",
     "@tokine/bilibili-recorder": "0.1.0",
@@ -34,7 +35,6 @@
     "iconv-lite": "^0.4.24",
     "jsonwebtoken": "^8.5.1",
     "koa": "git+https://github.com/usagiring/koa#master",
-    "@koa/send": "git+https://github.com/usagiring/send#master",
     "koa-bodyparser": "^4.3.0",
     "koa-logger": "^3.2.1",
     "lodash": "^4.17.21",
