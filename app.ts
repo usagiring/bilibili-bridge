@@ -3,7 +3,7 @@ import path from 'path'
 import logger from 'koa-logger'
 import cors from '@koa/cors'
 import bodyParser from 'koa-bodyparser'
-import send from '@koa/send'
+import * as send from '@koa/send'
 import router from './lib/route'
 import wss from './lib/service/wss'
 import global from './lib/service/state'
@@ -64,7 +64,7 @@ function serve(root, opts: any = {}) {
 
       if (ctx.method === 'HEAD' || ctx.method === 'GET') {
         try {
-          done = await send(ctx, ctx.path, opts)
+          done = await send.send(ctx, ctx.path, opts)
         } catch (err) {
           if (err.status !== 404) {
             throw err
