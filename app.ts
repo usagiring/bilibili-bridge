@@ -1,12 +1,10 @@
 import Koa from 'koa'
 import logger from 'koa-logger'
 import cors from '@koa/cors'
-import path from 'path'
 import bodyParser from 'koa-bodyparser'
 import router from './lib/route'
 import wss from './lib/service/wss'
 import global from './lib/service/state'
-import serve from 'koa-static'
 // 注册事件
 import './lib/service/bilibili/handler'
 import './lib/service/handler'
@@ -23,13 +21,6 @@ app.use(cors({
 }))
 app.use(bodyParser())
 app.use(logger())
-
-const html = global.get('HTML_PATH') || path.join(__dirname, '../node_modules/@tokine/bilibili-danmaku-page')
-console.log(html)
-app.use(serve(html, {
-  maxage: 60 * 1000,
-  defer: false,
-}))
 
 app.use(async (ctx, next) => {
   try {
