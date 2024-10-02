@@ -1,7 +1,9 @@
 import Koa from 'koa'
+import path from 'path'
 import logger from 'koa-logger'
 import cors from '@koa/cors'
 import bodyParser from 'koa-bodyparser'
+import send from '@koa/send'
 import router from './lib/route'
 import wss from './lib/service/wss'
 import global from './lib/service/state'
@@ -22,6 +24,13 @@ app.use(cors({
 app.use(bodyParser())
 app.use(logger())
 
+const html = global.get('HTML_PATH') || path.join(__dirname, '../node_modules/@tokine/bilibili-danmaku-page')
+console.log(html)
+app.use(serve(html, {
+  maxage: 60 * 1000,
+  defer: false,
+}))
+
 app.use(async (ctx, next) => {
   try {
     await next()
@@ -36,7 +45,7 @@ app.use(async (ctx, next) => {
 
 app
   .use(router.routes())
-  // .use(router.allowedMethods())
+// .use(router.allowedMethods())
 
 const server = app.listen(PORT)
 
@@ -44,3 +53,44 @@ wss.init(server)
 
 console.log(`listening port: ${PORT} ...`)
 export default app
+
+function serve(root, opts: any = {}) {
+  opts.root = path.resolve(root)
+  opts.index = opts.index ?? 'index.html'
+
+  if (!opts.defer) {
+    return async function serve(ctx, next) {
+      let done = false
+
+      if (ctx.method === 'HEAD' || ctx.method === 'GET') {
+        try {
+          done = await send(ctx, ctx.path, opts)
+        } catch (err) {
+          if (err.status !== 404) {
+            throw err
+          }
+        }
+      }
+
+      if (!done) {
+        await next()
+      }
+    }
+  }
+
+  return async function serve(ctx, next) {
+    await next()
+
+    if (ctx.method !== 'HEAD' && ctx.method !== 'GET') return
+    // response is already handled
+    if (ctx.body != null || ctx.status !== 404) return // eslint-disable-line
+
+    try {
+      await send(ctx, ctx.path, opts)
+    } catch (err) {
+      if (err.status !== 404) {
+        throw err
+      }
+    }
+  }
+}
