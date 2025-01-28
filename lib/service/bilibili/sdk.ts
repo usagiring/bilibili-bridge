@@ -285,6 +285,41 @@ export async function getPlayUrl({
   return res.data
 }
 
+interface LikeParams {
+  click_time: number
+  room_id: number
+  anchor_id: number // receiver_uid
+}
+
+export async function like(data: LikeParams, userCookie: string) {
+  const { click_time, room_id, anchor_id } = data
+
+  const cookies = cookie.parse(userCookie)
+  const csrf = cookies.bili_jct
+  const uid = Number(cookies.DedeUserID)
+
+  const params = querystring.stringify({
+    click_time,
+    room_id,
+    uid,
+    anchor_id,
+    csrf_token: csrf,
+    csrf: csrf,
+    // visit_id: ''
+  })
+
+  const url = `${baseLiveUrl}/xlive/app-ucenter/v1/like_info_v3/like/likeReportV3`
+  const res = await axios.post(
+    url,
+    params,
+    {
+      headers: Object.assign({}, postHeader, { cookie: userCookie }),
+    }
+  )
+
+  return res.data
+}
+
 export async function getRandomPlayUrl(param) {
   const result = await getPlayUrl(param)
   const urlsLength = result.data.durl.length
@@ -405,7 +440,6 @@ async function getCorrespondPath() {
 async function getRefreshCsrf({ correspondPath, userCookie }) {
   const url = `https://www.bilibili.com/correspond/1/${correspondPath}`
 
-  console.log(url)
   const res = await axios.get(url, {
     headers: Object.assign({}, {
       accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -424,14 +458,11 @@ async function getRefreshCsrf({ correspondPath, userCookie }) {
     throw e
   })
 
-  console.log(res.data)
-
   const regexp = /<div id="1-name">(.+?)<\/div>/
 
   const matches = res.data.match(regexp)
   const refreshCsrf = matches?.[1] || null
 
-  console.log(refreshCsrf)
   return refreshCsrf
 
 }
@@ -439,8 +470,6 @@ async function getRefreshCsrf({ correspondPath, userCookie }) {
 async function __refreshCookie({ userCookie, refreshCsrf, source = 'main_web', refreshToken }) {
   const cookies = cookie.parse(userCookie)
   const csrf = cookies.bili_jct
-
-  console.log({ userCookie, refreshCsrf, source, refreshToken, csrf })
 
   const url = `https://passport.bilibili.com/x/passport-login/web/cookie/refresh`
   const res = await axios.post(url, {
@@ -453,7 +482,6 @@ async function __refreshCookie({ userCookie, refreshCsrf, source = 'main_web', r
       'cookie': userCookie,
     }),
   })
-  console.log(res.data)
 
   const newCookies = res.headers['set-cookie']
   const newCookie = newCookies.map(cookie => cookie.split(';')[0]).join(';')
@@ -477,6 +505,5 @@ async function confirmRefresh({ userCookie, refreshToken }) {
       'cookie': userCookie,
     }),
   })
-  console.log(res.data)
   return res.data
 }

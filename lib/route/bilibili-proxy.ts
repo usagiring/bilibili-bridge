@@ -7,7 +7,8 @@ import {
   wearMedal as wearMedalAPI,
   getRoomInfoByIds as getRoomInfoByIdsAPI,
   getMedalList as getMedalListAPI,
-  getRandomPlayUrl
+  getRandomPlayUrl,
+  like as likeApi,
 } from '../service/bilibili/sdk'
 import { HTTP_ERRORS } from '../service/const'
 import state from '../service/state'
@@ -83,6 +84,12 @@ const routes = [
     uri: '/bilibili/medal/list',
     middlewares: [getMedalList]
   },
+
+  {
+    verb: 'post',
+    uri: '/room/:roomId/like',
+    middlewares: [like],
+  }
 ]
 
 async function getRoomInfo(ctx) {
@@ -169,5 +176,20 @@ async function getPlayUrl(ctx) {
     }
   }
 }
+
+async function like(ctx) {
+  const { roomId, ruid, count } = ctx.__body
+
+  const cookie = state.get('userCookie')
+
+  const result = await likeApi({
+    room_id: roomId,
+    click_time: count,
+    anchor_id: ruid,
+  }, cookie)
+
+  ctx.body = result
+}
+
 
 export default routes
