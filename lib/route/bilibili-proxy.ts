@@ -87,7 +87,7 @@ const routes = [
 
   {
     verb: 'post',
-    uri: '/room/:roomId/like',
+    uri: '/bilibili/room/:roomId/like',
     middlewares: [like],
   }
 ]
