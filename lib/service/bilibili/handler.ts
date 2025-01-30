@@ -149,6 +149,16 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
           }
         })
       }
+
+      if (msg.cmd === BILI_CMDS.ONLINE_COUNT) {
+        const count = msg.data.count || 0
+        wss.broadcast({
+          cmd: CMDS.ONLINE_COUNT,
+          payload: {
+            onlineNumber: count,
+          }
+        })
+      }
     }
   } else {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
