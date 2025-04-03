@@ -1,5 +1,6 @@
 import {
   getRoomInfoV2,
+  getRoomInfoV2BySSR,
   getInfoByUser,
   getUserInfo as getUserInfoAPI,
   getGuardInfo as getGuardInfoAPI,

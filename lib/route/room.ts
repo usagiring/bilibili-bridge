@@ -1,7 +1,7 @@
 import runtime from '../service/runtime'
 import { COMMON_RESPONSE, ERRORS, EVENTS } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
-import { getRoomInfoV2 } from '../service/bilibili/sdk'
+import { getRoomInfoV2, getRoomInfoV2BySSR } from '../service/bilibili/sdk'
 import event from '../service/event'
 import { Model as GiftModel } from '../model/gift'
 import { Model as CommentModel } from '../model/comment'

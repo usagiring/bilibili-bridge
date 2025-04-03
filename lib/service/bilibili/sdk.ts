@@ -6,6 +6,7 @@ import state from '../state'
 
 const baseUrl = 'https://api.bilibili.com'
 const baseLiveUrl = 'https://api.live.bilibili.com'
+const baseLiveWebUrl = 'https://live.bilibili.com'
 
 const defaultHeaders = {
   origin: "https://live.bilibili.com",
@@ -44,10 +45,42 @@ export async function getRoomInfoV1(roomId) {
 }
 
 export async function getRoomInfoV2(roomId) {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?room_id=${roomId}`, {
+  const querystring = await getSignedQueryString({
+    params: {
+      room_id: roomId,
+      web_location: '444.8'
+    }
+  })
+
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?${querystring}`, {
     headers: defaultHeaders
   })
+
+
+  // const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?room_id=${roomId}`, {
+  //   headers: defaultHeaders
+  // })
   return res.data
+}
+
+export async function getRoomInfoV2BySSR(roomId) {
+  const url = `${baseLiveWebUrl}/${roomId}?live_from=82002&spm_id_from=333.1007.top_right_bar_window_dynamic.content.click`
+  const regexp = /<script>window.__NEPTUNE_IS_MY_WAIFU__=(.+?)<\/script>/
+  const res = await axios.get(url, {
+    headers: defaultHeaders
+  })
+  try {
+    const html = res.data
+    const roomInfoStr = html?.match(regexp)?.[1]
+    if (roomInfoStr) {
+      const roomInfo = JSON.parse(roomInfoStr)
+      return roomInfo
+    }
+  } catch (e) {
+    console.log(`ERROR: GET ROOM INFO FAILED`)
+  }
+
+  return {}
 }
 
 export async function getInfoByUser(roomId, userCookie) {

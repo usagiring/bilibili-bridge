@@ -4,9 +4,10 @@ import cookie from 'cookie'
 import decompress from 'brotli/decompress'
 
 import event from '../event'
-import { EVENTS } from '../const'
+import { CMDS, EVENTS } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
 import state from '../state'
+import wss from '../wss'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
@@ -79,8 +80,8 @@ class WSClient {
       protover: 3,
       platform: "web",
       type: 2,
-      buvid: buvid || '',
-      key: danmakuInfo.data.token || ''
+      // buvid: buvid || '',
+      key: danmakuInfo?.data?.token || ''
     }
 
     return new Promise((resolve, reject) => {
@@ -116,6 +117,12 @@ class WSClient {
         console.log('close', e)
         clearInterval(self.HEART_BEAT_TIMER)
 
+        wss.broadcast({
+          cmd: CMDS.BILI_WS_CONNECT,
+          payload: {
+            status: 'failed',
+          }
+        })
         // 报错重连
         if (self.autoReConnect) {
           console.log('after 3s auto reconnect...')
@@ -129,6 +136,12 @@ class WSClient {
         console.error('error', err)
         clearInterval(self.HEART_BEAT_TIMER)
 
+        wss.broadcast({
+          cmd: CMDS.BILI_WS_CONNECT,
+          payload: {
+            status: 'failed',
+          }
+        })
         // 报错重连
         if (self.autoReConnect) {
           console.log('after 3s auto reconnect...')
