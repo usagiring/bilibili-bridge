@@ -36,6 +36,7 @@
     "jsonwebtoken": "^8.5.1",
     "koa": "github:usagiring/koa#master",
     "koa-bodyparser": "^4.4.1",
+    "koa-compose": "^4.1.0",
     "koa-logger": "^3.2.1",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",

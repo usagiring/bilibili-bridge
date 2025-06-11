@@ -108,7 +108,14 @@ export async function getDamankuInfo(roomId, userCookie): Promise<BaseResponse &
     }[]
   }
 }> {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?id=${roomId}&type=0`, {
+  const qs = await getSignedQueryString({
+    params: {
+      type: '0',
+      id: String(roomId),
+      web_location: '444.8'
+    }
+  })
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?${qs}`, {
     headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders
   })
   return res.data

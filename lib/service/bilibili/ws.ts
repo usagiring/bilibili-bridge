@@ -14,6 +14,7 @@ const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 interface ConnectOption {
   uid?: number
   roomId: number
+  retryTimes?: number
 }
 
 class WSClient {
@@ -26,8 +27,12 @@ class WSClient {
     this.options = options
   }
 
-  async connect(options?: ConnectOption) {
-    this.options = options
+  async connect({
+    uid,
+    roomId,
+    retryTimes = 0
+  }: ConnectOption) {
+    this.options = { uid, roomId }
     if (!this.options) {
       throw new Error('options missed')
     }
@@ -41,7 +46,7 @@ class WSClient {
     }
 
     // rid: 房主UID
-    const { uid, roomId } = this.options
+    // const { uid, roomId } = this.options
 
     const userCookie = state.get('userCookie')
     let me: number
@@ -125,9 +130,18 @@ class WSClient {
         })
         // 报错重连
         if (self.autoReConnect) {
+          if (retryTimes > 5) {
+            console.log('retry times > 5, stop...')
+            return
+          }
           console.log('after 3s auto reconnect...')
           setTimeout(() => {
-            self.connect(options)
+            retryTimes++
+            self.connect({
+              uid,
+              roomId,
+              retryTimes,
+            })
           }, 3000)
         }
       })
@@ -144,9 +158,18 @@ class WSClient {
         })
         // 报错重连
         if (self.autoReConnect) {
+          if (retryTimes > 5) {
+            console.log('retry times > 5, stop...')
+            return
+          }
           console.log('after 3s auto reconnect...')
           setTimeout(() => {
-            self.connect(options)
+            retryTimes++
+            self.connect({
+              uid,
+              roomId,
+              retryTimes,
+            })
           }, 3000)
         }
       })
