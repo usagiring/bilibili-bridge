@@ -4,7 +4,7 @@ import cookie from 'cookie'
 import decompress from 'brotli/decompress'
 
 import event from '../event'
-import { EVENTS } from '../const'
+import { EVENT } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
 import state from '../state'
 
@@ -95,11 +95,11 @@ class WSClient {
         const result = convertToObject(evt)
 
         if (result.op === 3) {
-          event.emit(EVENTS.NINKI, result.body)
+          event.emit(EVENT.NINKI, result.body)
         }
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
-            event.emit(EVENTS.MESSAGE, {
+            event.emit(EVENT.MESSAGE, {
               data: item,
               roomId
             })

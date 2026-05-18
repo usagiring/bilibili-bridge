@@ -1,7 +1,7 @@
 import Router from '@koa/router'
 import { version, name, description } from '../../package.json'
 import ajv from '../service/ajv'
-import { HTTP_ERRORS } from '../service/const'
+import { HTTP_ERROR } from '../service/const'
 import settingAPIs from './setting'
 import roomAPIs from './room'
 import giftAPIs from './gift'
@@ -76,7 +76,7 @@ function validatorMWWrapper(schema) {
     if (validate(ctx.__body)) {
       await next()
     } else {
-      throw HTTP_ERRORS.PARAMS_ERROR
+      throw HTTP_ERROR.PARAMS_ERROR
     }
   }
 }

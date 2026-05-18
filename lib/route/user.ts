@@ -6,7 +6,7 @@ import {
 } from '../service/bilibili/sdk'
 import global from '../service/state'
 import state from '../service/state'
-import { HTTP_ERRORS } from '../service/const'
+import { HTTP_ERROR } from '../service/const'
 
 const routes = [
   {
@@ -56,7 +56,7 @@ async function isNeedRefreshCookie(ctx) {
 async function refreshCookie(ctx) {
   const { refreshToken } = ctx.__body
   const userCookie = state.get('userCookie')
-  if (!refreshToken || !userCookie) throw HTTP_ERRORS.PARAMS_ERROR
+  if (!refreshToken || !userCookie) throw HTTP_ERROR.PARAMS_ERROR
   const result = await refreshCookieApi({ refreshToken, userCookie })
 
   ctx.body = {

@@ -1,5 +1,5 @@
 import wss from '../service/wss'
-import { CMDS, COMMON_RESPONSE } from '../service/const'
+import { CMD, COMMON_RESPONSE } from '../service/const'
 import global from '../service/state'
 
 const routes = [
@@ -51,7 +51,7 @@ const routes = [
 
 async function clear(ctx) {
   wss.broadcast({
-    cmd: CMDS.MESSAGE_CLEAR
+    cmd: CMD.MESSAGE_CLEAR
   })
   ctx.body = {
     message: 'ok'
@@ -63,16 +63,16 @@ async function sendMessages(ctx) {
   let cmd = ''
   switch (category) {
     case 'comment':
-      cmd = CMDS.COMMENT
+      cmd = CMD.COMMENT
       break
     case 'gift':
-      cmd = CMDS.GIFT
+      cmd = CMD.GIFT
       break
     case 'interact':
-      cmd = CMDS.INTERACT
+      cmd = CMD.INTERACT
       break
     case 'superChat':
-      cmd = CMDS.SUPER_CHAT
+      cmd = CMD.SUPER_CHAT
       break
   }
   wss.broadcast({
@@ -88,16 +88,16 @@ async function sendExampleMessages(ctx) {
   let cmd = ''
   switch (category) {
     case 'comment':
-      cmd = CMDS.EXAMPLE_COMMENT
+      cmd = CMD.EXAMPLE_COMMENT
       break
     case 'gift':
-      cmd = CMDS.EXAMPLE_GIFT
+      cmd = CMD.EXAMPLE_GIFT
       break
     case 'interact':
-      cmd = CMDS.EXAMPLE_INTERACT
+      cmd = CMD.EXAMPLE_INTERACT
       break
     case 'superChat':
-      cmd = CMDS.EXAMPLE_SUPER_CHAT
+      cmd = CMD.EXAMPLE_SUPER_CHAT
       break
   }
   wss.broadcast({
@@ -117,7 +117,7 @@ async function getInitialMessages(ctx) {
 
 async function clearExampleMessages(ctx) {
   wss.broadcast({
-    cmd: CMDS.EXAMPLE_MESSAGE_CLEAR
+    cmd: CMD.EXAMPLE_MESSAGE_CLEAR
   })
   ctx.body = {
     message: 'ok'
@@ -126,7 +126,7 @@ async function clearExampleMessages(ctx) {
 
 async function restoreExampleMessages(ctx) {
   wss.broadcast({
-    cmd: CMDS.EXAMPLE_MESSAGE_RESTORE
+    cmd: CMD.EXAMPLE_MESSAGE_RESTORE
   })
   ctx.body = {
     message: 'ok'

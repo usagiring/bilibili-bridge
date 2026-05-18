@@ -10,7 +10,7 @@ import {
   getRandomPlayUrl,
   like as likeApi,
 } from '../service/bilibili/sdk'
-import { HTTP_ERRORS } from '../service/const'
+import { HTTP_ERROR } from '../service/const'
 import state from '../service/state'
 
 const routes = [
@@ -102,7 +102,7 @@ async function getUserInfoInRoom(ctx) {
   const { roomId, userId } = ctx.__body
   const cookie = state.get('userCookie')
   if (!cookie) {
-    throw HTTP_ERRORS.PARAMS_ERROR
+    throw HTTP_ERROR.PARAMS_ERROR
   }
   ctx.body = await getInfoByUser(roomId, cookie)
 }
@@ -121,7 +121,7 @@ async function sendComment(ctx) {
   const { roomId, comment } = ctx.__body
   const cookie = state.get('userCookie')
   if (!cookie) {
-    throw HTTP_ERRORS.PARAMS_ERROR
+    throw HTTP_ERROR.PARAMS_ERROR
   }
   ctx.body = await sendMessage({
     message: comment,
@@ -133,7 +133,7 @@ async function wearMedal(ctx) {
   const { medalId } = ctx.__body
   const cookie = state.get('userCookie')
   if (!cookie) {
-    throw HTTP_ERRORS.PARAMS_ERROR
+    throw HTTP_ERROR.PARAMS_ERROR
   }
 
   ctx.body = await wearMedalAPI(medalId, cookie)
@@ -150,7 +150,7 @@ async function getMedalList(ctx) {
   const { page, pageSize } = ctx.__body
   const cookie = state.get('userCookie')
   if (!cookie) {
-    throw HTTP_ERRORS.PARAMS_ERROR
+    throw HTTP_ERROR.PARAMS_ERROR
   }
 
   ctx.body = await getMedalListAPI({

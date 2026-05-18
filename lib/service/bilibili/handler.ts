@@ -1,6 +1,6 @@
 import moment from 'moment'
 import event from '../event'
-import { EVENTS, CMDS, BILI_CMDS } from '../const'
+import { EVENT, CMD, BILI_CMD } from '../const'
 import global from '../state'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
@@ -16,17 +16,17 @@ import { Model as OtherModel } from '../../model/other'
 const GET_USER_INFO_FREQUENCY_LIMIT = global.get('userInfoFrequencyLimit')
 const SAVE_ALL_BILI_MESSAGE = global.get('SAVE_ALL_BILI_MESSAGE')
 
-event.on(EVENTS.NINKI, async (data) => {
+event.on(EVENT.NINKI, async (data) => {
   const ninkiNumber = data.count
   wss.broadcast({
-    cmd: CMDS.NINKI,
+    cmd: CMD.NINKI,
     payload: {
       ninkiNumber
     }
   })
 })
 
-event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
+event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
   if (Array.isArray(data)) {
     for (const msg of data) {
       if (~msg.cmd.indexOf("DANMU_MSG")) {
@@ -69,7 +69,7 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
         continue
       }
 
-      if (msg.cmd === BILI_CMDS.ANCHOR_LOT_START) {
+      if (msg.cmd === BILI_CMD.ANCHOR_LOT_START) {
         const {
           award_name, // description
           award_num,
@@ -83,7 +83,7 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
           room_id,
         } = msg.data
         wss.broadcast({
-          cmd: CMDS.ANCHOR_LOT_START,
+          cmd: CMD.ANCHOR_LOT_START,
           payload: {
             id: id,
             roomId: room_id,
@@ -99,7 +99,7 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
         })
       }
 
-      if (msg.cmd === BILI_CMDS.ANCHOR_LOT_AWARD) {
+      if (msg.cmd === BILI_CMD.ANCHOR_LOT_AWARD) {
         const {
           id,
           award_name,
@@ -108,7 +108,7 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
         } = msg.data
 
         wss.broadcast({
-          cmd: CMDS.ANCHOR_LOT_AWARD,
+          cmd: CMD.ANCHOR_LOT_AWARD,
           payload: {
             id: id,
             awardName: award_name,
@@ -129,31 +129,31 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
         }
       }
 
-      if (msg.cmd === BILI_CMDS.WATCHED_CHANGE) {
+      if (msg.cmd === BILI_CMD.WATCHED_CHANGE) {
         // {"num":3727,"text_small":"3727","text_large":"3727人看过"}
         const { num } = msg.data
         wss.broadcast({
-          cmd: CMDS.WATCHED_CHANGE,
+          cmd: CMD.WATCHED_CHANGE,
           payload: {
             watchedNumber: num,
           }
         })
       }
-      if (msg.cmd === BILI_CMDS.LIKE_CHANGE) {
+      if (msg.cmd === BILI_CMD.LIKE_CHANGE) {
         // {"cmd":"LIKE_INFO_V3_UPDATE","data":{"click_count":6291}}
         const { click_count } = msg.data
         wss.broadcast({
-          cmd: CMDS.LIKE_CHANGE,
+          cmd: CMD.LIKE_CHANGE,
           payload: {
             likeNumber: click_count,
           }
         })
       }
 
-      if (msg.cmd === BILI_CMDS.ONLINE_COUNT) {
+      if (msg.cmd === BILI_CMD.ONLINE_COUNT) {
         const count = msg.data.count || 0
         wss.broadcast({
-          cmd: CMDS.ONLINE_COUNT,
+          cmd: CMD.ONLINE_COUNT,
           payload: {
             onlineNumber: count,
           }
@@ -164,7 +164,7 @@ event.on(EVENTS.MESSAGE, async ({ data, roomId }) => {
     if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
       const { fans, fans_club } = data.data
       wss.broadcast({
-        cmd: CMDS.ROOM_REAL_TIME_MESSAGE_UPDATE,
+        cmd: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE,
         payload: {
           fansNumber: fans,
           fansClubNumber: fans_club
@@ -224,12 +224,12 @@ async function commentJob(comment: CommentDTO) {
   // }
 
   wss.broadcast({
-    cmd: CMDS.COMMENT,
+    cmd: CMD.COMMENT,
     payload: comment
   })
 
-  event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
-  event.emit(EVENTS.DANMAKU_COMMAND, comment)
+  event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
+  event.emit(EVENT.DANMAKU_COMMAND, comment)
 
   // TODO cloneDeep
   CommentModel.insert(comment)
@@ -240,11 +240,11 @@ async function interactJob(interact: InteractDTO) {
   // console.log(`${interactWord.name}(${interactWord.uid}) 进入了直播间`);
   const data = await InteractModel.insert(interact)
   wss.broadcast({
-    cmd: CMDS.INTERACT,
+    cmd: CMD.INTERACT,
     payload: data
   })
 
-  event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
+  event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
 }
 
 async function giftJob(gift: GiftDTO) {
@@ -277,11 +277,11 @@ async function giftJob(gift: GiftDTO) {
     }
 
     wss.broadcast({
-      cmd: CMDS.SUPER_CHAT,
+      cmd: CMD.SUPER_CHAT,
       payload: sc
     })
 
-    event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
+    event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
   } else if (gift.type === 1 || gift.type === 2) {
     let data
     // 辣条
@@ -312,14 +312,14 @@ async function giftJob(gift: GiftDTO) {
       data = await GiftModel.insert(gift)
     }
     wss.broadcast({
-      cmd: CMDS.GIFT,
+      cmd: CMD.GIFT,
       payload: {
         ...data,
         singleCount: gift.count
       }
     })
 
-    event.emit(EVENTS.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
+    event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
   }
 }
 

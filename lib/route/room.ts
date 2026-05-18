@@ -1,5 +1,5 @@
 import runtime from '../service/runtime'
-import { COMMON_RESPONSE, ERRORS, EVENTS } from '../service/const'
+import { COMMON_RESPONSE, ERROR, EVENT } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
 import { getRoomInfoV2 } from '../service/bilibili/sdk'
 import event from '../service/event'
@@ -114,7 +114,7 @@ async function disconnect(ctx) {
   const { roomId } = ctx.__body
   const bilibiliWSClient = runtime.get(`connectionPoolMap.${roomId}.wsClient`)
   if (!bilibiliWSClient) {
-    throw new Error(ERRORS.SYSTEM_ERROR)
+    throw new Error(ERROR.SYSTEM_ERROR)
   }
   await bilibiliWSClient.close()
   // global.set('isConnected', false)

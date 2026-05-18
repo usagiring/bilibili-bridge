@@ -1,6 +1,6 @@
 import BilibiliRecorder from "@tokine/bilibili-recorder"
 import wss, { SocketPayload } from "../wss"
-import { CMDS } from "../const"
+import { CMD } from "../const"
 import state from '../state'
 
 const recorder = new BilibiliRecorder({
@@ -11,7 +11,7 @@ const recorder = new BilibiliRecorder({
     roomId
   }) => {
     const data: SocketPayload = {
-      cmd: CMDS.RECORD_RATE,
+      cmd: CMD.RECORD_RATE,
       payload: {
         id,
         bps,
@@ -28,7 +28,7 @@ const recorder = new BilibiliRecorder({
   }) => {
     state.unset(`recordMap.${roomId}`)
     const data: SocketPayload = {
-      cmd: CMDS.RECORD_END,
+      cmd: CMD.RECORD_END,
       payload: {
         id,
         roomId
@@ -43,7 +43,7 @@ const recorder = new BilibiliRecorder({
   }) => {
     state.unset(`recordMap.${roomId}`)
     const data: SocketPayload = {
-      cmd: CMDS.RECORD_ERROR,
+      cmd: CMD.RECORD_ERROR,
       payload: {
         id,
         roomId,
@@ -58,7 +58,7 @@ const recorder = new BilibiliRecorder({
   }) => {
     state.unset(`recordMap.${roomId}`)
     const data: SocketPayload = {
-      cmd: CMDS.RECORD_CLOSE,
+      cmd: CMD.RECORD_CLOSE,
       payload: {
         id,
         roomId,

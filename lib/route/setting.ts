@@ -1,5 +1,5 @@
 import { pick } from 'lodash'
-import { CMDS, HTTP_ERRORS } from '../service/const'
+import { CMD, HTTP_ERROR } from '../service/const'
 import state from '../service/state'
 import wss from '../service/wss'
 import speak, { getInstalledVoices } from '../service/tts/system'
@@ -88,7 +88,7 @@ async function get(ctx) {
     ...data,
     userCookie: null,
   }
-  if (!data) throw HTTP_ERRORS.NOT_FOUND
+  if (!data) throw HTTP_ERROR.NOT_FOUND
   ctx.body = {
     message: 'ok',
     data: res
@@ -114,7 +114,7 @@ function update(ctx) {
   delete result.userCookie
 
   wss.broadcast({
-    cmd: CMDS.SETTING,
+    cmd: CMD.SETTING,
     payload: result
   })
 

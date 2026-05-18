@@ -2,7 +2,7 @@ import { orderBy } from 'lodash'
 import cookie from 'cookie'
 import event from './event'
 import state from './state'
-import { CMDS, EVENTS } from './const'
+import { CMD, EVENT } from './const'
 // import giftService from './'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
 import type { SendMessage } from './bilibili/sdk'
@@ -64,7 +64,7 @@ export function parseAutoReplyMessage(message, type): Message {
 //     sendUserCache = {}
 // }, 60 * 1000 * 10) // TODO config
 
-event.on(EVENTS.AUTO_REPLY, async (message: Message) => {
+event.on(EVENT.AUTO_REPLY, async (message: Message) => {
   const autoReplyRules = state.get('autoReplyRules')
   const roomId = message.roomId
   const isConnected = runtime.get(`connectionPoolMap.${roomId}.isConnected`)
@@ -152,7 +152,7 @@ event.on(EVENTS.AUTO_REPLY, async (message: Message) => {
       if (tag.key === 'SPEAK_REPLY') {
         const { voice, speed } = tag.data
         wss.broadcast({
-          cmd: CMDS.SPEAK,
+          cmd: CMD.SPEAK,
           payload: {
             text,
             voice,
@@ -229,7 +229,7 @@ setInterval(() => {
   muteCommandCache = {}
 }, 60 * 1000 * 10) // 10min
 
-event.on(EVENTS.DANMAKU_COMMAND, async (comment) => {
+event.on(EVENT.DANMAKU_COMMAND, async (comment) => {
   const muteCommandSetting = state.get('muteCommandSetting')
   if (!muteCommandSetting) return
   const userCookie = state.get('userCookie')
@@ -303,7 +303,7 @@ event.on(EVENTS.DANMAKU_COMMAND, async (comment) => {
     }, userCookie)
 
     wss.broadcast({
-      cmd: CMDS.DANMAKU_COMMAND_RESULT,
+      cmd: CMD.DANMAKU_COMMAND_RESULT,
       payload: {
         status: 'success',
         type: 'mute',
@@ -313,7 +313,7 @@ event.on(EVENTS.DANMAKU_COMMAND, async (comment) => {
     })
   } catch (e) {
     wss.broadcast({
-      cmd: CMDS.DANMAKU_COMMAND_RESULT,
+      cmd: CMD.DANMAKU_COMMAND_RESULT,
       payload: {
         status: 'failed',
         type: 'mute',

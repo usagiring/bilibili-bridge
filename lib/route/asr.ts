@@ -4,7 +4,7 @@ import { chunk } from 'lodash'
 
 import state from '../service/state'
 import runtime from '../service/runtime'
-import { CMDS, COMMON_RESPONSE, HTTP_ERRORS } from '../service/const'
+import { CMD, COMMON_RESPONSE, HTTP_ERROR } from '../service/const'
 import wss, { SocketPayload } from '../service/wss'
 import { wait } from '../service/util'
 
@@ -95,7 +95,7 @@ async function initial(ctx) {
 
   AliASR.on('begin', (msg) => {
     const data: SocketPayload = {
-      cmd: CMDS.ASR_SENTENCE_BEGIN,
+      cmd: CMD.ASR_SENTENCE_BEGIN,
       payload: msg
     }
     wss.broadcast(data)
@@ -103,7 +103,7 @@ async function initial(ctx) {
 
   AliASR.on('end', async (msg) => {
     const socket: SocketPayload = {
-      cmd: CMDS.ASR_SENTENCE_END,
+      cmd: CMD.ASR_SENTENCE_END,
       payload: msg
     }
     wss.broadcast(socket)
@@ -130,7 +130,7 @@ async function initial(ctx) {
       to: toLang
     }).then(result => {
       const socket: SocketPayload = {
-        cmd: CMDS.MECHINE_TRANSLATE,
+        cmd: CMD.MECHINE_TRANSLATE,
         payload: {
           id: msg.header?.message_id,
           message: result?.body?.data?.translated
@@ -161,7 +161,7 @@ async function initial(ctx) {
   // }
   AliASR.on('changed', (msg) => {
     const data: SocketPayload = {
-      cmd: CMDS.ASR_SENTENCE_CHANGE,
+      cmd: CMD.ASR_SENTENCE_CHANGE,
       payload: msg
     }
     wss.broadcast(data)
@@ -178,7 +178,7 @@ async function liveStreamStart(ctx) {
   const { playUrl, ffmpegPath } = ctx.__body
   const asr = runtime.get('asrInstance')
   if (!asr) {
-    throw HTTP_ERRORS.PARAMS_ERROR
+    throw HTTP_ERROR.PARAMS_ERROR
     // message: 'no found asr instance'
   }
 
@@ -269,7 +269,7 @@ async function translateSentence(ctx) {
   })
 
   const data: SocketPayload = {
-    cmd: CMDS.MECHINE_TRANSLATE,
+    cmd: CMD.MECHINE_TRANSLATE,
     payload: {
       ...payload,
       message: result?.body?.data?.translated
@@ -372,7 +372,7 @@ async function speechToText(ctx) {
   const { appKey, payload } = ctx.__body
   const token = runtime.get('aliToken')
   if (!token) {
-    throw HTTP_ERRORS.PARAMS_ERROR
+    throw HTTP_ERROR.PARAMS_ERROR
   }
 
   const sr = AliSpeechRecognition.initial({
@@ -382,7 +382,7 @@ async function speechToText(ctx) {
 
   sr.on('started', async (msg) => {
     const data: SocketPayload = {
-      cmd: CMDS.SR_STARTED,
+      cmd: CMD.SR_STARTED,
       payload: JSON.parse(msg)
     }
     wss.broadcast(data)
@@ -390,7 +390,7 @@ async function speechToText(ctx) {
 
   sr.on('completed', async (msg) => {
     const data: SocketPayload = {
-      cmd: CMDS.SR_COMPLETED,
+      cmd: CMD.SR_COMPLETED,
       payload: JSON.parse(msg)
     }
     wss.broadcast(data)

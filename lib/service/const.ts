@@ -1,4 +1,4 @@
-export const EVENTS = {
+export const EVENT = {
   PING: 'PING',
   NINKI: 'NINKI', // 人气
   DANMAKU: 'DANMAKU',
@@ -9,7 +9,7 @@ export const EVENTS = {
   AUDIO: 'AUDIO',
 }
 
-export const CMDS = {
+export const CMD = {
   GIFT_CONFIG: 'GIFT_CONFIG',
   NINKI: 'NINKI',
   COMMENT: 'COMMENT',
@@ -48,7 +48,7 @@ export const CMDS = {
   ONLINE_COUNT: 'ONLINE_COUNT',
 }
 
-export const BILI_CMDS = {
+export const BILI_CMD = {
   PREPARING: 'PREPARING',
   INTERACT_WORD: 'INTERACT_WORD',
   DANMU_MSG: 'DANMU_MSG',
@@ -64,7 +64,7 @@ export const BILI_CMDS = {
   ONLINE_COUNT: 'ONLINE_RANK_COUNT',
 }
 
-export const ERRORS = {
+export const ERROR = {
   SYSTEM_ERROR: 'SYSTEM_ERROR'
 }
 
@@ -72,7 +72,7 @@ export const COMMON_RESPONSE = {
   message: 'ok'
 }
 
-export const HTTP_ERRORS = {
+export const HTTP_ERROR = {
   NOT_FOUND: {
     status: 404,
     message: 'NOT_FOUND'
