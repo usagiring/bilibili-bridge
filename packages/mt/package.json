@@ -10,10 +10,10 @@
   "author": "其妙",
   "license": "MIT",
   "dependencies": {
-    "@alicloud/alimt20181012": "^1.0.3",
-    "@alicloud/openapi-client": "^0.3.8"
+    "@alicloud/alimt20181012": "^1.4.2",
+    "@alicloud/openapi-client": "^0.4.15"
   },
   "devDependencies": {
-    "typescript": "~4.7.4"
+    "typescript": "~6.0.3"
   }
 }

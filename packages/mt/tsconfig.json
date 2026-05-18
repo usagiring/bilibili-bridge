@@ -1,24 +1,45 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
+    // ── 编译目标 ──
+    "target": "ES2024",
+    "lib": [
+      "ES2024"
+    ],
+    "module": "NodeNext",
+    // ── 输出配置 ──
+    "outDir": "dist",
+    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    // ── 模块互操作 ──
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    // ── 严格模式 ──
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    // ── 其他检查 ──
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "allowJs": false,
     "useDefineForClassFields": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noImplicitAny": false,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "outDir": "dist",
+    // ── 性能 ──
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo"
   },
   "include": [
-    "src/**/*.ts",
-    "index.ts",
+    "*.ts",
+    "lib/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }
