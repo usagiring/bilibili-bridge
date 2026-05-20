@@ -84,14 +84,14 @@ event.on(EVENT.AUTO_REPLY, async (message: Message) => {
     text = text.replace('{user.name}', message.uname)
     text = text.replace('{user}', message.uname)
 
-    text = text.replace('{gift.name}', message.giftName)
-    text = text.replace('{gift}', message.giftName)
+    text = text.replace('{gift.name}', message.giftName || '')
+    text = text.replace('{gift}', message.giftName || '')
 
-    text = text.replace('{comment.content}', message.content)
-    text = text.replace('{comment}', message.content)
+    text = text.replace('{comment.content}', message.content || '')
+    text = text.replace('{comment}', message.content || '')
 
-    text = text.replace('{superchat.content}', message.content)
-    text = text.replace('{superchat}', message.content)
+    text = text.replace('{superchat.content}', message.content || '')
+    text = text.replace('{superchat}', message.content || '')
 
     let isAtUser = false
     if (text.includes('{@user}')) {
@@ -150,7 +150,7 @@ event.on(EVENT.AUTO_REPLY, async (message: Message) => {
       // }
 
       if (tag.key === 'SPEAK_REPLY') {
-        const { voice, speed } = tag.data
+        const { voice, speed } = tag.data || {}
         wss.broadcast({
           cmd: CMD.SPEAK,
           payload: {
@@ -317,7 +317,7 @@ event.on(EVENT.DANMAKU_COMMAND, async (comment) => {
       payload: {
         status: 'failed',
         type: 'mute',
-        message: e.message,
+        message: (e as Error).message,
       }
     })
   }

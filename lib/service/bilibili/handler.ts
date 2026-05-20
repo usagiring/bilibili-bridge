@@ -210,7 +210,7 @@ export async function getUserInfoThrottle(uid) {
     if (!data.mid) throw new Error('user data error')
     return data
   } catch (e) {
-    if (e.message === 'Request failed with status code 412') {
+    if ((e as Error).message === 'Request failed with status code 412') {
       isGetUserInfoLocked20min = true
     }
     throw e

@@ -7,7 +7,7 @@ export const EVENT = {
   AUTO_REPLY: 'AUTO_REPLY',
   DANMAKU_COMMAND: 'DANMAKU_COMMAND',
   AUDIO: 'AUDIO',
-}
+} as const;
 
 export const CMD = {
   GIFT_CONFIG: 'GIFT_CONFIG',
