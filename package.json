@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "pnpm --filter @tokine/asr --filter @tokine/mt run build && tsc && cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
+    "build": "pnpm --filter @tokine/asr --filter @tokine/mt --filter @tokine/bilibili-recorder run build && tsc && cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
     "start": "node ./dist/index",
     "start:test": "node ./bin/run-test.js",
     "dev": "tsx watch index.ts",
@@ -22,7 +22,7 @@
     "@koa/send": "^6.0.0",
     "@node-rs/jieba": "^2.0.1",
     "@tokine/asr": "workspace:*",
-    "@tokine/bilibili-recorder": "0.1.0",
+    "@tokine/bilibili-recorder": "workspace:*",
     "@tokine/mt": "workspace:*",
     "ajv": "^8.20.0",
     "axios": "^1.16.1",
