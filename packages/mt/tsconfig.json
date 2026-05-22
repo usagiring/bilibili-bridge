@@ -3,7 +3,8 @@
     // ── 编译目标 ──
     "target": "ES2024",
     "lib": [
-      "ES2024"
+      "ES2024",
+      "DOM"
     ],
     "module": "NodeNext",
     // ── 输出配置 ──
@@ -27,6 +28,7 @@
     "exactOptionalPropertyTypes": false,
     // ── 其他检查 ──
     "skipLibCheck": true,
+    "types": ["node"],
     "forceConsistentCasingInFileNames": true,
     "allowJs": false,
     "useDefineForClassFields": true,

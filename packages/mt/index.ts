@@ -1,67 +1,33 @@
-// This file is auto-generated, don't edit it
-import alimt20181012, * as $alimt20181012 from '@alicloud/alimt20181012'
-// 依赖的模块可通过下载工程中的模块依赖文件或右上角的获取 SDK 依赖信息查看
-import * as $OpenApi from '@alicloud/openapi-client'
-// import * as $tea from '@alicloud/tea-typescript';
+/**
+ * @tokine/mt — 多厂商机器翻译统一接口
+ *
+ * 使用方式：
+ *   import { createTranslator, TranslatorPool } from '@tokine/mt'
+ *
+ *   // 创建翻译器
+ *   const mt = createTranslator('alicloud', { accessKeyId, accessKeySecret })
+ *   const result = await mt.translate({ text: '你好', from: 'zh', to: 'en' })
+ *   console.log(result.translated) // "Hello"
+ *
+ *   // 多端场景
+ *   const pool = new TranslatorPool()
+ *   const mt1 = pool.getOrCreate('room_123', 'alicloud', { accessKeyId: '...', accessKeySecret: '...' })
+ */
 
+// ── 统一接口（推荐） ──
+export { createTranslator, TranslatorPool } from './src/factory';
+export type { PoolEntry } from './src/factory';
+export type {
+  Provider,
+  ITranslator,
+  TranslatorConfig,
+  TranslateRequest,
+  TranslateResult,
+  DetectLanguageResult,
+} from './src/types';
+export { AliCloudTranslator } from './src/providers/alicloud';
+export { TencentCloudTranslator } from './src/providers/tencentcloud';
 
-export default class Client {
-    client: alimt20181012
-
-    /**
-     * 使用AK&SK初始化账号Client
-     * @param accessKeyId
-     * @param accessKeySecret
-     * @return Client
-     * @throws Exception
-     */
-    constructor({ accessKeyId, accessKeySecret }) {
-        const config = new $OpenApi.Config({
-            accessKeyId: accessKeyId,
-            accessKeySecret: accessKeySecret,
-        })
-        // 访问的域名
-        config.endpoint = `mt.cn-hangzhou.aliyuncs.com`
-        this.client = new alimt20181012(config)
-    }
-
-    async translateGeneral({
-        text,
-        from,
-        to
-    }) {
-        const translateGeneralRequest = new $alimt20181012.TranslateGeneralRequest({
-            formatType: "text",
-            sourceText: text,
-            scene: "general",
-            sourceLanguage: from,
-            targetLanguage: to
-        })
-        // const runtime = new $Util.RuntimeOptions({})
-        try {
-            // 复制代码运行请自行打印 API 的返回值
-            const result = await this.client.translateGeneral(translateGeneralRequest)
-            return result
-        } catch (error) {
-            // 如有需要，请打印 error
-            console.error(error)
-            // Util.assertAsString(error.message)
-        }
-    }
-
-    async getDetectLanguage({ text }) {
-        const getDetectLanguageRequest = new $alimt20181012.GetDetectLanguageRequest({
-            sourceText: text,
-        })
-        // let runtime = new $Util.RuntimeOptions({})
-        try {
-            // 复制代码运行请自行打印 API 的返回值
-            const result = await this.client.getDetectLanguage(getDetectLanguageRequest)
-            return result
-        } catch (error) {
-            // 如有需要，请打印 error
-            // Util.assertAsString(error.message)
-            console.error(error)
-        }
-    }
-}
+// ── 旧版兼容导出 ──
+import { AliCloudTranslator as Client } from './src/providers/alicloud';
+export default Client;
