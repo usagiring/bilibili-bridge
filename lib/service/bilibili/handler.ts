@@ -1,7 +1,7 @@
-import moment from 'moment'
+import dayjs from 'dayjs'
 import event from '../event'
 import { EVENT, CMD, BILI_CMD } from '../const'
-import global from '../state'
+import state from '../state'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
 import { parseComment, parseGift, parseInteractWord, parseUser } from './'
@@ -13,8 +13,8 @@ import { InteractDTO, Model as InteractModel } from '../../model/interact'
 import { LotteryDTO, Model as LotteryModel } from '../../model/lottery'
 import { Model as OtherModel } from '../../model/other'
 
-const GET_USER_INFO_FREQUENCY_LIMIT = global.get('userInfoFrequencyLimit')
-const SAVE_ALL_BILI_MESSAGE = global.get('SAVE_ALL_BILI_MESSAGE')
+const userInfoFrequencyLimit = state.userInfoFrequencyLimit
+const saveAllBiliMessage = state.saveAllBiliMessage
 
 event.on(EVENT.NINKI, async (data) => {
   const ninkiNumber = data.count
@@ -183,7 +183,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
     // }
   }
 
-  if (SAVE_ALL_BILI_MESSAGE) {
+  if (saveAllBiliMessage) {
     OtherModel.insert({ raw: data })
   }
 })
@@ -203,7 +203,7 @@ export async function getUserInfoThrottle(uid) {
   isGetUserInfoLocked = true
   setTimeout(() => {
     isGetUserInfoLocked = false
-  }, GET_USER_INFO_FREQUENCY_LIMIT || 2000)
+  }, userInfoFrequencyLimit || 2000)
 
   try {
     const { data } = await getUserInfo(uid)
@@ -288,7 +288,7 @@ async function giftJob(gift: GiftDTO) {
     // fix: 辣条没有 batchComboId 导致无法正常堆叠
     if (gift.id === 1) {
       // batch:gift:combo_id:{uid}:{giftId}:{roomId}:{startOfMinute} 
-      gift.batchComboId = `batch:gift:combo_id:${gift.uid}:${gift.id}:${gift.roomId}:${moment().startOf('minute').valueOf()}`
+      gift.batchComboId = `batch:gift:combo_id:${gift.uid}:${gift.id}:${gift.roomId}:${dayjs().startOf('minute').valueOf()}`
     }
 
     if (gift.batchComboId) {

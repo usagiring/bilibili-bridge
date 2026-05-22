@@ -41,6 +41,9 @@ importers:
       cookie:
         specifier: ^1.1.1
         version: 1.1.1
+      dayjs:
+        specifier: ^1.11.20
+        version: 1.11.20
       drizzle-orm:
         specifier: 1.0.0-beta.22
         version: 1.0.0-beta.22
@@ -62,9 +65,6 @@ importers:
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
-      moment:
-        specifier: ^2.30.1
-        version: 2.30.1
       protobufjs:
         specifier: ^8.3.0
         version: 8.3.0
@@ -75,9 +75,6 @@ importers:
       '@types/koa':
         specifier: ^3.0.2
         version: 3.0.2
-      '@types/nedb':
-        specifier: ^1.8.16
-        version: 1.8.16
       '@types/node':
         specifier: ^25.8.0
         version: 25.8.0
@@ -753,9 +750,6 @@ packages:
   '@types/koa@3.0.2':
     resolution: {integrity: sha512-7TRzVOBcH/q8CfPh9AmHBQ8TZtimT4Sn+rw8//hXveI6+F41z93W8a+0B0O8L7apKQv+vKBIEZSECiL0Oo1JFA==}
 
-  '@types/nedb@1.8.16':
-    resolution: {integrity: sha512-ND+uzwAZk7ZI9byOvHGOcZe2R9XUcLF698yDJKn00trFvh+GaemkX3gQKCSKtObjDpv8Uuou+k8v4x4scPr4TA==}
-
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
@@ -975,6 +969,9 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
+
+  dayjs@1.11.20:
+    resolution: {integrity: sha512-YbwwqR/uYpeoP4pu043q+LTDLFBLApUP6VxRihdfNTqu4ubqMlGDLd6ErXhEgsyvY0K6nCs7nggYumAN+9uEuQ==}
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -2389,10 +2386,6 @@ snapshots:
       '@types/koa-compose': 3.2.9
       '@types/node': 25.8.0
 
-  '@types/nedb@1.8.16':
-    dependencies:
-      '@types/node': 25.8.0
-
   '@types/node@12.20.55': {}
 
   '@types/node@20.19.41':
@@ -2666,6 +2659,8 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  dayjs@1.11.20: {}
 
   debug@3.2.7:
     dependencies:

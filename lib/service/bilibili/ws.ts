@@ -1,9 +1,9 @@
 import util from 'util'
 import WebSocket from 'ws'
-import cookie from 'cookie'
 import decompress from 'brotli/decompress'
 
 import event from '../event'
+import { parseCookie } from '../util'
 import { EVENT } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
 import state from '../state'
@@ -46,7 +46,7 @@ class WSClient {
     let me: number
     let buvid: string
     if (userCookie) {
-      const cookies = cookie.parse(userCookie)
+      const cookies = parseCookie(userCookie)
       me = Number(cookies.DedeUserID)
       buvid = cookies.buvid3
     }

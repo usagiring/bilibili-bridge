@@ -1,14 +1,12 @@
-import { orderBy } from 'lodash'
-import cookie from 'cookie'
 import event from './event'
 import state from './state'
+import { parseCookie } from './util'
 import { CMD, EVENT } from './const'
 // import giftService from './'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
 import type { SendMessage } from './bilibili/sdk'
 // import tts from './tts'
 import wss from './wss'
-import runtime from './runtime'
 
 interface Message {
   type: 'comment' | 'gift' | 'interact' | 'superchat'
@@ -65,9 +63,9 @@ export function parseAutoReplyMessage(message, type): Message {
 // }, 60 * 1000 * 10) // TODO config
 
 event.on(EVENT.AUTO_REPLY, async (message: Message) => {
-  const autoReplyRules = state.get('autoReplyRules')
+  const autoReplyRules = state.autoReplyRules
   const roomId = message.roomId
-  const isConnected = runtime.get(`connectionPoolMap.${roomId}.isConnected`)
+  const isConnected = state.get(`connectionPoolMap.${roomId}.isConnected`)
   if (!roomId || !isConnected || !autoReplyRules?.length) return
 
   // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
@@ -102,7 +100,7 @@ event.on(EVENT.AUTO_REPLY, async (message: Message) => {
     for (const tag of rule.tags) {
       const userCookie = state.get('userCookie')
       if (tag.key === 'TEXT_REPLY' && userCookie) {
-        const cookies = cookie.parse(userCookie)
+        const cookies = parseCookie(userCookie)
         const me = cookies.DedeUserID
 
         // 当前房间主播ID

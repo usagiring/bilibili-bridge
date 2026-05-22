@@ -1,8 +1,8 @@
 import axios from 'axios'
-import cookie from "cookie"
 import crypto from 'crypto'
 import querystring from "querystring"
 import state from '../state'
+import { parseCookie } from '../util'
 
 const baseUrl = 'https://api.bilibili.com'
 const baseLiveUrl = 'https://api.live.bilibili.com'
@@ -118,7 +118,7 @@ export async function getGuardInfo(roomId, ruid) {
 
 export async function sendMessage(data: SendMessage, userCookie: string) {
   const { message, roomId, color, fontsize, mode, rnd, bubble, replyMid } = data
-  const cookies = cookie.parse(userCookie)
+  const cookies = parseCookie(userCookie)
   const csrf = cookies.bili_jct
   const params = querystring.stringify({
     color: color || 16777215,
@@ -142,7 +142,7 @@ export async function sendMessage(data: SendMessage, userCookie: string) {
 
 export async function wearMedal(medalId, userCookie) {
   if (!medalId) throw new Error('medalId is required')
-  const cookies = cookie.parse(userCookie)
+  const cookies = parseCookie(userCookie)
   const csrf = cookies.bili_jct
   const params = querystring.stringify({
     medal_id: medalId,
@@ -212,7 +212,7 @@ interface AddSilentUserOption {
 
 export async function addSilentUser(data: AddSilentUserOption, userCookie) {
   const { roomId, tuid, mobile_app, visit_id } = data
-  const cookies = cookie.parse(userCookie)
+  const cookies = parseCookie(userCookie)
   const csrf = cookies.bili_jct
   const params = querystring.stringify({
     room_id: roomId,
@@ -294,7 +294,7 @@ interface LikeParams {
 export async function like(data: LikeParams, userCookie: string) {
   const { click_time, room_id, anchor_id } = data
 
-  const cookies = cookie.parse(userCookie)
+  const cookies = parseCookie(userCookie)
   const csrf = cookies.bili_jct
   const uid = Number(cookies.DedeUserID)
 
@@ -468,7 +468,7 @@ async function getRefreshCsrf({ correspondPath, userCookie }) {
 }
 
 async function __refreshCookie({ userCookie, refreshCsrf, source = 'main_web', refreshToken }) {
-  const cookies = cookie.parse(userCookie)
+  const cookies = parseCookie(userCookie)
   const csrf = cookies.bili_jct
 
   const url = `https://passport.bilibili.com/x/passport-login/web/cookie/refresh`
@@ -493,7 +493,7 @@ async function __refreshCookie({ userCookie, refreshCsrf, source = 'main_web', r
 }
 
 async function confirmRefresh({ userCookie, refreshToken }) {
-  const cookies = cookie.parse(userCookie)
+  const cookies = parseCookie(userCookie)
   const csrf = cookies.bili_jct
 
   const url = `https://passport.bilibili.com/x/passport-login/web/confirm/refresh`
