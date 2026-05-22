@@ -1,8 +1,10 @@
 import jieba from '@node-rs/jieba'
+import { and, eq, gte, lte } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { dateFormat, parseNumber } from './util'
-import { Model as GiftModel } from '../model/gift'
-import { Model as CommentModel } from '../model/comment'
-import { Model as InteractModel } from '../model/interact'
+import { db } from './db'
+import { messages } from '../model/message.sqlite'
+import type { GiftExtra, CommentExtra } from '../model/message.sqlite'
 
 interface ChartOption {
   times: string[]
@@ -29,124 +31,108 @@ export default {
 
 async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   const result: any = {}
-  const startDate = new Date(start)
-  const endDate = new Date(end)
+  const startTime = new Date(start).getTime()
+  const endTime = new Date(end).getTime()
 
-  const query: any = {
-    roomId: Number(roomId),
-  }
-  if (start) {
-    query.sendAt = query.sendAt || {}
-    query.sendAt.$gte = startDate.getTime()
-  }
-  if (end) {
-    query.sendAt = query.sendAt || {}
-    query.sendAt.$lte = endDate.getTime()
-  }
+  const conditions = [eq(messages.roomId, Number(roomId))]
+  if (start) conditions.push(gte(messages.sendAt, startTime))
+  if (end) conditions.push(lte(messages.sendAt, endTime))
 
-  // --- gift ---
-  const giftQuery = {
-    ...query,
-    coinType: 1,
-  }
-  const gifts: any[] = await GiftModel.find(giftQuery)
-  const userGiftMap = gifts.reduce((map, gift) => {
-    gift.totalPrice = (gift.count || 0) * gift.price
+  // --- gift: category='gift' & extra->coinType = 1 (金瓜子) ---
+  const giftRows = await db
+    .select({
+      uid: messages.uid,
+      uname: messages.uname,
+      extra: messages.extra,
+    })
+    .from(messages)
+    .where(
+      and(
+        eq(messages.category, 'gift'),
+        sql`json_extract(${messages.extra}, '$.coinType') = 1`,
+        ...conditions,
+      ),
+    )
 
-    if (map[gift.uid]) {
-      map[gift.uid].totalPrice = map[gift.uid].totalPrice + gift.totalPrice
+  const userGiftMap: Record<number, { uname: string; totalPrice: number }> = {}
+  for (const row of giftRows) {
+    const extra = row.extra as GiftExtra
+    const totalPrice = (extra.count || 0) * extra.price
+    if (userGiftMap[row.uid]) {
+      userGiftMap[row.uid].totalPrice += totalPrice
     } else {
-      map[gift.uid] = {
-        uname: gift.uname,
-        totalPrice: gift.totalPrice
-      }
+      userGiftMap[row.uid] = { uname: row.uname, totalPrice }
     }
-    return map
-  }, {})
+  }
+
   let totalGold = 0
   let topGold = 0
-  let topSendGiftUser = {}
-  for (const key in userGiftMap) {
-    if (userGiftMap[key].totalPrice > topGold) {
-      topSendGiftUser = userGiftMap[key]
-      topGold = userGiftMap[key].totalPrice
+  let topSendGiftUser: any = {}
+  for (const key of Object.keys(userGiftMap)) {
+    const price = userGiftMap[key as any].totalPrice
+    if (price > topGold) {
+      topSendGiftUser = userGiftMap[key as any]
+      topGold = price
     }
-    totalGold = totalGold + userGiftMap[key].totalPrice
+    totalGold += price
   }
 
-  totalGold = parseNumber(totalGold * 1000)
-
-  result.totalGold = totalGold
+  result.totalGold = parseNumber(totalGold * 1000)
   result.topSendGiftUser = topSendGiftUser
   result.totalSendGiftUser = Object.keys(userGiftMap).length
 
   // --- comment ---
-  const comments = await CommentModel.find(
-    query,
-    { projection: { uid: 1, uname: 1, sendAt: 1 } }
-  )
-  const userCommentCountMap = comments.reduce((map, comment) => {
-    if (map[comment.uid]) {
-      map[comment.uid].count++
+  const commentRows = await db
+    .select({
+      uid: messages.uid,
+      uname: messages.uname,
+      sendAt: messages.sendAt,
+    })
+    .from(messages)
+    .where(and(eq(messages.category, 'comment'), ...conditions))
+
+  const userCommentCountMap: Record<number, { uname: string; count: number }> = {}
+  for (const row of commentRows) {
+    if (userCommentCountMap[row.uid]) {
+      userCommentCountMap[row.uid].count++
     } else {
-      map[comment.uid] = {
-        uname: comment.uname,
-        count: 1
-      }
+      userCommentCountMap[row.uid] = { uname: row.uname, count: 1 }
     }
-    return map
-  }, {})
+  }
 
   let topCommentCount = 0
-  let topCommentUser = {}
-  for (const uid in userCommentCountMap) {
-    if (userCommentCountMap[uid].count > topCommentCount) {
-      topCommentUser = userCommentCountMap[uid]
-      topCommentCount = userCommentCountMap[uid].count
+  let topCommentUser: any = {}
+  for (const key of Object.keys(userCommentCountMap)) {
+    const count = userCommentCountMap[key as any].count
+    if (count > topCommentCount) {
+      topCommentUser = userCommentCountMap[key as any]
+      topCommentCount = count
     }
   }
 
-  result.totalComment = comments.length
+  result.totalComment = commentRows.length
   result.topCommentUser = topCommentUser
 
-  // for echart 
-  const dateDelta = endDate.getTime() - startDate.getTime()
+  // --- chart: 每分钟评论数 ---
+  const dateDelta = endTime - startTime
   const tick = Math.ceil(dateDelta / (60 * 1000))
-  const times = []
+  const times: string[] = []
   for (let i = 0; i < tick; i++) {
-    const date = new Date(startDate.getTime() + i * 60 * 1000)
-    const MM = date.getHours().toString().padStart(2, "0")
-    const SS = date.getMinutes().toString().padStart(2, "0")
-    times.push(`${MM}:${SS}`)
+    const date = new Date(startTime + i * 60 * 1000)
+    const hh = date.getHours().toString().padStart(2, '0')
+    const mm = date.getMinutes().toString().padStart(2, '0')
+    times.push(`${hh}:${mm}`)
   }
+
   const data = new Array(times.length).fill(0)
-  for (const comment of comments) {
-    // 计算出与开始时间差，除以间隔时间，即index
-    const delta = comment.sendAt - startDate.getTime()
+  for (const row of commentRows) {
+    const delta = row.sendAt - startTime
     const index = Math.floor(delta / (60 * 1000))
     data[index]++
   }
 
-  result.chart = {}
-  result.chart.times = times
-  result.chart.data = data
-
+  result.chart = { times, data }
   return result
-
-  // --- interact ---
-  // const interacts = await InteractModel.find(
-  //     query,
-  //     { projection: { uid: 1 } }
-  // )
-  // const interactUids = interacts.map((interact) => interact.uid)
-  // const countMap = commentUids
-  //     .concat(giftUids)
-  //     .concat(interactUids)
-  //     .reduce((map, i) => {
-  //         map[i] = 1;
-  //         return map;
-  //     }, {});
-  // this.interactUserCount = Object.keys(countMap).length;
 }
 
 async function tokenization({ roomId, start, end }) {
@@ -154,108 +140,69 @@ async function tokenization({ roomId, start, end }) {
 }
 
 async function wordExtract({ roomId, start, end }) {
-  const startDate = new Date(start)
-  const endDate = new Date(end)
+  const startTime = new Date(start).getTime()
+  const endTime = new Date(end).getTime()
 
-  const query: any = {
-    roomId: Number(roomId),
-  }
-  if (start) {
-    query.sendAt = query.sendAt || {}
-    query.sendAt.$gte = startDate.getTime()
-  }
-  if (end) {
-    query.sendAt = query.sendAt || {}
-    query.sendAt.$lte = endDate.getTime()
-  }
-  const comments = await CommentModel.find(
-    query,
-    { projection: { content: 1 } }
-  )
+  const conditions = [eq(messages.roomId, Number(roomId)), eq(messages.category, 'comment')]
+  if (start) conditions.push(gte(messages.sendAt, startTime))
+  if (end) conditions.push(lte(messages.sendAt, endTime))
 
-  // should save to db ???
-  const map = comments.reduce((map, comment) => {
-    const keywords = jieba.extract(comment.content, 3)
-    keywords.forEach(({ keyword }) => {
-      if (map[keyword]) {
-        map[keyword]++
-      } else {
-        map[keyword] = 1
-      }
-    })
-    return map
-  }, {})
+  const rows = await db
+    .select({ extra: messages.extra })
+    .from(messages)
+    .where(and(...conditions))
+
+  const map: Record<string, number> = {}
+  for (const row of rows) {
+    const extra = row.extra as CommentExtra
+    const keywords = jieba.extract(extra.content, 3)
+    for (const { keyword } of keywords) {
+      map[keyword] = (map[keyword] || 0) + 1
+    }
+  }
 
   return map
 }
 
 async function generateCSV({ roomId, start, end }) {
-  const startDate = new Date(start)
-  const endDate = new Date(end)
+  const startTime = new Date(start).getTime()
+  const endTime = new Date(end).getTime()
 
-  const query: any = {
-    roomId: Number(roomId),
-  }
-  if (start) {
-    query.sendAt = query.sendAt || {}
-    query.sendAt.$gte = startDate.getTime()
-  }
-  if (end) {
-    query.sendAt = query.sendAt || {}
-    query.sendAt.$lte = endDate.getTime()
-  }
+  const conditions = [eq(messages.roomId, Number(roomId)), eq(messages.category, 'gift')]
+  if (start) conditions.push(gte(messages.sendAt, startTime))
+  if (end) conditions.push(lte(messages.sendAt, endTime))
 
-  // --- gift ---
-  const giftQuery = {
-    ...query,
-    coinType: 1,
-  }
-  const gifts: any[] = await GiftModel.find(giftQuery)
-  // const userGiftMap = gifts.reduce((map, gift) => {
-  //     gift.totalPrice = (gift.count || 0) * gift.price
+  const rows = await db
+    .select({
+      uid: messages.uid,
+      uname: messages.uname,
+      roomId: messages.roomId,
+      sendAt: messages.sendAt,
+      extra: messages.extra,
+    })
+    .from(messages)
+    .where(
+      and(
+        ...conditions,
+        sql`json_extract(${messages.extra}, '$.coinType') = 1`,
+      ),
+    )
 
-  //     if (map[gift.uid]) {
-  //         map[gift.uid].totalPrice = map[gift.uid].totalPrice + gift.totalPrice
-  //     } else {
-  //         map[gift.uid] = {
-  //             uname: gift.uname,
-  //             totalPrice: gift.totalPrice
-  //         }
-  //     }
-  //     return map
-  // }, {})
-  let str = ''
   const header = ['uid', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', 'sendAt']
-  str = str + header.join(',') + '\n'
-  gifts.forEach(gift => {
-    const line = [
-      gift.uid,
-      gift.uname,
-      gift.roomId,
-      gift.name, // getGiftName(gift),
-      gift.count,
-      parseNumber((gift.price || 0) * (gift.count || 1)),
-      dateFormat(gift.sendAt)
-    ]
-    str = str + line.join(',') + '\n'
-  })
+  const lines = [header.join(',')]
 
-  return str
+  for (const row of rows) {
+    const extra = row.extra as GiftExtra
+    lines.push([
+      row.uid,
+      row.uname,
+      row.roomId,
+      extra.giftName,
+      extra.count,
+      parseNumber((extra.price || 0) * (extra.count || 1)),
+      dateFormat(row.sendAt),
+    ].join(','))
+  }
 
-  // function getGiftName(gift) {
-  //     const guardMap = {
-  //         1: '总督',
-  //         2: '提督',
-  //         3: '舰长'
-  //     }
-  //     if (gift.type === 1) {
-  //         return gift.name
-  //     }
-  //     if (gift.type === 2) {
-  //         return guardMap[gift.type]
-  //     }
-  //     if (gift.type === 3) {
-  //         return '醒目留言'
-  //     }
-  // }
+  return lines.join('\n')
 }
