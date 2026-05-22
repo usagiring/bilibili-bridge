@@ -3,17 +3,17 @@ import path from 'path'
 import logger from 'koa-logger'
 import cors from '@koa/cors'
 import bodyParser from 'koa-bodyparser'
-import * as send from '@koa/send'
+import { send } from '@koa/send'
 import router from './lib/route'
 import wss from './lib/service/wss'
-import global from './lib/service/state'
+import state from './lib/service/state'
 // 注册事件
 import './lib/service/bilibili/handler'
 import './lib/service/handler'
 
 import './lib/service/protobuf'
 
-const PORT = global.get('PORT') || 3000
+const port = state.port || 3000
 
 const app = new Koa()
 
@@ -24,7 +24,7 @@ app.use(cors({
 app.use(bodyParser())
 app.use(logger())
 
-const html = global.get('HTML_PATH') || path.join(__dirname, '../node_modules/@tokine/bilibili-danmaku-page')
+const html = state.htmlPath || path.join(__dirname, '../node_modules/@tokine/bilibili-danmaku-page')
 console.log(html)
 app.use(serve(html, {
   maxage: 60 * 1000,
@@ -43,54 +43,38 @@ app.use(async (ctx, next) => {
   }
 })
 
-app
-  .use(router.routes())
+app.use(router.routes())
 // .use(router.allowedMethods())
 
-const server = app.listen(PORT)
+const server = app.listen(port)
 
 wss.init(server)
 
-console.log(`listening port: ${PORT} ...`)
+console.log(`listening port: ${port} ...`)
 export default app
 
 function serve(root, opts: any = {}) {
   opts.root = path.resolve(root)
   opts.index = opts.index ?? 'index.html'
 
-  if (!opts.defer) {
-    return async function serve(ctx, next) {
-      let done = false
+  return async function serve(ctx, next) {
+    // defer: 先让下游处理，没命中再用 send 兜底
+    // !defer: 先用 send 响应，没命中再交给下游
+    if (opts.defer) {
+      await next()
+      if (ctx.body != null || ctx.status !== 404) return
+    }
 
-      if (ctx.method === 'HEAD' || ctx.method === 'GET') {
-        try {
-          done = await send.send(ctx, ctx.path, opts)
-        } catch (err) {
-          if (err.status !== 404) {
-            throw err
-          }
-        }
-      }
-
-      if (!done) {
-        await next()
+    if (ctx.method === 'HEAD' || ctx.method === 'GET') {
+      try {
+        await send(ctx, ctx.path, opts)
+      } catch (err) {
+        if (err.status !== 404) throw err
       }
     }
-  }
 
-  return async function serve(ctx, next) {
-    await next()
-
-    if (ctx.method !== 'HEAD' && ctx.method !== 'GET') return
-    // response is already handled
-    if (ctx.body != null || ctx.status !== 404) return // eslint-disable-line
-
-    try {
-      await send(ctx, ctx.path, opts)
-    } catch (err) {
-      if (err.status !== 404) {
-        throw err
-      }
+    if (!opts.defer) {
+      await next()
     }
   }
 }

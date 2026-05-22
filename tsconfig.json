@@ -20,6 +20,7 @@
     "isolatedModules": true,
     // ── 严格模式 ──
     "strict": true,
+    "useUnknownInCatchVariables": false,
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
