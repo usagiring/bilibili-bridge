@@ -21,8 +21,8 @@ event.on(EVENT.NINKI, async (data) => {
   wss.broadcast({
     cmd: CMD.NINKI,
     payload: {
-      ninkiNumber
-    }
+      ninkiNumber,
+    },
   })
 })
 
@@ -56,7 +56,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
         // 直播中
         wss.broadcast({
           cmd: 'LIVE',
-          payload: {}
+          payload: {},
         })
         continue
       }
@@ -64,7 +64,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
         // 未开播
         wss.broadcast({
           cmd: 'PREPARING',
-          payload: {}
+          payload: {},
         })
         continue
       }
@@ -85,7 +85,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
         wss.broadcast({
           cmd: CMD.ANCHOR_LOT_START,
           payload: {
-            id: id,
+            id,
             roomId: room_id,
             awardName: award_name,
             awardNumber: award_num,
@@ -95,7 +95,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
             giftNumber: gift_num,
             giftPrice: gift_price,
             maxTime: max_time,
-          }
+          },
         })
       }
 
@@ -110,11 +110,11 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
         wss.broadcast({
           cmd: CMD.ANCHOR_LOT_AWARD,
           payload: {
-            id: id,
+            id,
             awardName: award_name,
             awardNumber: award_num,
-            awardUsers
-          }
+            awardUsers,
+          },
         })
 
         for (const awardUser of awardUsers) {
@@ -123,7 +123,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
             uname: awardUser.uname,
             avatar: awardUser.face,
             awardedAt: Date.now(),
-            description: `${award_name} (天选时刻)`
+            description: `${award_name} (天选时刻)`,
           }
           await LotteryModel.insert(lotteryData)
         }
@@ -136,7 +136,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
           cmd: CMD.WATCHED_CHANGE,
           payload: {
             watchedNumber: num,
-          }
+          },
         })
       }
       if (msg.cmd === BILI_CMD.LIKE_CHANGE) {
@@ -146,7 +146,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
           cmd: CMD.LIKE_CHANGE,
           payload: {
             likeNumber: click_count,
-          }
+          },
         })
       }
 
@@ -156,7 +156,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
           cmd: CMD.ONLINE_COUNT,
           payload: {
             onlineNumber: count,
-          }
+          },
         })
       }
     }
@@ -167,8 +167,8 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
         cmd: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE,
         payload: {
           fansNumber: fans,
-          fansClubNumber: fans_club
-        }
+          fansClubNumber: fans_club,
+        },
       })
     }
 
@@ -225,7 +225,7 @@ async function commentJob(comment: CommentDTO) {
 
   wss.broadcast({
     cmd: CMD.COMMENT,
-    payload: comment
+    payload: comment,
   })
 
   event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
@@ -241,7 +241,7 @@ async function interactJob(interact: InteractDTO) {
   const data = await InteractModel.insert(interact)
   wss.broadcast({
     cmd: CMD.INTERACT,
-    payload: data
+    payload: data,
   })
 
   event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
@@ -266,7 +266,7 @@ async function giftJob(gift: GiftDTO) {
           {
             $set: { contentJPN: gift.contentJPN },
           },
-          { returnUpdatedDocs: true }
+          { returnUpdatedDocs: true },
         )
       } else {
         // 如果新收到的gift不包含JPN信息，表示原数据齐全，跳过
@@ -278,7 +278,7 @@ async function giftJob(gift: GiftDTO) {
 
     wss.broadcast({
       cmd: CMD.SUPER_CHAT,
-      payload: sc
+      payload: sc,
     })
 
     event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
@@ -304,7 +304,7 @@ async function giftJob(gift: GiftDTO) {
               count: comboGift.count + gift.count,
             },
           },
-          { returnUpdatedDocs: true }
+          { returnUpdatedDocs: true },
         )
       }
     }
@@ -315,8 +315,8 @@ async function giftJob(gift: GiftDTO) {
       cmd: CMD.GIFT,
       payload: {
         ...data,
-        singleCount: gift.count
-      }
+        singleCount: gift.count,
+      },
     })
 
     event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))

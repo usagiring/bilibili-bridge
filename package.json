@@ -11,8 +11,9 @@
     "dev": "tsx watch index.ts",
     "dev:win": "tsx watch index.ts",
     "test": "mocha",
-    "lint": "eslint lib/**/*",
-    "release": "npm run build && npm publish"
+    "lint": "eslint \"lib/**/*.ts\" \"packages/*/src/**/*.ts\"",
+    "format": "eslint --fix \"lib/**/*.ts\" \"packages/*/src/**/*.ts\"",
+    "release": "pnpm build && pnpm -r publish"
   },
   "author": "其妙",
   "license": "MIT",
@@ -39,6 +40,7 @@
     "ws": "^8.20.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/koa": "^3.0.2",
     "@types/node": "^25.8.0",
     "@types/ws": "^8.18.1",
@@ -46,6 +48,7 @@
     "@typescript-eslint/parser": "^8.59.3",
     "drizzle-kit": "1.0.0-beta.22",
     "eslint": "^10.4.0",
+    "globals": "^17.6.0",
     "tsx": "^4.19.0",
     "typescript": "^6.0.3"
   },

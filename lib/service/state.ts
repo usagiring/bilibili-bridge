@@ -32,7 +32,9 @@ interface State {
   htmlPath: string
   secret: string
   userDataPath: string
-  wbi: any
+  wbi: {
+    mixinKey?: string
+  }
   userInfoFrequencyLimit: number
   saveAllBiliMessage: boolean
   dmV2Decoder: any
@@ -41,6 +43,8 @@ interface State {
 }
 
 // NEED INITIALIZATION
-export const state: Partial<State> = {} as const
+export const state: Partial<State> = {
+  port: 3000,
+} as const
 
 export default state

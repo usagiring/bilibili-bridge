@@ -7,7 +7,7 @@
 type EventHandler<T = any> = (payload: T) => void | Promise<void>;
 
 class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
-  private handlers = new Map<keyof TEvents, Set<EventHandler<any>>>();
+  private handlers = new Map<keyof TEvents, Set<EventHandler<any>>>()
 
   // ── 核心 API ──
 
@@ -17,10 +17,10 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
     handler: EventHandler<TEvents[K]>,
   ): () => void {
     if (!this.handlers.has(event)) {
-      this.handlers.set(event, new Set());
+      this.handlers.set(event, new Set())
     }
-    this.handlers.get(event)!.add(handler);
-    return () => this.unsubscribe(event, handler);
+    this.handlers.get(event)!.add(handler)
+    return () => this.unsubscribe(event, handler)
   }
 
   /** 取消订阅 */
@@ -28,7 +28,7 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
     event: K,
     handler: EventHandler<TEvents[K]>,
   ): void {
-    this.handlers.get(event)?.delete(handler);
+    this.handlers.get(event)?.delete(handler)
   }
 
   /** 发布事件（异步，等待所有订阅者执行完毕） */
@@ -36,28 +36,28 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
     event: K,
     payload: TEvents[K],
   ): Promise<void> {
-    const handlers = this.handlers.get(event);
-    if (!handlers || handlers.size === 0) return;
+    const handlers = this.handlers.get(event)
+    if (!handlers || handlers.size === 0) return
 
-    const promises: Promise<void>[] = [];
+    const promises: Promise<void>[] = []
     for (const handler of handlers) {
       try {
-        const result = handler(payload);
+        const result = handler(payload)
         if (result instanceof Promise) {
           promises.push(
             result.catch((err) => {
               console.error(
                 `[PubSub] 异步处理器错误 [${String(event)}]:`,
                 err,
-              );
+              )
             }),
-          );
+          )
         }
       } catch (err) {
-        console.error(`[PubSub] 同步处理器错误 [${String(event)}]:`, err);
+        console.error(`[PubSub] 同步处理器错误 [${String(event)}]:`, err)
       }
     }
-    await Promise.all(promises);
+    await Promise.all(promises)
   }
 
   // ── EventEmitter 兼容别名 ──
@@ -67,8 +67,8 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
     event: K,
     handler: EventHandler<TEvents[K]>,
   ): this {
-    this.subscribe(event, handler);
-    return this;
+    this.subscribe(event, handler)
+    return this
   }
 
   /** EventEmitter 兼容：取消订阅 */
@@ -76,13 +76,13 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
     event: K,
     handler: EventHandler<TEvents[K]>,
   ): this {
-    this.unsubscribe(event, handler);
-    return this;
+    this.unsubscribe(event, handler)
+    return this
   }
 
   /** EventEmitter 兼容：发布事件 */
   emit<K extends keyof TEvents>(event: K, payload: TEvents[K]): void {
-    this.publish(event, payload);
+    this.publish(event, payload)
   }
 
   /** 订阅一次性事件 */
@@ -91,11 +91,11 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
     handler: EventHandler<TEvents[K]>,
   ): this {
     const wrapper: EventHandler<TEvents[K]> = (payload) => {
-      this.unsubscribe(event, wrapper);
-      return handler(payload);
-    };
-    this.subscribe(event, wrapper);
-    return this;
+      this.unsubscribe(event, wrapper)
+      return handler(payload)
+    }
+    this.subscribe(event, wrapper)
+    return this
   }
 
   // ── 工具方法 ──
@@ -103,20 +103,20 @@ class PubSub<TEvents extends Record<string, any> = Record<string, any>> {
   /** 移除指定事件的所有订阅者，不传事件名则清空全部 */
   clear<K extends keyof TEvents>(event?: K): void {
     if (event) {
-      this.handlers.delete(event);
+      this.handlers.delete(event)
     } else {
-      this.handlers.clear();
+      this.handlers.clear()
     }
   }
 
   /** 获取某个事件的订阅者数量 */
   subscriberCount<K extends keyof TEvents>(event: K): number {
-    return this.handlers.get(event)?.size ?? 0;
+    return this.handlers.get(event)?.size ?? 0
   }
 
   /** 获取所有已注册的事件名 */
   get eventNames(): (keyof TEvents)[] {
-    return Array.from(this.handlers.keys());
+    return Array.from(this.handlers.keys())
   }
 }
 
@@ -133,7 +133,7 @@ interface AppEvents {
   AUDIO: any;
 }
 
-const event = new PubSub<AppEvents>();
+const event = new PubSub<AppEvents>()
 
-export { PubSub, type AppEvents, type EventHandler };
-export default event;
+export { PubSub, type AppEvents, type EventHandler }
+export default event

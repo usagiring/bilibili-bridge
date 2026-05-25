@@ -9,7 +9,7 @@ export default {
   parseComment,
   parseInteractWord,
   parseGift,
-  parseUser
+  parseUser,
 }
 
 interface MessageInfo_0_15 {
@@ -152,7 +152,7 @@ export function parseComment(msg, roomId): CommentDTO {
   }
 
   const comment: CommentDTO = {
-    roomId: roomId,
+    roomId,
     sendAt: msg.info[0][4],
     uid,
     uname: name,
@@ -174,7 +174,7 @@ export function parseComment(msg, roomId): CommentDTO {
         border: user.medal.v2_medal_color_border,
         level: user.medal.v2_medal_color_level,
         text: user.medal.v2_medal_color_text,
-      }
+      },
     }
   } else if (medalLevel && medalName) {
     comment.medal = {
@@ -186,19 +186,19 @@ export function parseComment(msg, roomId): CommentDTO {
         border: transformColorNumber2String(medalColorBorder),
         level: '#FFFFFF',
         text: '#FFFFFF',
-      }
+      },
     }
   }
 
   if (voiceUrl && fileDuration) {
     Object.assign(comment, {
       voiceUrl,
-      fileDuration
+      fileDuration,
     })
   }
   if (emojiUrl) {
     Object.assign(comment, {
-      emojiUrl
+      emojiUrl,
     })
   }
   if (extra) {
@@ -227,8 +227,8 @@ export function parseInteractWord(msg): InteractDTO {
     sendAt: timestamp * 1000, // 
     uid,
     uname,
-    unameColor: unameColor,
-    face: uinfo?.base?.face
+    unameColor,
+    face: uinfo?.base?.face,
   }
 
   if (uinfo?.medal) {
@@ -241,7 +241,7 @@ export function parseInteractWord(msg): InteractDTO {
         border: uinfo.medal.v2_medal_color_border,
         level: uinfo.medal.v2_medal_color_level,
         text: uinfo.medal.v2_medal_color_text,
-      }
+      },
     }
   } else if (fans_medal && fans_medal.medal_name) {
     const { guard_level, medal_color_border, medal_color_end, medal_color_start, medal_level, medal_name } = fans_medal
@@ -254,7 +254,7 @@ export function parseInteractWord(msg): InteractDTO {
         background: transformColorNumber2String(medal_color_start),
         text: '#FFFFFF',
         level: 'FFFFFF',
-      }
+      },
     }
   }
   return interact
@@ -277,25 +277,25 @@ export function parseGift(msg, roomId): GiftDTO {
     const {
       uname,
       face,
-      guard_level
+      guard_level,
     } = user_info
     const {
       num,
       gift_id,
-      gift_name
+      gift_name,
     } = gift
     return {
-      roomId: roomId,
+      roomId,
       sendAt: now,
       // user
       uid: Number(uid),
-      uname: uname,
+      uname,
       avatar: face,
       role: guard_level,
       coinType: 1,
 
       // gift
-      price: price,
+      price,
       id: gift_id,
       name: gift_name,
       count: num || 1,
@@ -316,11 +316,11 @@ export function parseGift(msg, roomId): GiftDTO {
       num,
       price,
       gift_id,
-      gift_name
+      gift_name,
     } = msg.data
 
     return {
-      roomId: roomId,
+      roomId,
       sendAt: now,
       uid: Number(uid),
       uname: username,
@@ -348,13 +348,13 @@ export function parseGift(msg, roomId): GiftDTO {
       uname,
       face,
       giftName,
-      batch_combo_id
+      batch_combo_id,
     } = msg.data
     return {
-      roomId: roomId,
+      roomId,
       sendAt: now,
       uid: Number(uid),
-      uname: uname,
+      uname,
       avatar: face,
       role: guard_level,
 

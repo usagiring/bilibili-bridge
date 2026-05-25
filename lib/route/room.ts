@@ -95,7 +95,7 @@ async function connect(ctx) {
   const { roomId, uid } = ctx.__body
 
   const bilibiliWSClient = new BilibiliWSClient()
-  await bilibiliWSClient.connect({ uid: Number(uid) || 0, roomId: Number(roomId) })
+  await bilibiliWSClient.connect({ userId: Number(uid) || 0, roomId: Number(roomId) })
 
   // global.set('roomId', roomId)
   // global.set('isConnected', true)

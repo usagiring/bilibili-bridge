@@ -39,7 +39,7 @@ interface Tag {
 
 export function parseAutoReplyMessage(message, type): Message {
   const result: Message = {
-    type: type,
+    type,
     content: message.content,
     uid: message.uid,
     uname: message.uname,
@@ -165,7 +165,6 @@ event.on(EVENT.AUTO_REPLY, async (message: Message) => {
   }
 })
 
-
 async function isPassed(message, rule) {
   if (!rule.enable) return false
   for (const tag of rule.tags) {
@@ -263,7 +262,7 @@ event.on(EVENT.DANMAKU_COMMAND, async (comment) => {
       uids: { [uid]: true },
       expiredAt: new Date().getTime() + 60 * 1000, // 1min
       current: 1,
-      count: count,
+      count,
       isSendHintText: false
     }
   }

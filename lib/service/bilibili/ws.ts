@@ -6,19 +6,19 @@ import event from '../event'
 import { parseCookie } from '../util'
 import { EVENT } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
-import state from '../state'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
 interface ConnectOption {
-  uid?: number
   roomId: number
+  userId?: number
+  cookie?: string
 }
 
 class WSClient {
-  ws: WebSocket
-  HEART_BEAT_TIMER
-  options: ConnectOption
+  ws!: WebSocket
+  heartBeatTimer: ReturnType<typeof setInterval> | undefined
+  options?: ConnectOption
   autoReConnect = true
 
   constructor(options?: ConnectOption) {
@@ -39,18 +39,20 @@ class WSClient {
       return
     }
 
-    // rid: 房主UID
-    const { uid, roomId } = this.options
+    const { 
+      roomId,
+      cookie,
+    } = this.options
 
-    const userCookie = state.get('userCookie')
-    let me: number
-    let buvid: string
-    if (userCookie) {
-      const cookies = parseCookie(userCookie)
+    let me = 0
+    let buvid = ''
+    if (cookie) {
+      const cookies = parseCookie(cookie)
       me = Number(cookies.DedeUserID)
       buvid = cookies.buvid3
     }
-    const danmakuInfo = await getDamankuInfo(roomId, userCookie)
+    
+    const danmakuInfo = await getDamankuInfo(roomId, cookie)
 
     if (!buvid) {
       const finger = await getFinger()
@@ -74,23 +76,27 @@ class WSClient {
     // }
 
     const authParams = {
-      uid: me || 0,
+      uid: me,
       roomid: roomId,
       protover: 3,
       platform: "web",
       type: 2,
       buvid: buvid || '',
-      key: danmakuInfo.data.token || ''
+      key: danmakuInfo.data.token || '',
     }
 
-    return new Promise((resolve, reject) => {
-      ws.on('open', function open() {
+    return new Promise<void>((resolve, reject) => {
+      ws.on('open', () => {
         const data = JSON.stringify(authParams)
         const byte = convertToArrayBuffer(data, 7)
         ws.send(byte)
-        resolve(event)
+        resolve()
       })
 
+      ws.on('error', (err) => {
+        reject(err)
+      })
+    }).then(() => {
       ws.on('message', (evt) => {
         const result = convertToObject(evt)
 
@@ -101,7 +107,7 @@ class WSClient {
           result.body.forEach(function (item) {
             event.emit(EVENT.MESSAGE, {
               data: item,
-              roomId
+              roomId,
             })
           })
         }
@@ -111,10 +117,9 @@ class WSClient {
         }
       })
 
-
       ws.on('close', function (e) {
         console.log('close', e)
-        clearInterval(self.HEART_BEAT_TIMER)
+        clearInterval(self.heartBeatTimer)
 
         // 报错重连
         if (self.autoReConnect) {
@@ -127,7 +132,7 @@ class WSClient {
 
       ws.on('error', function (err) {
         console.error('error', err)
-        clearInterval(self.HEART_BEAT_TIMER)
+        clearInterval(self.heartBeatTimer)
 
         // 报错重连
         if (self.autoReConnect) {
@@ -162,8 +167,8 @@ class WSClient {
 
   heartbeat() {
     const self = this
-    clearInterval(this.HEART_BEAT_TIMER)
-    this.HEART_BEAT_TIMER = setInterval(() => {
+    clearInterval(this.heartBeatTimer)
+    this.heartBeatTimer = setInterval(() => {
       self.ws.send(convertToArrayBuffer({}, 2))
     }, 30000)
   }
@@ -177,29 +182,29 @@ const wsBinaryHeaderList = [
     key: "headerLen",
     bytes: 2,
     offset: 4,
-    value: 16
+    value: 16,
   },
   {
     name: "Protocol Version",
     key: "ver",
     bytes: 2,
     offset: 6,
-    value: 1
+    value: 1,
   },
   {
     name: "Operation",
     key: "op",
     bytes: 4,
     offset: 8,
-    value: 1
+    value: 1,
   },
   {
     name: "Sequence Id",
     key: "seq",
     bytes: 4,
     offset: 12,
-    value: 1
-  }
+    value: 1,
+  },
 ]
 
 // function stringToByte(str) {
@@ -230,7 +235,7 @@ const wsBinaryHeaderList = [
 function convertToObject(arraybuffer) {
   const dataview = new DataView(arraybuffer)
   const output: any = {
-    body: []
+    body: [],
   }
   output.packetLen = dataview.getInt32(0)
 
@@ -268,7 +273,7 @@ function convertToObject(arraybuffer) {
           "decode body error:",
           new Uint8Array(arraybuffer),
           output,
-          t
+          t,
         )
       }
     }
@@ -277,7 +282,7 @@ function convertToObject(arraybuffer) {
     output.op &&
       3 === output.op &&
       (output.body = {
-        count: dataview.getInt32(16)
+        count: dataview.getInt32(16),
       })
   }
   return output

@@ -45,7 +45,7 @@ export async function getRoomInfoV1(roomId) {
 
 export async function getRoomInfoV2(roomId) {
   const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?room_id=${roomId}`, {
-    headers: defaultHeaders
+    headers: defaultHeaders,
   })
   return res.data
 }
@@ -76,14 +76,14 @@ export async function getDamankuInfo(roomId, userCookie): Promise<BaseResponse &
   }
 }> {
   const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?id=${roomId}&type=0`, {
-    headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders
+    headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders,
   })
   return res.data
 }
 
 export async function getGiftConfig(roomId, platform = 'pc') {
   const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/giftPanel/giftConfig?platform=${platform}&room_id=${roomId}`, {
-    headers: defaultHeaders
+    headers: defaultHeaders,
   })
   return res.data
 }
@@ -92,13 +92,13 @@ export async function getUserInfo(userId) {
   const querystring = await getSignedQueryString({
     params: {
       mid: userId,
-      platform: 'web'
-    }
+      platform: 'web',
+    },
   })
 
   const res = await axios.get(`${baseUrl}/x/space/wbi/acc/info?${querystring}`, {
     headers: Object.assign({}, defaultHeaders),
-    timeout: 1000
+    timeout: 1000,
   })
   return res.data
 }
@@ -130,7 +130,7 @@ export async function sendMessage(data: SendMessage, userCookie: string) {
     roomid: roomId,
     bubble: bubble || 0,
     csrf_token: csrf,
-    csrf: csrf,
+    csrf,
   })
 
   const res = await axios.post(`https://api.live.bilibili.com/msg/send`, params, {
@@ -147,7 +147,7 @@ export async function wearMedal(medalId, userCookie) {
   const params = querystring.stringify({
     medal_id: medalId,
     csrf_token: csrf,
-    csrf: csrf,
+    csrf,
   })
 
   const res = await axios.post(`https://api.live.bilibili.com/xlive/web-room/v1/fansMedal/wear`, params, {
@@ -176,7 +176,7 @@ export async function getRoomInfoByIds(ids: string[]) {
 export async function getMedalList({
   page = 1,
   pageSize = 10,
-  userCookie
+  userCookie,
 }: {
   page: number
   pageSize: number
@@ -186,7 +186,7 @@ export async function getMedalList({
     `https://api.live.bilibili.com/xlive/app-ucenter/v1/user/GetMyMedals?page=${page}&page_size=${pageSize}`,
     {
       headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
-    }
+    },
   )
   return res.data
 }
@@ -198,7 +198,7 @@ export async function searchUser(data, userCookie) {
     {
       headers: Object.assign({}, postHeader, { cookie: userCookie }),
       // adapter: httpAdapter
-    }
+    },
   )
   return res.data
 }
@@ -219,7 +219,7 @@ export async function addSilentUser(data: AddSilentUserOption, userCookie) {
     tuid,
     mobile_app: mobile_app || 'web',
     csrf_token: csrf,
-    csrf: csrf,
+    csrf,
     visit_id: visit_id || '',
   })
 
@@ -229,7 +229,7 @@ export async function addSilentUser(data: AddSilentUserOption, userCookie) {
     {
       headers: Object.assign({}, postHeader, { cookie: userCookie }),
       // adapter: httpAdapter
-    }
+    },
   )
   return res.data
 }
@@ -242,7 +242,7 @@ export async function getFinger(): Promise<BaseResponse & {
   }
 }> {
   const res = await axios.get(`${baseUrl}/x/frontend/finger/spi`, {
-    headers: defaultHeaders
+    headers: defaultHeaders,
   })
   return res.data
 }
@@ -280,7 +280,7 @@ export async function getPlayUrl({
   userCookie,
 }) {
   const res = await axios.get(`${baseLiveUrl}/room/v1/Room/playUrl?cid=${roomId}&qn=${qn || 0}&platform=${platform || 'web'}`, {
-    headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders
+    headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders,
   })
   return res.data
 }
@@ -304,7 +304,7 @@ export async function like(data: LikeParams, userCookie: string) {
     uid,
     anchor_id,
     csrf_token: csrf,
-    csrf: csrf,
+    csrf,
     // visit_id: ''
   })
 
@@ -314,7 +314,7 @@ export async function like(data: LikeParams, userCookie: string) {
     params,
     {
       headers: Object.assign({}, postHeader, { cookie: userCookie }),
-    }
+    },
   )
 
   return res.data
@@ -330,7 +330,7 @@ const mixinKeyEncTab = [
   46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49,
   33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40,
   61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 6, 63, 57, 62, 11,
-  36, 20, 34, 44, 52
+  36, 20, 34, 44, 52,
 ]
 
 async function getWbiKeys() {
@@ -343,13 +343,13 @@ async function getWbiKeys() {
   const subKey = sub_url.replace('https://i0.hdslb.com/bfs/wbi/', '').replace('.png', '')
   return {
     imgKey,
-    subKey
+    subKey,
   }
 }
 
 // 对 imgKey 和 subKey 进行字符顺序打乱编码
 async function getMixinKey() {
-  const wbi = state.get('wbi')
+  const wbi = state.wbi
   // if(wbi?.expired && wbi?.mixinKey && wbi.expired < new Date()) {
   //   return wbi.mixinKey
   // }
@@ -364,10 +364,8 @@ async function getMixinKey() {
   })
   const mixinKey = temp.slice(0, 32)
 
-  state.set('wbi', {
-    mixinKey
-  })
-
+  state.wbi = state.wbi || {}
+  state.wbi.mixinKey = mixinKey
   return mixinKey
 }
 
@@ -411,7 +409,7 @@ export async function refreshCookie({ refreshToken, userCookie }): Promise<{ use
   const correspondPath = await getCorrespondPath()
   await new Promise(resolve => setTimeout(resolve, 4001))
   const refreshCsrf = await getRefreshCsrf({ correspondPath, userCookie })
-  const result = await __refreshCookie({ userCookie, refreshCsrf: refreshCsrf, refreshToken })
+  const result = await __refreshCookie({ userCookie, refreshCsrf, refreshToken })
   await confirmRefresh({ userCookie: result.userCookie, refreshToken })
   return result
 }
@@ -473,22 +471,22 @@ async function __refreshCookie({ userCookie, refreshCsrf, source = 'main_web', r
 
   const url = `https://passport.bilibili.com/x/passport-login/web/cookie/refresh`
   const res = await axios.post(url, {
-    csrf: csrf,
+    csrf,
     refresh_csrf: refreshCsrf,
     source,
-    refresh_token: refreshToken
+    refresh_token: refreshToken,
   }, {
     headers: Object.assign({}, postHeader, {
       'cookie': userCookie,
     }),
   })
 
-  const newCookies = res.headers['set-cookie']
+  const newCookies = res.headers['set-cookie'] ?? []
   const newCookie = newCookies.map(cookie => cookie.split(';')[0]).join(';')
 
   return {
     userCookie: newCookie,
-    refreshToken: res.data.data.refresh_token
+    refreshToken: res.data.data.refresh_token,
   }
 }
 
@@ -499,7 +497,7 @@ async function confirmRefresh({ userCookie, refreshToken }) {
   const url = `https://passport.bilibili.com/x/passport-login/web/confirm/refresh`
   const res = await axios.post(url, {
     csrf,
-    refresh_token: refreshToken
+    refresh_token: refreshToken,
   }, {
     headers: Object.assign({}, postHeader, {
       'cookie': userCookie,
