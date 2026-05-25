@@ -4,7 +4,7 @@ import decompress from 'brotli/decompress'
 
 import event from '../event'
 import { parseCookie } from '../util'
-import { EVENT } from '../const'
+import { CMD } from '../const'
 import { getDamankuInfo, getFinger } from './sdk'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
@@ -103,7 +103,7 @@ class WSClient {
         const result = convertToObject(evt)
 
         if (result.op === 3) {
-          event.emit(EVENT.NINKI, {
+          event.emit(CMD.NINKI, {
             ...result.body,
             roomId,
             clientId,
@@ -111,7 +111,7 @@ class WSClient {
         }
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
-            event.emit(EVENT.MESSAGE, {
+            event.emit(CMD.MESSAGE, {
               data: item,
               roomId,
               clientId,

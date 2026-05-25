@@ -1,10 +1,10 @@
 import dayjs from 'dayjs'
 import event from '../event'
-import { EVENT, CMD, BILI_CMD } from '../const'
+import { CMD, BILI_CMD } from '../const'
 import state from '../state'
 import { getUserInfo } from './sdk'
 import wss from '../wss'
-import { parseComment, parseGift, parseInteractWord, parseUser } from './'
+import { parseComment, parseGift, parseInteractWord, parseUser } from './service'
 import { parseAutoReplyMessage } from '../handler'
 import { GiftDTO, Model as GiftModel } from '../../model/gift'
 import { CommentDTO, Model as CommentModel } from '../../model/comment'
@@ -17,7 +17,7 @@ import sse from '../sse'
 const userInfoFrequencyLimit = state.userInfoFrequencyLimit
 const saveAllBiliMessage = state.saveAllBiliMessage
 
-event.on(EVENT.NINKI, async (data) => {
+event.on(CMD.NINKI, async (data) => {
   const { count, clientId, roomId } = data
 
   sse.send(clientId, {
@@ -29,45 +29,49 @@ event.on(EVENT.NINKI, async (data) => {
   })
 })
 
-event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
+event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
   if (Array.isArray(data)) {
     for (const msg of data) {
-      if (~msg.cmd.indexOf("DANMU_MSG")) {
+      if (msg.cmd.includes(BILI_CMD.DANMU_MSG)) {
         const comment = parseComment(msg, roomId)
         await commentJob(comment)
         continue
       }
 
-      if (msg.cmd === "INTERACT_WORD") {
+      if (msg.cmd === BILI_CMD.INTERACT_WORD) {
         const interact = parseInteractWord(msg)
         await interactJob(interact)
         continue
       }
 
       if (
-        msg.cmd === 'SUPER_CHAT_MESSAGE' ||
-        msg.cmd === 'SUPER_CHAT_MESSAGE_JPN' ||
-        msg.cmd === 'GUARD_BUY' ||
-        msg.cmd === 'SEND_GIFT'
+        msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE ||
+        msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE_JPN ||
+        msg.cmd === BILI_CMD.GUARD_BUY ||
+        msg.cmd === BILI_CMD.SEND_GIFT
       ) {
         const gift = parseGift(msg, roomId)
         await giftJob(gift)
         continue
       }
 
-      if (msg.cmd === "LIVE") {
+      if (msg.cmd === BILI_CMD.LIVE) {
         // 直播中
-        wss.broadcast({
-          cmd: 'LIVE',
-          payload: {},
+        sse.send(clientId, {
+          cmd: CMD.LIVE,
+          payload: {
+            roomId,
+          },
         })
         continue
       }
-      if (msg.cmd === "PREPARING") {
+      if (msg.cmd === BILI_CMD.PREPARING) {
         // 未开播
-        wss.broadcast({
-          cmd: 'PREPARING',
-          payload: {},
+        sse.send(clientId, {
+          cmd: CMD.PREPARING,
+          payload: {
+            roomId,
+          },
         })
         continue
       }
@@ -164,7 +168,7 @@ event.on(EVENT.MESSAGE, async ({ data, roomId }) => {
       }
     }
   } else {
-    if (data.cmd === "ROOM_REAL_TIME_MESSAGE_UPDATE") {
+    if (data.cmd === BILI_CMD.ROOM_REAL_TIME_MESSAGE_UPDATE) {
       const { fans, fans_club } = data.data
       wss.broadcast({
         cmd: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE,
@@ -231,8 +235,8 @@ async function commentJob(comment: CommentDTO) {
     payload: comment,
   })
 
-  event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
-  event.emit(EVENT.DANMAKU_COMMAND, comment)
+  event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
+  event.emit(CMD.DANMAKU_COMMAND, comment)
 
   // TODO cloneDeep
   CommentModel.insert(comment)
@@ -247,7 +251,7 @@ async function interactJob(interact: InteractDTO) {
     payload: data,
   })
 
-  event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
+  event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
 }
 
 async function giftJob(gift: GiftDTO) {
@@ -284,7 +288,7 @@ async function giftJob(gift: GiftDTO) {
       payload: sc,
     })
 
-    event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
+    event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
   } else if (gift.type === 1 || gift.type === 2) {
     let data
     // 辣条
@@ -322,7 +326,7 @@ async function giftJob(gift: GiftDTO) {
       },
     })
 
-    event.emit(EVENT.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
+    event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
   }
 }
 

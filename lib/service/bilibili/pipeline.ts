@@ -1,7 +1,6 @@
 import { CommentDTO } from '../../model/comment'
 import { GiftDTO } from '../../model/gift'
 import { InteractDTO } from '../../model/interact'
-import global from '../state'
 import runtime from '../runtime'
 import { transformColorNumber2String } from '../util'
 
@@ -117,6 +116,10 @@ interface InteractData {
       v2_medal_color_text: string
     }
   }
+}
+
+export async function commentDM({ msg, roomId }) {
+  const comment = parseComment(msg, roomId)
 }
 
 export function parseComment(msg, roomId): CommentDTO {

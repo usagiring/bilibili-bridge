@@ -1,6 +1,6 @@
 import http from 'http'
 import WebSocket from 'ws'
-import { EVENT } from './const'
+import { CMD } from './const'
 import runtime from './runtime'
 
 export interface SocketPayload {
@@ -21,11 +21,11 @@ class WSS {
         // TODO: isAlive
         // setInterval, if not auth or not alive then terminate() client
         switch (payload.event) {
-          case EVENT.PING: {
+          case CMD.PING: {
             pong({ ws, payload: payload.payload })
             break
           }
-          case EVENT.AUDIO: {
+          case CMD.AUDIO: {
             audio(payload.data)
             break
           }
