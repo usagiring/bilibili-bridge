@@ -11,6 +11,7 @@ const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
 interface ConnectOption {
   roomId: number
+  clientId?: string
   userId?: number
   cookie?: string
 }
@@ -42,6 +43,7 @@ class WSClient {
     const { 
       roomId,
       cookie,
+      clientId,
     } = this.options
 
     let me = 0
@@ -101,13 +103,18 @@ class WSClient {
         const result = convertToObject(evt)
 
         if (result.op === 3) {
-          event.emit(EVENT.NINKI, result.body)
+          event.emit(EVENT.NINKI, {
+            ...result.body,
+            roomId,
+            clientId,
+          })
         }
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
             event.emit(EVENT.MESSAGE, {
               data: item,
               roomId,
+              clientId,
             })
           })
         }

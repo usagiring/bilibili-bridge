@@ -14,6 +14,7 @@ import statisticAPIs from './statistic'
 import asrAPIs from './asr'
 import userAPIs from './user'
 import bilibiliProxyAPIs from './bilibili-proxy'
+import sseAPIs from './sse'
 
 interface RouteInfo {
   verb: string
@@ -40,6 +41,7 @@ apiRouter.get('/touch', (ctx) => {
   ...asrAPIs,
   ...userAPIs,
   ...bilibiliProxyAPIs,
+  ...sseAPIs,
 ]
   .forEach(({ verb, middlewares, uri, validator }: RouteInfo) => {
     if (validator) {
@@ -47,7 +49,7 @@ apiRouter.get('/touch', (ctx) => {
     }
     middlewares.unshift(composeBodyMW)
 
-    apiRouter[verb](uri, ...middlewares)
+    ;(apiRouter as any)[verb](uri, ...middlewares)
   })
 
 router.use('/api', apiRouter.routes(), apiRouter.allowedMethods())
@@ -55,7 +57,7 @@ router.get('/', (ctx, next) => {
   ctx.body = {
     name,
     version,
-    description
+    description,
   }
 })
 
@@ -65,7 +67,7 @@ async function composeBodyMW(ctx, next) {
   ctx.__body = {
     ...ctx.params,
     ...ctx.request.query,
-    ...ctx.request.body
+    ...ctx.request.body,
   }
   await next()
 }
@@ -80,4 +82,3 @@ function validatorMWWrapper(schema) {
     }
   }
 }
-

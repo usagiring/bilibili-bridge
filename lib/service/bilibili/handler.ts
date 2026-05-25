@@ -12,16 +12,19 @@ import { UserDTO, Model as UserModel } from '../../model/user'
 import { InteractDTO, Model as InteractModel } from '../../model/interact'
 import { LotteryDTO, Model as LotteryModel } from '../../model/lottery'
 import { Model as OtherModel } from '../../model/other'
+import sse from '../sse'
 
 const userInfoFrequencyLimit = state.userInfoFrequencyLimit
 const saveAllBiliMessage = state.saveAllBiliMessage
 
 event.on(EVENT.NINKI, async (data) => {
-  const ninkiNumber = data.count
-  wss.broadcast({
+  const { count, clientId, roomId } = data
+
+  sse.send(clientId, {
     cmd: CMD.NINKI,
     payload: {
-      ninkiNumber,
+      count,
+      roomId,
     },
   })
 })
