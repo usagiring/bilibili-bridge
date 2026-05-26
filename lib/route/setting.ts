@@ -2,24 +2,23 @@ import { pick } from 'lodash'
 import { CMD, HTTP_ERROR } from '../service/const'
 import state from '../service/state'
 import wss from '../service/wss'
-import speak, { getInstalledVoices } from '../service/tts/system'
 
 const routes = [
   {
     verb: 'get',
     uri: '/setting',
-    middlewares: [get],
+    middlewares: [ get ],
     validator: {
       type: 'object',
       properties: {
-        keys: { type: 'array', items: { type: 'string' } }
-      }
-    }
+        keys: { type: 'array', items: { type: 'string' } },
+      },
+    },
   },
   {
     verb: 'put',
     uri: '/setting',
-    middlewares: [update],
+    middlewares: [ update ],
     validator: {
       type: 'object',
       properties: {
@@ -27,22 +26,22 @@ const routes = [
           type: 'object',
           properties: {
 
-          }
+          },
         },
         remove: {
           type: 'array',
           items: {
-            type: 'string'
-          }
+            type: 'string',
+          },
         },
         replace: {
           type: 'object',
           properties: {
 
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   },
   // {
   //   verb: 'put',
@@ -91,7 +90,7 @@ async function get(ctx) {
   if (!data) throw HTTP_ERROR.NOT_FOUND
   ctx.body = {
     message: 'ok',
-    data: res
+    data: res,
   }
 }
 
@@ -115,31 +114,12 @@ function update(ctx) {
 
   wss.broadcast({
     cmd: CMD.SETTING,
-    payload: result
+    payload: result,
   })
 
   ctx.body = {
     message: 'ok',
-    data: result
-  }
-}
-
-async function getVoices(ctx) {
-  const voices = await getInstalledVoices()
-  ctx.body = {
-    message: 'ok',
-    data: voices
-  }
-}
-
-async function playVoice(ctx) {
-  const { text, voice, speed } = ctx.__body
-  await speak(text, {
-    voice,
-    speed
-  })
-  ctx.body = {
-    message: 'ok'
+    data: result,
   }
 }
 

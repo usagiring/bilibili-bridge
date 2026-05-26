@@ -1,60 +1,55 @@
-import { QueryOptions } from '../service/nedb'
-import { Model as CommentModel } from '../model/comment'
-import { parseQueryRegexp } from '../service/util'
+import { sql } from 'drizzle-orm'
+import { messages, MessageRow } from '../model/message.sqlite'
+import { db } from '../service/db'
 
 const routes = [
   {
     verb: 'post',
     uri: '/comment/query',
-    middlewares: [query],
+    middlewares: [ query ],
     validator: {
       type: 'object',
       properties: {
-        query: { type: 'object' },
+        roomId: { type: 'number' },
+        userId: { type: 'string' },
+        category: { type: 'string' },
         sort: { type: 'object' },
         skip: { type: 'number', default: 0 },
         limit: { type: 'number', default: 20 },
-        projection: { type: 'object' },
-      }
-    }
+      },
+    },
   },
   {
     verb: 'post',
     uri: '/comment/count',
-    middlewares: [count],
+    middlewares: [ count ],
     validator: {
       type: 'object',
       properties: {
-        query: { type: 'object' },
-
-      }
-    }
-  }
+        roomId: { type: 'number' },
+        userId: { type: 'string' },
+        category: { type: 'string' },
+      },
+    },
+  },
 ]
 
 async function query(ctx) {
-  const { query, sort, skip, limit, projection } = ctx.__body
-  const options: QueryOptions = {}
-  if (sort) { options.sort = sort }
-  if (skip) { options.skip = skip }
-  if (limit) { options.limit = limit }
-  if (projection) { options.projection = projection }
-  // if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex) }
-  parseQueryRegexp(query)
-  const comments = await CommentModel.find(query, options)
-  ctx.body = {
-    message: 'ok',
-    data: comments
-  }
+  const { _roomId, _userId, _category, _sort, skip = 0, limit = 20 } = ctx.__body
+
+  // TODO: 用 _roomId / _userId / _category / _sort 构建 WHERE + ORDER BY
+  const data = db.select().from(messages).limit(limit).offset(skip).all() as MessageRow[]
+
+  ctx.body = { message: 'ok', data }
 }
 
 async function count(ctx) {
-  const { query } = ctx.__body
-  const count = await CommentModel.count(query)
-  ctx.body = {
-    message: 'ok',
-    data: count
-  }
+  const { _roomId, _userId, _category } = ctx.__body
+
+  // TODO: 用 _roomId / _userId / _category 构建 WHERE
+  const result = db.select({ count: sql<number>`count(*)` }).from(messages).get()
+
+  ctx.body = { message: 'ok', data: result?.count || 0 }
 }
 
 export default routes

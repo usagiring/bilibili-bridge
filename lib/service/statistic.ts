@@ -1,10 +1,8 @@
 import jieba from '@node-rs/jieba'
-import { and, eq, gte, lte } from 'drizzle-orm'
-import { sql } from 'drizzle-orm'
-import { dateFormat, parseNumber } from './util'
+import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from './db'
 import { messages } from '../model/message.sqlite'
-import type { GiftExtra, CommentExtra } from '../model/message.sqlite'
+import type { GiftInfo } from '../model/message.sqlite'
 
 interface ChartOption {
   times: string[]
@@ -14,11 +12,9 @@ interface ChartOption {
 interface StatisticResult {
   topSendGiftUser: any
   topCommentUser: any
-
   totalGold: number
   totalSendGiftUser: number
   totalComment: number
-
   chart?: ChartOption
 }
 
@@ -34,34 +30,32 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   const startTime = new Date(start).getTime()
   const endTime = new Date(end).getTime()
 
-  const conditions = [ eq(messages.roomId, Number(roomId)) ]
+  const conditions = [ eq(messages.roomId, String(roomId)) ]
   if (start) conditions.push(gte(messages.sendAt, startTime))
   if (end) conditions.push(lte(messages.sendAt, endTime))
 
-  // --- gift: category='gift' & extra->coinType = 1 (金瓜子) ---
+  // --- gift: category='gift' & gift->coinType = 1 (金瓜子) ---
   const giftRows = await db
     .select({
-      uid: messages.uid,
-      uname: messages.uname,
-      extra: messages.extra,
+      userId: messages.userId,
+      userName: messages.userName,
+      gift: messages.gift,
     })
     .from(messages)
-    .where(
-      and(
-        eq(messages.category, 'gift'),
-        sql`json_extract(${messages.extra}, '$.coinType') = 1`,
-        ...conditions,
-      ),
-    )
+    .where(and(
+      eq(messages.category, 'gift'),
+      sql`json_extract(${messages.gift}, '$.coinType') = 1`,
+      ...conditions,
+    ))
 
-  const userGiftMap: Record<number, { uname: string; totalPrice: number }> = {}
+  const userGiftMap: Record<string, { userName: string; totalPrice: number }> = {}
   for (const row of giftRows) {
-    const extra = row.extra as GiftExtra
-    const totalPrice = (extra.count || 0) * extra.price
-    if (userGiftMap[row.uid]) {
-      userGiftMap[row.uid].totalPrice += totalPrice
+    const gift = row.gift as GiftInfo
+    const totalPrice = (gift.count || 0) * gift.price
+    if (userGiftMap[row.userId]) {
+      userGiftMap[row.userId].totalPrice += totalPrice
     } else {
-      userGiftMap[row.uid] = { uname: row.uname, totalPrice }
+      userGiftMap[row.userId] = { userName: row.userName, totalPrice }
     }
   }
 
@@ -69,43 +63,43 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   let topGold = 0
   let topSendGiftUser: any = {}
   for (const key of Object.keys(userGiftMap)) {
-    const price = userGiftMap[key as any].totalPrice
+    const price = userGiftMap[key].totalPrice
     if (price > topGold) {
-      topSendGiftUser = userGiftMap[key as any]
+      topSendGiftUser = userGiftMap[key]
       topGold = price
     }
     totalGold += price
   }
 
-  result.totalGold = parseNumber(totalGold * 1000)
+  result.totalGold = totalGold * 1000
   result.topSendGiftUser = topSendGiftUser
   result.totalSendGiftUser = Object.keys(userGiftMap).length
 
   // --- comment ---
   const commentRows = await db
     .select({
-      uid: messages.uid,
-      uname: messages.uname,
+      userId: messages.userId,
+      userName: messages.userName,
       sendAt: messages.sendAt,
     })
     .from(messages)
     .where(and(eq(messages.category, 'comment'), ...conditions))
 
-  const userCommentCountMap: Record<number, { uname: string; count: number }> = {}
+  const userCommentCountMap: Record<string, { userName: string; count: number }> = {}
   for (const row of commentRows) {
-    if (userCommentCountMap[row.uid]) {
-      userCommentCountMap[row.uid].count++
+    if (userCommentCountMap[row.userId]) {
+      userCommentCountMap[row.userId].count++
     } else {
-      userCommentCountMap[row.uid] = { uname: row.uname, count: 1 }
+      userCommentCountMap[row.userId] = { userName: row.userName, count: 1 }
     }
   }
 
   let topCommentCount = 0
   let topCommentUser: any = {}
   for (const key of Object.keys(userCommentCountMap)) {
-    const count = userCommentCountMap[key as any].count
+    const count = userCommentCountMap[key].count
     if (count > topCommentCount) {
-      topCommentUser = userCommentCountMap[key as any]
+      topCommentUser = userCommentCountMap[key]
       topCommentCount = count
     }
   }
@@ -135,27 +129,27 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   return result
 }
 
-async function tokenization({ roomId, start, end }) {
-  return
+async function tokenization(_params: any) {
+  // TODO
 }
 
 async function wordExtract({ roomId, start, end }) {
   const startTime = new Date(start).getTime()
   const endTime = new Date(end).getTime()
 
-  const conditions = [ eq(messages.roomId, Number(roomId)), eq(messages.category, 'comment') ]
+  const conditions = [ eq(messages.roomId, String(roomId)), eq(messages.category, 'comment') ]
   if (start) conditions.push(gte(messages.sendAt, startTime))
   if (end) conditions.push(lte(messages.sendAt, endTime))
 
   const rows = await db
-    .select({ extra: messages.extra })
+    .select({ content: messages.content })
     .from(messages)
     .where(and(...conditions))
 
   const map: Record<string, number> = {}
   for (const row of rows) {
-    const extra = row.extra as CommentExtra
-    const keywords = jieba.extract(extra.content, 3)
+    // @node-rs/jieba: extractKeywords or cut
+    const keywords: { keyword: string; weight: number }[] = (jieba as any).extract(row.content, 3)
     for (const { keyword } of keywords) {
       map[keyword] = (map[keyword] || 0) + 1
     }
@@ -168,39 +162,37 @@ async function generateCSV({ roomId, start, end }) {
   const startTime = new Date(start).getTime()
   const endTime = new Date(end).getTime()
 
-  const conditions = [ eq(messages.roomId, Number(roomId)), eq(messages.category, 'gift') ]
+  const conditions = [ eq(messages.roomId, String(roomId)), eq(messages.category, 'gift') ]
   if (start) conditions.push(gte(messages.sendAt, startTime))
   if (end) conditions.push(lte(messages.sendAt, endTime))
 
   const rows = await db
     .select({
-      uid: messages.uid,
-      uname: messages.uname,
+      userId: messages.userId,
+      userName: messages.userName,
       roomId: messages.roomId,
       sendAt: messages.sendAt,
-      extra: messages.extra,
+      gift: messages.gift,
     })
     .from(messages)
-    .where(
-      and(
-        ...conditions,
-        sql`json_extract(${messages.extra}, '$.coinType') = 1`,
-      ),
-    )
+    .where(and(
+      ...conditions,
+      sql`json_extract(${messages.gift}, '$.coinType') = 1`,
+    ))
 
-  const header = [ 'uid', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', 'sendAt' ]
+  const header = [ 'userId', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', 'sendAt' ]
   const lines = [ header.join(',') ]
 
   for (const row of rows) {
-    const extra = row.extra as GiftExtra
+    const gift = row.gift as GiftInfo
     lines.push([
-      row.uid,
-      row.uname,
+      row.userId,
+      row.userName,
       row.roomId,
-      extra.giftName,
-      extra.count,
-      parseNumber((extra.price || 0) * (extra.count || 1)),
-      dateFormat(row.sendAt),
+      gift.name,
+      String(gift.count),
+      String(gift.price),
+      String(row.sendAt),
     ].join(','))
   }
 

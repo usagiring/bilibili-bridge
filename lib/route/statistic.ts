@@ -7,43 +7,43 @@ const routes = [
   {
     verb: 'post',
     uri: '/statistic',
-    middlewares: [statistic],
+    middlewares: [ statistic ],
     validator: {
       type: 'object',
       properties: {
         roomId: { type: 'number' },
         start: { type: 'string' },
         end: { type: 'string' },
-      }
-    }
+      },
+    },
   },
 
   {
     verb: 'post',
     uri: '/statistic/comment/keyword-extract',
-    middlewares: [wordExtract],
+    middlewares: [ wordExtract ],
     validator: {
       type: 'object',
       properties: {
         roomId: { type: 'number' },
         start: { type: 'string' },
         end: { type: 'string' },
-      }
-    }
+      },
+    },
   },
 
   {
     verb: 'post',
     uri: '/statistic/gift/export',
-    middlewares: [exportFile],
+    middlewares: [ exportFile ],
     validator: {
       type: 'object',
       properties: {
         roomId: { type: 'number' },
         start: { type: 'string' },
         end: { type: 'string' },
-      }
-    }
+      },
+    },
   },
 ]
 
@@ -52,7 +52,7 @@ async function statistic(ctx) {
   const result = await statisticService.statistic({ roomId, start, end })
   ctx.body = {
     message: 'ok',
-    data: result
+    data: result,
   }
 }
 
@@ -61,7 +61,7 @@ async function wordExtract(ctx) {
   const result = await statisticService.wordExtract({ roomId, start, end })
   ctx.body = {
     message: 'ok',
-    data: result
+    data: result,
   }
 }
 
@@ -73,7 +73,7 @@ async function exportFile(ctx) {
   const str = await statisticService.generateCSV({ roomId, start, end })
   ctx.set(
     'Content-Disposition',
-    `attachment;filename=${encodeURIComponent(filename)}`
+    `attachment;filename=${encodeURIComponent(filename)}`,
   )
   // ctx.statusCode = 200
   const s = new Readable()
@@ -83,6 +83,5 @@ async function exportFile(ctx) {
   s.push(null)
   ctx.body = s
 }
-
 
 export default routes

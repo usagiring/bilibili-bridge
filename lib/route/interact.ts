@@ -1,59 +1,49 @@
-import { QueryOptions } from '../service/nedb'
-import { Model as InteractModel } from '../model/interact'
-import { parseQueryRegexp } from '../service/util'
+import { sql } from 'drizzle-orm'
+import { messages, MessageRow } from '../model/message.sqlite'
+import { db } from '../service/db'
 
 const routes = [
   {
     verb: 'post',
     uri: '/interact/query',
-    middlewares: [query],
+    middlewares: [ query ],
     validator: {
       type: 'object',
       properties: {
-        query: { type: 'object' },
+        roomId: { type: 'number' },
+        userId: { type: 'string' },
         sort: { type: 'object' },
         skip: { type: 'number', default: 0 },
         limit: { type: 'number', default: 20 },
-        projection: { type: 'object' },
-      }
-    }
+      },
+    },
   },
   {
     verb: 'post',
     uri: '/interact/count',
-    middlewares: [count],
+    middlewares: [ count ],
     validator: {
       type: 'object',
       properties: {
-        query: { type: 'object' },
-      }
-    }
-  }
+        roomId: { type: 'number' },
+        userId: { type: 'string' },
+      },
+    },
+  },
 ]
 
 async function query(ctx) {
-  const { query, sort, skip, limit, projection } = ctx.__body
-  const options: QueryOptions = {}
-  if (sort) { options.sort = sort }
-  if (skip) { options.skip = skip }
-  if (limit) { options.limit = limit }
-  if (projection) { options.projection = projection }
-  // if (query?.uname?.$regex) { query.uname.$regex = new RegExp(query.uname.$regex) }
-  parseQueryRegexp(query)
-  const interacts = await InteractModel.find(query, options)
-  ctx.body = {
-    message: 'ok',
-    data: interacts
-  }
+  const { _roomId, _userId, _sort, skip = 0, limit = 20 } = ctx.__body
+  // TODO: 用 _roomId / _userId / _sort 构建 WHERE + ORDER BY，筛选 category = 'interact'
+  const data = db.select().from(messages).limit(limit).offset(skip).all() as MessageRow[]
+  ctx.body = { message: 'ok', data }
 }
 
 async function count(ctx) {
-  const { query } = ctx.__body
-  const count = await InteractModel.count(query)
-  ctx.body = {
-    message: 'ok',
-    data: count
-  }
+  const { _roomId, _userId } = ctx.__body
+  // TODO: 同上 WHERE 筛选
+  const result = db.select({ count: sql<number>`count(*)` }).from(messages).get()
+  ctx.body = { message: 'ok', data: result?.count || 0 }
 }
 
 export default routes

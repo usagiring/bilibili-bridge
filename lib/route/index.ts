@@ -5,7 +5,6 @@ import { HTTP_ERROR } from '../service/const'
 import settingAPIs from './setting'
 import roomAPIs from './room'
 import giftAPIs from './gift'
-import dataAPIs from './data'
 import messageAPIs from './message'
 import commentAPIs from './comment'
 import interactAPIs from './interact'
@@ -32,7 +31,6 @@ apiRouter.get('/touch', (ctx) => {
   ...roomAPIs,
   ...settingAPIs,
   ...giftAPIs,
-  ...dataAPIs,
   ...messageAPIs,
   ...commentAPIs,
   ...interactAPIs,

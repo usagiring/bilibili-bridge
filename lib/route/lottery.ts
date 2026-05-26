@@ -1,89 +1,73 @@
-import { QueryOptions } from '../service/nedb'
-import { Model as LotteryModel } from '../model/lottery'
+import { sql } from 'drizzle-orm'
+import { db } from '../service/db'
 import { COMMON_RESPONSE } from '../service/const'
 
 const routes = [
   {
     verb: 'post',
     uri: '/lottery/history/query',
-    middlewares: [query],
+    middlewares: [ query ],
     validator: {
       type: 'object',
       properties: {
-        query: { type: 'object' },
+        roomId: { type: 'number' },
         sort: { type: 'object' },
         skip: { type: 'number', default: 0 },
         limit: { type: 'number', default: 20 },
-        projection: { type: 'object' },
-      }
-    }
+      },
+    },
   },
   {
     verb: 'post',
     uri: '/lottery/history/count',
-    middlewares: [count],
+    middlewares: [ count ],
     validator: {
       type: 'object',
       properties: {
-        query: { type: 'object' },
-      }
-    }
+        roomId: { type: 'number' },
+      },
+    },
   },
   {
     verb: 'post',
     uri: '/lottery/history',
-    middlewares: [create],
+    middlewares: [ create ],
     validator: {
       type: 'object',
-      properties: {}
-    }
+      properties: {},
+    },
   },
   {
     verb: 'delete',
     uri: '/lottery/history',
-    middlewares: [remove],
+    middlewares: [ remove ],
     validator: {
       type: 'object',
-      properties: {
-      }
-    }
+      properties: {},
+    },
   },
 ]
 
 async function query(ctx) {
-  const { query, sort, skip, limit, projection } = ctx.__body
-  const options: QueryOptions = {}
-  if (sort) { options.sort = sort }
-  if (skip) { options.skip = skip }
-  if (limit) { options.limit = limit }
-  if (projection) { options.projection = projection }
-  const lotteries = await LotteryModel.find(query, options)
-  ctx.body = {
-    message: 'ok',
-    data: lotteries
-  }
+  const { _roomId, _sort, skip = 0, limit = 20 } = ctx.__body
+  // TODO: 抽奖表待建 Drizzle schema
+  ctx.body = { message: 'ok', data: [] }
 }
 
 async function count(ctx) {
-  const { query } = ctx.__body
-  const count = await LotteryModel.count(query)
-  ctx.body = {
-    message: 'ok',
-    data: count
-  }
+  const { _roomId } = ctx.__body
+  // TODO: 同上
+  ctx.body = { message: 'ok', data: 0 }
 }
 
 async function create(ctx) {
-  const body = ctx.__body
-  const lottery = await LotteryModel.insert(body)
-  ctx.body = {
-    message: 'ok',
-    data: lottery
-  }
+  const _body = ctx.__body
+  // TODO: db.insert(lotteryTable).values(_body).run()
+  ctx.body = { message: 'ok', data: _body }
 }
 
 async function remove(ctx) {
-  await LotteryModel.deleteMany({})
+  // TODO: db.delete(lotteryTable).run()
   ctx.body = COMMON_RESPONSE
 }
 

@@ -1,87 +1,85 @@
-import runtime from '../service/runtime'
-import { COMMON_RESPONSE, ERROR, EVENT } from '../service/const'
+import { COMMON_RESPONSE, ERROR } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
 import { getRoomInfoV2 } from '../service/bilibili/sdk'
-import event from '../service/event'
-import { Model as GiftModel } from '../model/gift'
-import { Model as CommentModel } from '../model/comment'
-import { Model as InteractModel } from '../model/interact'
+import { sql } from 'drizzle-orm'
+import { messages } from '../model/message.sqlite'
+import { db } from '../service/db'
+import { getClient } from '../service/client'
 import * as biliRecordService from '../service/bilibili/record'
-import state from '../service/state'
 
 const routes = [
   {
     verb: 'get',
     uri: '/room/:roomId/info',
-    middlewares: [getRoomInfo]
+    middlewares: [ getRoomInfo ],
   },
   {
     verb: 'post',
     uri: '/room/:roomId/connect',
-    middlewares: [connect],
+    middlewares: [ connect ],
     validator: {
       type: 'object',
       properties: {
-        roomId: { type: 'string' }
-      }
-    }
+        roomId: { type: 'string' },
+      },
+    },
   },
   {
     verb: 'post',
     uri: '/room/:roomId/disconnect',
-    middlewares: [disconnect]
+    middlewares: [ disconnect ],
   },
   {
     verb: 'get',
     uri: '/room/:roomId/real-time/viewer/count',
-    middlewares: [getRealTimeViewersCount],
+    middlewares: [ getRealTimeViewersCount ],
     validator: {
       type: 'object',
-      required: ['roomId'],
+      required: [ 'roomId' ],
       properties: {
         roomId: { type: 'string' },
-        startedAt: { type: 'number' }
-      }
-    }
+        startedAt: { type: 'number' },
+      },
+    },
   },
   {
     verb: 'get',
     uri: '/room/:roomId/status',
-    middlewares: [getStatus],
+    middlewares: [ getStatus ],
   },
   {
     verb: 'post',
     uri: '/room/:roomId/record/start',
-    middlewares: [startRecord],
+    middlewares: [ startRecord ],
     validator: {
       type: 'object',
-      required: ['roomId'],
+      required: [ 'roomId' ],
       properties: {
         roomId: { type: 'string' },
         output: { type: 'string' },
         qn: { type: 'number' },
         platform: { type: 'string' },
         withCookie: { type: 'boolean' },
-      }
-    }
+      },
+    },
   },
   {
     verb: 'post',
     uri: '/room/:roomId/record/cancel',
-    middlewares: [cancelRecord],
+    middlewares: [ cancelRecord ],
     validator: {
       type: 'object',
-      required: ['roomId', 'recordId'],
+      required: [ 'roomId', 'recordId' ],
       properties: {
         roomId: { type: 'string' },
-        recordId: { type: 'string' }
-      }
-    }
+        recordId: { type: 'string' },
+      },
+    },
   },
   {
     verb: 'get',
     uri: '/room/:roomId/record/status',
-    middlewares: [getRecordStatus],
+    middlewares: [ getRecordStatus ],
   },
 ]
 
@@ -92,129 +90,87 @@ async function getRoomInfo(ctx) {
 }
 
 async function connect(ctx) {
-  const { roomId, uid } = ctx.__body
+  const { roomId, uid, clientId } = ctx.__body
+  const client = getClient(clientId)
 
   const bilibiliWSClient = new BilibiliWSClient()
   await bilibiliWSClient.connect({ userId: Number(uid) || 0, roomId: Number(roomId) })
 
-  // global.set('roomId', roomId)
-  // global.set('isConnected', true)
-  // global.setInner('bilibiliWSClient', bilibiliWSClient)
-
-  runtime.set(`connectionPoolMap.${roomId}`, {
-    roomId,
-    isConnected: true,
-    wsClient: bilibiliWSClient
-  })
+  client.room.id = roomId
+  client.room.liveStatus = 1
+  client.bilibiliWSClient = bilibiliWSClient
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function disconnect(ctx) {
-  const { roomId } = ctx.__body
-  const bilibiliWSClient = runtime.get(`connectionPoolMap.${roomId}.wsClient`)
-  if (!bilibiliWSClient) {
-    throw new Error(ERROR.SYSTEM_ERROR)
-  }
-  await bilibiliWSClient.close()
-  // global.set('isConnected', false)
-  // global.setInner('bilibiliWSClient', null)
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
+  if (!client.bilibiliWSClient) throw new Error(ERROR.SYSTEM_ERROR)
 
-  runtime.unset(`connectionPoolMap.${roomId}`)
+  await client.bilibiliWSClient.close()
+  client.room.liveStatus = 0
+  client.bilibiliWSClient = null
   ctx.body = COMMON_RESPONSE
 }
 
 async function getRealTimeViewersCount(ctx) {
-  const { roomId } = ctx.__body
+  const { roomId: _roomId } = ctx.__body
   let { startedAt } = ctx.__body
   if (!startedAt) startedAt = Date.now() - 1000 * 60 * 10
 
-  const [comments, gifts, interacts] = await Promise.all([
-    CommentModel.find(
-      { roomId, sendAt: { $gte: startedAt } },
-      { projection: { uid: 1 } }
-    ),
-    GiftModel.find(
-      { roomId, sendAt: { $gte: startedAt } },
-      { projection: { uid: 1 } }
-    ),
-    InteractModel.find(
-      { roomId, sendAt: { $gte: startedAt } },
-      { projection: { uid: 1 } }
-    ),
-  ])
-  const countMap = comments
-    .concat(gifts as any)
-    .concat(interacts as any)
-    .reduce((map, i) => {
-      map[i.uid] = 1
-      return map
-    }, {})
-  const count = Object.keys(countMap).length
-  ctx.body = {
-    message: 'ok',
-    data: count
-  }
+  // TODO: 添加 roomId / startedAt WHERE 条件
+  const result = db.select({ count: sql<number>`count(distinct ${messages.userId})` })
+    .from(messages)
+    .get()
+
+  ctx.body = { message: 'ok', data: result?.count || 0 }
 }
 
 async function getStatus(ctx) {
-  const { roomId } = ctx.__body
-  const isConnected = runtime.get(`connectionPoolMap.${roomId}.isConnected`)
-
-  const data = {
-    roomId: roomId,
-    isConnected,
-  }
-  ctx.body = {
-    message: 'ok',
-    data
-  }
-}
-
-async function startRecord(ctx) {
-  const { roomId, output, qn, platform, withCookie } = ctx.__body
-
-  const params = {
-    roomId,
-    output,
-    qn,
-    platform,
-    cookie: withCookie ? state.get('userCookie') : null
-  }
-  const { id } = await biliRecordService.record(params)
-
-  state.set(`recordMap.${roomId}`, {
-    recordId: id,
-    isRecording: true,
-    startAt: Date.now()
-  })
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
 
   ctx.body = {
     message: 'ok',
     data: {
-      id
-    }
+      roomId: client.room.id,
+      isConnected: !!client.room.liveStatus,
+    },
   }
 }
 
+async function startRecord(ctx) {
+  const { roomId, output, qn, platform, withCookie, clientId } = ctx.__body
+  const client = getClient(clientId)
+
+  const { id } = await biliRecordService.record({
+    roomId,
+    output,
+    qn,
+    platform,
+    cookie: withCookie ? client.user?.cookie || null : null,
+  })
+
+  client.record = { id, isRecording: true, startAt: Date.now() }
+
+  ctx.body = { message: 'ok', data: { id } }
+}
+
 async function cancelRecord(ctx) {
-  const { roomId, recordId } = ctx.__body
+  const { recordId, clientId } = ctx.__body
+  const client = getClient(clientId)
+
   await biliRecordService.cancel({ id: recordId })
-
-  state.unset(`recordMap.${roomId}`)
-
+  client.record = { id: '', isRecording: false, startAt: 0 }
   ctx.body = COMMON_RESPONSE
 }
 
 async function getRecordStatus(ctx) {
-  const { roomId } = ctx.__body
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
 
-  const status = state.get(`recordMap.${roomId}`) || {}
-
-  ctx.body = {
-    message: 'ok',
-    data: status
-  }
+  ctx.body = { message: 'ok', data: client.record }
 }
 
 export default routes

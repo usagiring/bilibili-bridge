@@ -3,6 +3,7 @@
 interface Client {
   id: string
   SSEClient: any
+  bilibiliWSClient: any
   render: any
   autoReplyRules: any[]
   room: {
@@ -18,6 +19,11 @@ interface Client {
     medal: {
       name: string
     }
+  }
+  record: {
+    id: string
+    isRecording: boolean
+    startedAt: number
   }
   ASR: {
     instance: any
