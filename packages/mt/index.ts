@@ -15,8 +15,8 @@
  */
 
 // ── 统一接口（推荐） ──
-export { createTranslator, TranslatorPool } from './src/factory';
-export type { PoolEntry } from './src/factory';
+export { createTranslator, TranslatorPool } from './src/factory'
+export type { PoolEntry } from './src/factory'
 export type {
   Provider,
   ITranslator,
@@ -24,10 +24,6 @@ export type {
   TranslateRequest,
   TranslateResult,
   DetectLanguageResult,
-} from './src/types';
-export { AliCloudTranslator } from './src/providers/alicloud';
-export { TencentCloudTranslator } from './src/providers/tencentcloud';
-
-// ── 旧版兼容导出 ──
-import { AliCloudTranslator as Client } from './src/providers/alicloud';
-export default Client;
+} from './src/types'
+export { AliCloudTranslator } from './src/providers/alicloud'
+export { TencentCloudTranslator } from './src/providers/tencentcloud'

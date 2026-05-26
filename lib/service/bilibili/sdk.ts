@@ -424,7 +424,7 @@ async function getCorrespondPath() {
     },
     { name: "RSA-OAEP", hash: "SHA-256" },
     true,
-    ["encrypt"],
+    [ "encrypt" ],
   )
 
   const ts = Date.now()

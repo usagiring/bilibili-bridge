@@ -2,6 +2,7 @@ packages:
   - packages/*
 allowBuilds:
   '@alicloud/openapi-core': set this to true or false
+  better-sqlite3: true
   bufferutil: set this to true or false
   esbuild: set this to true or false
   ffmpeg-static: set this to true or false

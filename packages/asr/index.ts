@@ -18,8 +18,8 @@
  */
 
 // ── 统一接口（推荐） ──
-export { createRecognizer, createRecognizerOnce, RecognizerPool } from './src/factory';
-export type { PoolEntry } from './src/factory';
+export { createRecognizer, createRecognizerOnce, RecognizerPool } from './src/factory'
+export type { PoolEntry } from './src/factory'
 export type {
   Provider,
   ISpeechRecognizer,
@@ -29,6 +29,6 @@ export type {
   AsrEvent,
   SrEvent,
   AsrResult,
-} from './src/types';
-export { AliCloudRecognizer, AliCloudRecognizerOnce } from './src/providers/alicloud';
-export { TencentCloudRecognizer, TencentCloudRecognizerOnce } from './src/providers/tencentcloud';
+} from './src/types'
+export { AliCloudRecognizer, AliCloudRecognizerOnce } from './src/providers/alicloud'
+export { TencentCloudRecognizer, TencentCloudRecognizerOnce } from './src/providers/tencentcloud'

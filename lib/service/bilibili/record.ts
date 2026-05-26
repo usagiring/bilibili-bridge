@@ -8,7 +8,7 @@ const recorder = new BilibiliRecorder({
     id,
     bps,
     totalSize,
-    roomId
+    roomId,
   }) => {
     const data: SocketPayload = {
       cmd: CMD.RECORD_RATE,
@@ -16,8 +16,8 @@ const recorder = new BilibiliRecorder({
         id,
         bps,
         totalSize,
-        roomId
-      }
+        roomId,
+      },
     }
     wss.broadcast(data)
   },
@@ -31,8 +31,8 @@ const recorder = new BilibiliRecorder({
       cmd: CMD.RECORD_END,
       payload: {
         id,
-        roomId
-      }
+        roomId,
+      },
     }
     wss.broadcast(data)
   },
@@ -47,7 +47,7 @@ const recorder = new BilibiliRecorder({
       payload: {
         id,
         roomId,
-      }
+      },
     }
     wss.broadcast(data)
   },
@@ -62,19 +62,18 @@ const recorder = new BilibiliRecorder({
       payload: {
         id,
         roomId,
-      }
+      },
     }
     wss.broadcast(data)
   },
 })
-
 
 export async function record({
   roomId,
   output,
   qn,
   platform,
-  cookie
+  cookie,
 }: {
   roomId: string
   output: string
@@ -89,9 +88,9 @@ export async function record({
     platform,
     axiosRequestConfig: {
       headers: {
-        cookie
-      }
-    }
+        cookie,
+      },
+    },
   })
 
   return { id }

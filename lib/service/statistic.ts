@@ -34,7 +34,7 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   const startTime = new Date(start).getTime()
   const endTime = new Date(end).getTime()
 
-  const conditions = [eq(messages.roomId, Number(roomId))]
+  const conditions = [ eq(messages.roomId, Number(roomId)) ]
   if (start) conditions.push(gte(messages.sendAt, startTime))
   if (end) conditions.push(lte(messages.sendAt, endTime))
 
@@ -143,7 +143,7 @@ async function wordExtract({ roomId, start, end }) {
   const startTime = new Date(start).getTime()
   const endTime = new Date(end).getTime()
 
-  const conditions = [eq(messages.roomId, Number(roomId)), eq(messages.category, 'comment')]
+  const conditions = [ eq(messages.roomId, Number(roomId)), eq(messages.category, 'comment') ]
   if (start) conditions.push(gte(messages.sendAt, startTime))
   if (end) conditions.push(lte(messages.sendAt, endTime))
 
@@ -168,7 +168,7 @@ async function generateCSV({ roomId, start, end }) {
   const startTime = new Date(start).getTime()
   const endTime = new Date(end).getTime()
 
-  const conditions = [eq(messages.roomId, Number(roomId)), eq(messages.category, 'gift')]
+  const conditions = [ eq(messages.roomId, Number(roomId)), eq(messages.category, 'gift') ]
   if (start) conditions.push(gte(messages.sendAt, startTime))
   if (end) conditions.push(lte(messages.sendAt, endTime))
 
@@ -188,8 +188,8 @@ async function generateCSV({ roomId, start, end }) {
       ),
     )
 
-  const header = ['uid', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', 'sendAt']
-  const lines = [header.join(',')]
+  const header = [ 'uid', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', 'sendAt' ]
+  const lines = [ header.join(',') ]
 
   for (const row of rows) {
     const extra = row.extra as GiftExtra

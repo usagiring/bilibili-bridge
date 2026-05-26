@@ -1,400 +1,217 @@
-import { AliASR, ffmpeg, AliSpeechRecognition } from '@tokine/asr'
-import Alimt from '@tokine/mt'
+import { createRecognizer, createRecognizerOnce } from '@tokine/asr'
+import type { AsrResult } from '@tokine/asr'
+import { setFfmpegPath, getAudioStream } from '@tokine/asr/src/ffmpeg'
+import { createTranslator } from '@tokine/mt'
 import { chunk } from 'lodash'
 
-import state from '../service/state'
-import runtime from '../service/runtime'
+import { getClient } from '../service/client'
+import sse from '../service/sse'
 import { CMD, COMMON_RESPONSE, HTTP_ERROR } from '../service/const'
-import wss, { SocketPayload } from '../service/wss'
 import { wait } from '../service/util'
 
+// ── 路由定义 ──
+
 const routes = [
-  {
-    verb: 'get',
-    uri: '/asr/status',
-    middlewares: [status],
-  },
-  {
-    verb: 'post',
-    uri: '/asr/initial',
-    middlewares: [initial],
-  },
-  {
-    verb: 'post',
-    uri: '/asr/live/start',
-    middlewares: [liveStreamStart],
-  },
-  {
-    verb: 'post',
-    uri: '/asr/live/close',
-    middlewares: [liveStreamClose],
-  },
-  {
-    verb: 'post',
-    uri: '/asr/close',
-    middlewares: [close],
-  },
-  {
-    verb: 'post',
-    uri: '/translate/sentence',
-    middlewares: [translateSentence],
-  },
-  {
-    verb: 'post',
-    uri: '/translate/open',
-    middlewares: [translateOpen],
-  },
-  {
-    verb: 'post',
-    uri: '/translate/close',
-    middlewares: [translateClose],
-  },
-  {
-    verb: 'get',
-    uri: '/translate/status',
-    middlewares: [translateStatus],
-  },
-  {
-    verb: 'post',
-    uri: '/speech-recognition/initial',
-    middlewares: [srInitial],
-  },
-  {
-    verb: 'post',
-    uri: '/speech-recognition/speech-to-text',
-    middlewares: [speechToText],
-  }
+  { verb: 'get', uri: '/asr/status', middlewares: [ status ] },
+  { verb: 'post', uri: '/asr/initial', middlewares: [ initial ] },
+  { verb: 'post', uri: '/asr/live/start', middlewares: [ liveStreamStart ] },
+  { verb: 'post', uri: '/asr/live/close', middlewares: [ liveStreamClose ] },
+  { verb: 'post', uri: '/asr/close', middlewares: [ close ] },
+  { verb: 'post', uri: '/asr/audio', middlewares: [ sendAudio ] },
+  { verb: 'post', uri: '/translate/sentence', middlewares: [ translateSentence ] },
+  { verb: 'post', uri: '/translate/open', middlewares: [ translateOpen ] },
+  { verb: 'post', uri: '/translate/close', middlewares: [ translateClose ] },
+  { verb: 'get', uri: '/translate/status', middlewares: [ translateStatus ] },
+  { verb: 'post', uri: '/speech-recognition/initial', middlewares: [ srInitial ] },
+  { verb: 'post', uri: '/speech-recognition/speech-to-text', middlewares: [ speechToText ] },
 ]
 
+// ── ASR ──
+
 async function status(ctx) {
-  const asr = runtime.get('asrInstance')
-  const message = asr ? '1' : '0'
-  ctx.body = {
-    message
-  }
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
+  ctx.body = { message: client.ASR.instance ? '1' : '0' }
 }
 
 async function initial(ctx) {
-  const { appKey, accessKeyId, accessKeySecret } = ctx.__body
-  const oldAsr = runtime.get('asrInstance')
-  if (oldAsr) {
-    try {
-      await oldAsr.close()
-    } catch (e) {
-      console.log(e)
+  const { appKey, accessKeyId, accessKeySecret, clientId } = ctx.__body
+  const client = getClient(clientId)
+
+  await closeASR(client)
+
+  const asr = createRecognizer('alicloud')
+  await asr.initial({ appKey, accessKeyId, accessKeySecret })
+
+  asr.on('begin', (result: AsrResult) =>
+    sse.send(clientId, { cmd: CMD.ASR_SENTENCE_BEGIN, payload: result }))
+
+  asr.on('end', async (result: AsrResult) => {
+    sse.send(clientId, { cmd: CMD.ASR_SENTENCE_END, payload: result })
+    if (result.text) {
+      await doTranslate(client, clientId, {
+        text: result.text,
+        extraPayload: { id: (result as any).header?.message_id },
+      })
     }
-
-    runtime.set('asrInstance', null)
-  }
-
-  const asr = await AliASR.initial({
-    accessKeyId: accessKeyId,
-    accessKeySecret: accessKeySecret,
-    appKey: appKey,
   })
 
-  AliASR.on('begin', (msg) => {
-    const data: SocketPayload = {
-      cmd: CMD.ASR_SENTENCE_BEGIN,
-      payload: msg
-    }
-    wss.broadcast(data)
-  })
+  asr.on('changed', (result: AsrResult) => sse.send(clientId, { cmd: CMD.ASR_SENTENCE_CHANGE, payload: result }))
 
-  AliASR.on('end', async (msg) => {
-    const socket: SocketPayload = {
-      cmd: CMD.ASR_SENTENCE_END,
-      payload: msg
-    }
-    wss.broadcast(socket)
-
-    if (!msg?.payload?.result) return
-
-    const mtInstance = runtime.get('mtInstance')
-    if (!mtInstance) { return }
-
-    const fromLang = state.get('mtFromLang')
-    const toLang = state.get('mtToLang')
-
-    let __fromLang = fromLang
-    if (fromLang === 'auto') {
-      const result = await mtInstance.getDetectLanguage({ text: msg.payload?.result })
-      __fromLang = result.body.detectedLanguage
-    }
-
-    if (__fromLang === toLang) return
-
-    mtInstance.translateGeneral({
-      text: msg.payload?.result,
-      from: __fromLang,
-      to: toLang
-    }).then(result => {
-      const socket: SocketPayload = {
-        cmd: CMD.MECHINE_TRANSLATE,
-        payload: {
-          id: msg.header?.message_id,
-          message: result?.body?.data?.translated
-        }
-      }
-      wss.broadcast(socket)
-    })
-  })
-
-
-  // {
-  //     "header": {
-  //         "namespace": "SpeechTranscriber",
-  //         "name": "TranscriptionResultChanged",
-  //         "status": 20000000,
-  //         "message_id": "053e0932f3b541898073268e2bdf5c1b",
-  //         "task_id": "0af33d971fc24020966e2acef8d2f5d7",
-  //         "status_text": "Gateway:SUCCESS:Success."
-  //     },
-  //     "payload": {
-  //         "index": 15,
-  //         "time": 77940,
-  //         "result": "有你等他收拾一下等他",
-  //         "confidence": 0.87,
-  //         "words": [],
-  //         "status": 0
-  //     }
-  // }
-  AliASR.on('changed', (msg) => {
-    const data: SocketPayload = {
-      cmd: CMD.ASR_SENTENCE_CHANGE,
-      payload: msg
-    }
-    wss.broadcast(data)
-  })
-
-  await AliASR.start()
-
-  runtime.set('asrInstance', asr)
-
+  await asr.start()
+  client.ASR.instance = asr
   ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamStart(ctx) {
-  const { playUrl, ffmpegPath } = ctx.__body
-  const asr = runtime.get('asrInstance')
-  if (!asr) {
-    throw HTTP_ERROR.PARAMS_ERROR
-    // message: 'no found asr instance'
-  }
+  const { playUrl, ffmpegPath, clientId } = ctx.__body
+  const client = getClient(clientId)
 
-  if (ffmpegPath) {
-    ffmpeg.setFfmpegPath(ffmpegPath)
-  }
+  if (!client.ASR.instance) throw HTTP_ERROR.PARAMS_ERROR
 
-  const stream = await ffmpeg.getAudioStream({ url: playUrl })
-  stream.on('data', (chunk) => {
+  if (ffmpegPath) setFfmpegPath(ffmpegPath)
+
+  const stream = await getAudioStream({ url: playUrl })
+  const asr = client.ASR.instance
+
+  stream.on('data', (chunk: Buffer) => {
     try {
-      const data = Buffer.from(chunk, "binary")
-
-      const result = asr.sendAudio(data)
-      if (!result) {
-        stream.end(null)
-        asr.close()
-        runtime.set('asrInstance', null)
-      }
+      asr.sendAudio(chunk)
     } catch (e) {
-      console.error("send audio failed")
-      console.error(e)
+      console.error('send audio failed', e)
+      stream.end(null)
+      closeASR(client)
     }
   })
-  stream.on('close', () => {
-    console.log('stream close')
-    // asr.close()
-  })
-  stream.on('end', () => {
-    console.log('stream end')
-    // asr.close()
-  })
-  stream.on('error', () => {
-    console.log('stream error')
-    // asr.close()
-  })
 
-  runtime.set('liveStream', stream)
+  stream.on('close', () => console.log('stream close'))
+  stream.on('end', () => console.log('stream end'))
+  stream.on('error', () => console.log('stream error'))
 
+  client.liveStream = stream
   ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamClose(ctx) {
-  const stream = runtime.get('liveStream')
-  if (stream) {
-    try {
-      stream.end(null)
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
 
-  runtime.set('liveStream', null)
+  try { client.liveStream?.end(null) } catch (e) { console.log(e) }
+  client.liveStream = null
   ctx.body = COMMON_RESPONSE
 }
 
 async function close(ctx) {
-  const oldAsr = runtime.get('asrInstance')
-
-  if (oldAsr) {
-    runtime.set('asrInstance', null)
-
-    try {
-      await oldAsr.close()
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
+  await closeASR(client)
   ctx.body = COMMON_RESPONSE
 }
 
-async function translateSentence(ctx) {
-  const { from, to, text, accessKeyId, accessKeySecret, payload } = ctx.__body
+async function sendAudio(ctx) {
+  const { clientId, data } = ctx.__body
+  const client = getClient(clientId)
 
-  let mtInstance = runtime.get('mtInstance')
-  if (!mtInstance) {
-    mtInstance = new Alimt({
-      accessKeyId,
-      accessKeySecret,
-    })
-    runtime.set('mtInstance', mtInstance)
+  if (!client.ASR.instance) {
+    ctx.status = 400
+    ctx.body = { message: 'ASR 未初始化' }
+    return
+  }
+  if (!data) {
+    ctx.status = 400
+    ctx.body = { message: '缺少 data 字段' }
+    return
   }
 
-  const result = await mtInstance.translateGeneral({
-    text,
-    from,
-    to
-  })
-
-  const data: SocketPayload = {
-    cmd: CMD.MECHINE_TRANSLATE,
-    payload: {
-      ...payload,
-      message: result?.body?.data?.translated
-    }
-  }
-  wss.broadcast(data)
-
-  ctx.body = {
-    message: result?.body?.data?.translated
+  try {
+    client.ASR.instance.sendAudio(Buffer.from(new Int16Array(data).buffer))
+    ctx.body = { message: 'ok' }
+  } catch {
+    console.log('ASR sendAudio failed, closing...')
+    closeASR(client)
+    ctx.body = { message: 'ok', closed: true }
   }
 }
 
-async function translateOpen(ctx) {
-  const { accessKeyId, accessKeySecret } = ctx.__body
-  const { fromLang, toLang } = ctx.__body
-
-  let mtInstance = runtime.get('mtInstance')
-  if (!mtInstance) {
-    mtInstance = new Alimt({
-      accessKeyId,
-      accessKeySecret,
-    })
-    runtime.set('mtInstance', mtInstance)
+async function closeASR(client: any) {
+  if (client.ASR.instance) {
+    try { await client.ASR.instance.close() } catch (e) { console.log(e) }
+    client.ASR.instance = null
   }
-  state.set('mtFromLang', fromLang)
-  state.set('mtToLang', toLang)
+}
+
+// ── 机器翻译 ──
+
+async function translateSentence(ctx) {
+  const { from, to, text, accessKeyId, accessKeySecret, payload, clientId } = ctx.__body
+  const client = getClient(clientId)
+
+  if (!client.MT.instance) {
+    client.MT.instance = createTranslator('alicloud', { accessKeyId, accessKeySecret })
+  }
+
+  const result = await doTranslate(client, clientId, { text, from, to, extraPayload: payload })
+  ctx.body = { message: result?.translated || '' }
+}
+
+async function translateOpen(ctx) {
+  const { accessKeyId, accessKeySecret, fromLang, toLang, clientId } = ctx.__body
+  const client = getClient(clientId)
+
+  if (!client.MT.instance) {
+    client.MT.instance = createTranslator('alicloud', { accessKeyId, accessKeySecret })
+  }
+  client.MT.fromLang = fromLang
+  client.MT.toLang = toLang
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateClose(ctx) {
-  state.set('mtFromLang', null)
-  state.set('mtToLang', null)
-  runtime.set('mtInstance', null)
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
+
+  client.MT.fromLang = undefined
+  client.MT.toLang = undefined
+  client.MT.instance = null
   ctx.body = COMMON_RESPONSE
 }
 
 async function translateStatus(ctx) {
-  const isOpen = runtime.get('mtInstance')
-  const fromLang = state.get('mtFromLang')
-  const toLang = state.get('mtToLang')
-  const message = isOpen ? '1' : '0'
+  const { clientId } = ctx.__body
+  const client = getClient(clientId)
+
   ctx.body = {
-    message,
+    message: client.MT.instance ? '1' : '0',
     data: {
-      fromLang,
-      toLang
-    }
+      fromLang: client.MT.fromLang,
+      toLang: client.MT.toLang,
+    },
   }
 }
 
+// ── 语音识别 ──
+
 async function srInitial(ctx) {
-  const { appKey, accessKeyId, accessKeySecret } = ctx.__body
-  // const oldSr = state.getInner('speechRecognitionInstance')
-  // if (oldSr) {
-  //   try {
-  //     await oldSr.close()
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
+  const { accessKeyId, accessKeySecret, clientId } = ctx.__body
+  const client = getClient(clientId)
 
-  //   state.setInner('speechRecognitionInstance', null)
-  // }
-
-  // const sr = await AliSpeechRecognition.initial({
-  //   accessKeyId: accessKeyId,
-  //   accessKeySecret: accessKeySecret,
-  //   appKey: appKey,
-  // })
-
-  // sr.on('started', async (msg) => {
-  //   const data: SocketPayload = {
-  //     cmd: CMDS.SR_STARTED,
-  //     payload: msg
-  //   }
-  //   wss.broadcast(data)
-  // })
-
-  // sr.on('completed', async (msg) => {
-  //   console.log('completed', msg)
-  //   const data: SocketPayload = {
-  //     cmd: CMDS.SR_COMPLETED,
-  //     payload: msg
-  //   }
-  //   wss.broadcast(data)
-  // })
-
-  // // await AliSpeechRecognition.start()
-
-  // state.setInner('speechRecognitionInstance', sr)
-
-  // 由于每次start/close sr实例都会发送多次重复事件，怀疑有oom风险
-  // 这里仅获取Token，之后每次调用都初始化新实例
-  const token = await AliSpeechRecognition.getToken({ accessKeyId, accessKeySecret })
-  runtime.set('aliToken', token)
-
+  const sr = createRecognizerOnce('alicloud')
+  const token = await sr.getToken({ accessKeyId, accessKeySecret })
+  client.aliToken = token
   ctx.body = COMMON_RESPONSE
 }
 
 async function speechToText(ctx) {
-  const { appKey, payload } = ctx.__body
-  const token = runtime.get('aliToken')
-  if (!token) {
-    throw HTTP_ERROR.PARAMS_ERROR
-  }
+  const { appKey, payload, clientId } = ctx.__body
+  const client = getClient(clientId)
 
-  const sr = AliSpeechRecognition.initial({
-    token,
-    appKey,
-  })
+  if (!client.aliToken) throw HTTP_ERROR.PARAMS_ERROR
 
-  sr.on('started', async (msg) => {
-    const data: SocketPayload = {
-      cmd: CMD.SR_STARTED,
-      payload: JSON.parse(msg)
-    }
-    wss.broadcast(data)
-  })
+  const srOnce = createRecognizerOnce('alicloud')
+  const sr = srOnce.initial({ token: client.aliToken, appKey })
 
-  sr.on('completed', async (msg) => {
-    const data: SocketPayload = {
-      cmd: CMD.SR_COMPLETED,
-      payload: JSON.parse(msg)
-    }
-    wss.broadcast(data)
-  })
+  sr.on('started', (msg: string) => sse.send(clientId, { cmd: CMD.SR_STARTED, payload: JSON.parse(msg) }))
+  sr.on('completed', (msg: string) => sse.send(clientId, { cmd: CMD.SR_COMPLETED, payload: JSON.parse(msg) }))
 
   const params = sr.defaultStartParams()
   params.enable_inverse_text_normalization = true
@@ -405,25 +222,45 @@ async function speechToText(ctx) {
   try {
     await sr.start(params, true, 6000)
   } catch (error) {
-    console.log("error on start:", error)
+    console.log('error on start:', error)
     throw error
   }
 
   for (const __chunk of chunk(JSON.parse(payload), 1024)) {
-    const buffer = new Int16Array(__chunk)
-    sr.sendAudio(buffer)
+    sr.sendAudio(Buffer.from(new Int16Array(__chunk).buffer))
     await wait(20)
   }
 
   try {
-    console.log("close...")
+    console.log('close...')
     await sr.close()
-
   } catch (error) {
-    console.log("error on close:", error)
+    console.log('error on close:', error)
   }
 
   ctx.body = COMMON_RESPONSE
+}
+
+// ── 通用翻译 ──
+
+async function doTranslate(
+  client: any,
+  clientId: string,
+  { text, from, to, extraPayload }: { text: string; from?: string; to?: string; extraPayload?: any },
+) {
+  if (!client.MT.instance) return null
+
+  let fromLang = from || client.MT.fromLang || 'auto'
+  if (fromLang === 'auto') {
+    const detected = await client.MT.instance.detectLanguage({ text })
+    fromLang = detected.language
+  }
+  const toLang = to || client.MT.toLang
+  if (!toLang || fromLang === toLang) return null
+
+  const result = await client.MT.instance.translate({ text, from: fromLang, to: toLang })
+  sse.send(clientId, { cmd: CMD.MECHINE_TRANSLATE, payload: { ...extraPayload, message: result.translated } })
+  return result
 }
 
 export default routes

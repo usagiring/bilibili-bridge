@@ -24,7 +24,13 @@ interface Client {
   }
   MT: {
     instance: any
+    fromLang?: string
+    toLang?: string
   }
+  /** ASR 实时流 */
+  liveStream?: any
+  /** 语音识别 Token */
+  aliToken?: string
 }
 
 interface State {
