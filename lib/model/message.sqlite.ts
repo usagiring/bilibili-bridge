@@ -1,106 +1,99 @@
 /**
- * 统一消息模型（弹幕 / 礼物 / SC / 互动）
+ * 统一消息模型（弹幕 / 礼物 / SC / 互动 / 进入房间）
  *
- * 字段归类：
- *   category     — 区分消息大类: 'comment' | 'gift' | 'guard' | 'superchat' | 'interact'
- *   subType      — 原始细分类型号
- *   [公共字段]    — uid, uname, role, roomId, sendAt, avatar
- *   medal (JSON) — 勋章信息，三张表都有，合并为 JSON
- *   extra (JSON) — 各类特有字段，按 category 区分结构
- *
- *   extra 结构（按 category）:
- *   ┌───────────┬──────────────────────────────────────────────┐
- *   │ comment   │ { content, isAdmin, color, emots }           │
- *   │ gift      │ { giftId, giftName, price, count, coinType,  │
- *   │           │   batchComboId }                             │
- *   │ guard     │ { giftId, giftName, price, count }           │
- *   │ superchat │ { scId, content, contentJpn, price }         │
- *   │ interact  │ { identities[], face, unameColor }           │
- *   └───────────┴──────────────────────────────────────────────┘
+ * ┌──────────────┬──────────────────────────────────────────────────┐
+ * │ 公共字段      │ id, content, color, category, subType, sendAt,    │
+ * │              │ roomId, userId, userName, face, createdAt         │
+ * ├──────────────┼──────────────────────────────────────────────────┤
+ * │ roles (JSON) │ 用户身份标识: 0:普通 1:总督 2:提督 3:舰长 4:房管 │
+ * │ emots (JSON) │ 弹幕表情包（comment 特有）                        │
+ * │ gift  (JSON) │ 礼物信息（gift / guard / superchat 特有）         │
+ * │ medal (JSON) │ 用户勋章信息（所有类型都可能有）                  │
+ * │interact(JSON)│ 进入房间互动信息（interact 特有）                  │
+ * └──────────────┴──────────────────────────────────────────────────┘
  */
 import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const messages = sqliteTable('message', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  content: text('content').notNull(), // 原始消息文本内容（弹幕文本 / 礼物名称 / 进入房间等）
+  color: text('color'), // 弹幕颜色（十六进制字符串），礼物和其他消息可为空
 
   // ── 分类 ──
   category: text('category').notNull(), // 'comment' | 'gift' | 'guard' | 'superchat' | 'interact'
-  subType: integer('sub_type'),          // 原始细分类型号
+  type: integer('type'),
 
   // ── 时间 & 房间 ──
   sendAt: integer('send_at').notNull(),
-  roomId: integer('room_id').notNull(),
+  roomId: text('room_id').notNull(),
+
+  clientId: text('client_id'),
 
   // ── 用户公共字段 ──
-  uid: integer('uid').notNull(),
-  uname: text('uname').notNull(),
-  role: integer('role').notNull().default(0), // 0:普通 1:总督 2:提督 3:舰长
-  avatar: text('avatar'),
+  userId: text('user_id').notNull(),
+  userName: text('user_name').notNull(),
+  userNameColor: text('user_name_color'), // 用户名颜色（十六进制字符串），如果有的话
+  roles: text('roles', { mode: 'json' }).$type<Role[]>(), // 身份标识数组
+  face: text('face'),
+
+  // ── 表情（JSON，弹幕特有）──
+  emots: text('emots', { mode: 'json' }).$type<EmotMap>(),
+
+  // ── 礼物特有字段 (JSON) ──
+  gift: text('gift', { mode: 'json' }).$type<GiftInfo>(),
 
   // ── 勋章 (JSON) ──
-  // { name, level, rid, guard, color: { border, bg, level, text } }
-  medal: text('medal', { mode: 'json' }),
+  medal: text('medal', { mode: 'json' }).$type<MedalInfo>(),
 
-  // ── 类别特有字段 (JSON) ──
-  extra: text('extra', { mode: 'json' }),
+  interact: text('interact', { mode: 'json' }).$type<InteractInfo>(),
 
   createdAt: integer('created_at').notNull().default(sql`(unixepoch() * 1000)`),
 },
-  (table) => ({
-    categoryIdx: index('idx_msg_category').on(table.category),
-    uidIdx: index('idx_msg_uid').on(table.uid),
-    roomIdIdx: index('idx_msg_room_id').on(table.roomId),
-    sendAtIdx: index('idx_msg_send_at').on(table.sendAt),
-    roomCategoryIdx: index('idx_msg_room_category').on(table.roomId, table.category),
-    roomSendAtIdx: index('idx_msg_room_send_at').on(table.roomId, table.sendAt),
-  }))
+(table) => [
+  index('idx_msg_category').on(table.category),
+  index('idx_msg_uid').on(table.userId),
+  index('idx_msg_room_id').on(table.roomId),
+  index('idx_msg_send_at').on(table.sendAt),
+  index('idx_msg_room_category').on(table.roomId, table.category),
+  index('idx_msg_room_send_at').on(table.roomId, table.sendAt),
+])
 
 export type MessageRow = typeof messages.$inferSelect
 export type MessageInsert = typeof messages.$inferInsert
 
-// ── 各分类 extra 的类型定义 ──
-export interface CommentExtra {
-  content: string
-  isAdmin?: boolean
-  color?: string
-  emots?: Record<string, {
-    emoticon_id: number
-    emoji: string
-    descript: string
-    url: string
-    width: number
-    height: number
-    emoticon_unique: string
-  }>
+// ── JSON 列类型定义 ──
+
+/** 身份标识: 0:普通 1:总督 2:提督 3:舰长 4:房管 */
+export type Role = 0 | 1 | 2 | 3 | 4
+
+export interface EmotInfo {
+  emoticon_id: number
+  emoji: string
+  descript: string
+  url: string
+  width: number
+  height: number
+  emoticon_unique: string
 }
 
-export interface GiftExtra {
-  giftId: number
-  giftName: string
+export type EmotMap = Record<string, EmotInfo>
+
+export interface GiftInfo {
+  id: number
+  type: 'gift' | 'guard' | 'superchat'
+  name: string
   price: number
   count: number
-  coinType: 1 | 2 // 1:gold 2:silver
+  coinType: 1 | 2 // 1:金瓜子 2:银瓜子
   batchComboId?: string
-}
-
-export interface SuperChatExtra {
-  scId: string
-  content: string
-  contentJpn?: string
-  price: number
-}
-
-export interface InteractExtra {
-  identities: number[]
-  face?: string
-  unameColor?: string
+  contentJpn?: string  // SC 日文内容（superchat 特有）
 }
 
 export interface MedalInfo {
   name: string
   level: number
-  rid?: string
+  roomId?: string
   guard?: number
   color: {
     border: string
@@ -108,4 +101,9 @@ export interface MedalInfo {
     level: string
     text: string
   }
+}
+
+export interface InteractInfo {
+  type: 1 | 2 | 3 // 1:进入房间 2:关注直播间 3:分享直播间
+  identities: number[]
 }

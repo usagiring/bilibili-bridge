@@ -37,24 +37,6 @@ interface Tag {
   data?: { [x: string]: any }
 }
 
-export function parseAutoReplyMessage(message, type): Message {
-  const result: Message = {
-    type,
-    content: message.content,
-    uid: message.uid,
-    uname: message.uname,
-    role: message.role,
-    medalName: message.medalName,
-    roomId: message.roomId,
-  }
-  if (type === 'gift') {
-    result.giftId = message.id
-    result.giftName = message.name
-    result.coinType = message.coinType
-  }
-  return result
-}
-
 // let isReadySpeak = true
 // [uid]: { sendAt, name }
 // let sendUserCache = {}

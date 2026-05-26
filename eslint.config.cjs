@@ -52,8 +52,8 @@ module.exports = [
       // ── 格式 ──
       'no-multiple-empty-lines': ['warn', { max: 1, maxEOF: 0 }],
       'comma-dangle': ['warn', 'always-multiline'],
-      'array-bracket-spacing': 'off',
-      'object-curly-spacing': 'off',
+      'array-bracket-spacing': ['warn', 'always'],
+      'object-curly-spacing': ['warn', 'always'],
 
       // ── 项目宽松策略 ──
       'require-yield': 'off',

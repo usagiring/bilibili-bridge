@@ -1,20 +1,12 @@
-import dayjs from 'dayjs'
 import event from '../event'
 import { CMD, BILI_CMD } from '../const'
 import state from '../state'
-import { getUserInfo } from './sdk'
 import wss from '../wss'
-import { parseComment, parseGift, parseInteractWord, parseUser } from './service'
-import { parseAutoReplyMessage } from '../handler'
-import { GiftDTO, Model as GiftModel } from '../../model/gift'
-import { CommentDTO, Model as CommentModel } from '../../model/comment'
-import { UserDTO, Model as UserModel } from '../../model/user'
-import { InteractDTO, Model as InteractModel } from '../../model/interact'
+import { commentJob, interactJob, giftJob } from './pipeline'
 import { LotteryDTO, Model as LotteryModel } from '../../model/lottery'
 import { Model as OtherModel } from '../../model/other'
 import sse from '../sse'
 
-const userInfoFrequencyLimit = state.userInfoFrequencyLimit
 const saveAllBiliMessage = state.saveAllBiliMessage
 
 event.on(CMD.NINKI, async (data) => {
@@ -33,14 +25,12 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
   if (Array.isArray(data)) {
     for (const msg of data) {
       if (msg.cmd.includes(BILI_CMD.DANMU_MSG)) {
-        const comment = parseComment(msg, roomId)
-        await commentJob(comment)
+        await commentJob({ msg, roomId, clientId })
         continue
       }
 
       if (msg.cmd === BILI_CMD.INTERACT_WORD) {
-        const interact = parseInteractWord(msg)
-        await interactJob(interact)
+        await interactJob({ msg, roomId, clientId })
         continue
       }
 
@@ -50,8 +40,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         msg.cmd === BILI_CMD.GUARD_BUY ||
         msg.cmd === BILI_CMD.SEND_GIFT
       ) {
-        const gift = parseGift(msg, roomId)
-        await giftJob(gift)
+        await giftJob({ msg, roomId, clientId })
         continue
       }
 
@@ -194,158 +183,3 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
     OtherModel.insert({ raw: data })
   }
 })
-
-let isGetUserInfoLocked = false
-let isGetUserInfoLocked20min = false
-export async function getUserInfoThrottle(uid) {
-  if (isGetUserInfoLocked) throw new Error("isGetUserInfoLocked")
-  if (isGetUserInfoLocked20min) {
-    setTimeout(() => {
-      isGetUserInfoLocked20min = false
-    }, 1000 * 60 * 20)
-    throw new Error('isGetUserInfoLocked 20min')
-  }
-  // 限制获取头像频率 避免412被封
-  // 412 和请求量和速率都有关系，阶段式限流
-  isGetUserInfoLocked = true
-  setTimeout(() => {
-    isGetUserInfoLocked = false
-  }, userInfoFrequencyLimit || 2000)
-
-  try {
-    const { data } = await getUserInfo(uid)
-    if (!data.mid) throw new Error('user data error')
-    return data
-  } catch (e) {
-    if ((e as Error).message === 'Request failed with status code 412') {
-      isGetUserInfoLocked20min = true
-    }
-    throw e
-  }
-}
-
-async function commentJob(comment: CommentDTO) {
-  // console.log(`${comment.name}(${comment.uid}): ${comment.comment}`);
-  // if (global.get('isShowAvatar')) {
-  //   await fillUserAvatar(comment)
-  // }
-
-  wss.broadcast({
-    cmd: CMD.COMMENT,
-    payload: comment,
-  })
-
-  event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(comment, 'comment'))
-  event.emit(CMD.DANMAKU_COMMAND, comment)
-
-  // TODO cloneDeep
-  CommentModel.insert(comment)
-    .catch(e => console.error(e))
-}
-
-async function interactJob(interact: InteractDTO) {
-  // console.log(`${interactWord.name}(${interactWord.uid}) 进入了直播间`);
-  const data = await InteractModel.insert(interact)
-  wss.broadcast({
-    cmd: CMD.INTERACT,
-    payload: data,
-  })
-
-  event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(data, 'interact'))
-}
-
-async function giftJob(gift: GiftDTO) {
-  if (!gift.avatar) {
-    await fillUserAvatar(gift)
-  }
-
-  if (gift.type === 3) {
-    let sc = await GiftModel.findOne({
-      roomId: gift.roomId,
-      SCId: gift.SCId,
-    })
-
-    // 如果找到已存在sc 并且 新sc有JPN信息，需要更新
-    if (sc) {
-      if (gift.content) {
-        sc = await GiftModel.update(
-          { _id: sc._id },
-          {
-            $set: { contentJPN: gift.contentJPN },
-          },
-          { returnUpdatedDocs: true },
-        )
-      } else {
-        // 如果新收到的gift不包含JPN信息，表示原数据齐全，跳过
-        return
-      }
-    } else {
-      sc = await GiftModel.insert(gift)
-    }
-
-    wss.broadcast({
-      cmd: CMD.SUPER_CHAT,
-      payload: sc,
-    })
-
-    event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(sc, 'superchat'))
-  } else if (gift.type === 1 || gift.type === 2) {
-    let data
-    // 辣条
-    // fix: 辣条没有 batchComboId 导致无法正常堆叠
-    if (gift.id === 1) {
-      // batch:gift:combo_id:{uid}:{giftId}:{roomId}:{startOfMinute} 
-      gift.batchComboId = `batch:gift:combo_id:${gift.uid}:${gift.id}:${gift.roomId}:${dayjs().startOf('minute').valueOf()}`
-    }
-
-    if (gift.batchComboId) {
-      const comboGift = await GiftModel.findOne({
-        roomId: gift.roomId,
-        batchComboId: gift.batchComboId,
-      })
-      if (comboGift) {
-        data = await GiftModel.update(
-          { _id: comboGift._id },
-          {
-            $set: {
-              count: comboGift.count + gift.count,
-            },
-          },
-          { returnUpdatedDocs: true },
-        )
-      }
-    }
-    if (!data) {
-      data = await GiftModel.insert(gift)
-    }
-    wss.broadcast({
-      cmd: CMD.GIFT,
-      payload: {
-        ...data,
-        singleCount: gift.count,
-      },
-    })
-
-    event.emit(CMD.AUTO_REPLY, parseAutoReplyMessage(data, 'gift'))
-  }
-}
-
-async function fillUserAvatar(item): Promise<UserDTO> {
-  if (!item.uid) return item
-  // 缓存 user 信息
-  let user = await UserModel.findOne({ uid: item.uid })
-  if (!user) {
-    try {
-      const data = await getUserInfoThrottle(item.uid)
-      // 统一格式化用户数据
-      user = parseUser(data)
-      // data.createdAt = new Date()
-      UserModel.insert(user)
-    } catch (e) {
-      // throw new Error("getUserInfo limit");
-    }
-  }
-
-  item.avatar = (user || {}).avatar
-  return item
-}
