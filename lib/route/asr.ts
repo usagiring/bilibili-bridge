@@ -12,12 +12,12 @@ import { wait } from '../service/util'
 // ── 路由定义 ──
 
 const routes = [
-  { verb: 'get', uri: '/asr/status', middlewares: [ status ] },
-  { verb: 'post', uri: '/asr/initial', middlewares: [ initial ] },
-  { verb: 'post', uri: '/asr/live/start', middlewares: [ liveStreamStart ] },
-  { verb: 'post', uri: '/asr/live/close', middlewares: [ liveStreamClose ] },
-  { verb: 'post', uri: '/asr/close', middlewares: [ close ] },
-  { verb: 'post', uri: '/asr/audio', middlewares: [ sendAudio ] },
+  { verb: 'get', uri: '/automatic-speech-recognition/status', middlewares: [ status ] },
+  { verb: 'post', uri: '/automatic-speech-recognition/initial', middlewares: [ initial ] },
+  { verb: 'post', uri: '/automatic-speech-recognition/live/start', middlewares: [ liveStreamStart ] },
+  { verb: 'post', uri: '/automatic-speech-recognition/live/close', middlewares: [ liveStreamClose ] },
+  { verb: 'post', uri: '/automatic-speech-recognition/close', middlewares: [ close ] },
+  { verb: 'post', uri: '/automatic-speech-recognition/audio', middlewares: [ sendAudio ] },
   { verb: 'post', uri: '/translate/sentence', middlewares: [ translateSentence ] },
   { verb: 'post', uri: '/translate/open', middlewares: [ translateOpen ] },
   { verb: 'post', uri: '/translate/close', middlewares: [ translateClose ] },

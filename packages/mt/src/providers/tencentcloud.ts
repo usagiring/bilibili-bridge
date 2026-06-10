@@ -8,15 +8,15 @@
  * 文档：https://cloud.tencent.com/document/product/551/15619
  */
 
-import type { ITranslator, TranslatorConfig, TranslateRequest, TranslateResult, DetectLanguageResult } from '../types';
+import type { ITranslator, TranslatorConfig, TranslateRequest, TranslateResult, DetectLanguageResult } from '../types'
 
-const DEFAULT_REGION = 'ap-shanghai';
+const DEFAULT_REGION = 'ap-shanghai'
 
 export class TencentCloudTranslator implements ITranslator {
-  private config: TranslatorConfig & { region: string };
+  private config: TranslatorConfig & { region: string }
 
   constructor(config: TranslatorConfig) {
-    this.config = { ...config, region: config.region || DEFAULT_REGION };
+    this.config = { ...config, region: config.region || DEFAULT_REGION }
   }
 
   async translate(params: TranslateRequest): Promise<TranslateResult> {
@@ -45,11 +45,11 @@ export class TencentCloudTranslator implements ITranslator {
     //   raw: result,
     // };
 
-    console.warn('[TencentCloud] 机器翻译需接入 tmt SDK，目前为 stub');
+    console.warn('[TencentCloud] 机器翻译需接入 tmt SDK，目前为 stub')
     return {
       translated: '',
       raw: null,
-    };
+    }
   }
 
   async detectLanguage(params: { text: string }): Promise<DetectLanguageResult> {
@@ -57,10 +57,10 @@ export class TencentCloudTranslator implements ITranslator {
     // const result = await client.LanguageDetect({ Text: params.text, ProjectId: 0 });
     // return { language: result.Lang, raw: result };
 
-    console.warn('[TencentCloud] 语言检测需接入 tmt SDK，目前为 stub');
+    console.warn('[TencentCloud] 语言检测需接入 tmt SDK，目前为 stub')
     return {
       language: '',
       raw: null,
-    };
+    }
   }
 }
