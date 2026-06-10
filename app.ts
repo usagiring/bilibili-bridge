@@ -46,6 +46,9 @@ app.use(router.routes())
 // .use(router.allowedMethods())
 
 console.log(`listening port: ${port} ...`)
+
+app.listen(port)
+
 export default app
 
 function serve(root, opts: any = {}) {
