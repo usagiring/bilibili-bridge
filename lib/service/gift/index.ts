@@ -1,9 +1,9 @@
 // import global from '../global'
 import { getGiftConfig } from '../bilibili/sdk'
-import runtime from '../runtime'
+// import runtime from '../runtime'
 
 export default {
-  getConfig
+  getConfig,
 }
 
 export async function getConfig({ roomId }) {
@@ -15,13 +15,13 @@ export async function getConfig({ roomId }) {
       [gift.id]: {
         webp: gift.webp,
         name: gift.name,
-        price: gift.price
-      }
+        price: gift.price,
+      },
     })
   }, {})
 
   // global.set('giftConfig', giftMap)
 
-  runtime.set(`connectionPoolMap.${roomId}.giftMap`, giftMap)
+  // runtime.set(`connectionPoolMap.${roomId}.giftMap`, giftMap)
   return giftMap
 }

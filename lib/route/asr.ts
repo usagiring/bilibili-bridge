@@ -1,6 +1,5 @@
-import { createRecognizer, createRecognizerOnce } from '@tokine/asr'
+import { createRecognizer, createRecognizerOnce, setFfmpegPath, getAudioStream } from '@tokine/asr'
 import type { AsrResult } from '@tokine/asr'
-import { setFfmpegPath, getAudioStream } from '@tokine/asr/src/ffmpeg'
 import { createTranslator } from '@tokine/mt'
 import { chunk } from 'lodash'
 
@@ -88,7 +87,7 @@ async function liveStreamStart(ctx) {
   stream.on('end', () => console.log('stream end'))
   stream.on('error', () => console.log('stream error'))
 
-  client.liveStream = stream
+  // client.liveStream = stream
   ctx.body = COMMON_RESPONSE
 }
 
@@ -96,8 +95,8 @@ async function liveStreamClose(ctx) {
   const { clientId } = ctx.__body
   const client = getClient(clientId)
 
-  try { client.liveStream?.end(null) } catch (e) { console.log(e) }
-  client.liveStream = null
+  // try { client.liveStream?.end(null) } catch (e) { console.log(e) }
+  // client.liveStream = null
   ctx.body = COMMON_RESPONSE
 }
 
@@ -197,7 +196,7 @@ async function srInitial(ctx) {
 
   const sr = createRecognizerOnce('alicloud')
   const token = await sr.getToken({ accessKeyId, accessKeySecret })
-  client.aliToken = token
+  // client.aliToken = token
   ctx.body = COMMON_RESPONSE
 }
 
@@ -205,38 +204,38 @@ async function speechToText(ctx) {
   const { appKey, payload, clientId } = ctx.__body
   const client = getClient(clientId)
 
-  if (!client.aliToken) throw HTTP_ERROR.PARAMS_ERROR
+  // if (!client.aliToken) throw HTTP_ERROR.PARAMS_ERROR
 
-  const srOnce = createRecognizerOnce('alicloud')
-  const sr = srOnce.initial({ token: client.aliToken, appKey })
+  // const srOnce = createRecognizerOnce('alicloud')
+  // const sr = srOnce.initial({ token: client.aliToken, appKey })
 
-  sr.on('started', (msg: string) => sse.send(clientId, { cmd: CMD.SR_STARTED, payload: JSON.parse(msg) }))
-  sr.on('completed', (msg: string) => sse.send(clientId, { cmd: CMD.SR_COMPLETED, payload: JSON.parse(msg) }))
+  // sr.on('started', (msg: string) => sse.send(clientId, { cmd: CMD.SR_STARTED, payload: JSON.parse(msg) }))
+  // sr.on('completed', (msg: string) => sse.send(clientId, { cmd: CMD.SR_COMPLETED, payload: JSON.parse(msg) }))
 
-  const params = sr.defaultStartParams()
-  params.enable_inverse_text_normalization = true
-  params.enable_intermediate_result = false
-  params.max_start_silence = 5000
-  params.max_end_silence = 3000
+  // const params = sr.defaultStartParams()
+  // params.enable_inverse_text_normalization = true
+  // params.enable_intermediate_result = false
+  // params.max_start_silence = 5000
+  // params.max_end_silence = 3000
 
-  try {
-    await sr.start(params, true, 6000)
-  } catch (error) {
-    console.log('error on start:', error)
-    throw error
-  }
+  // try {
+  //   await sr.start(params, true, 6000)
+  // } catch (error) {
+  //   console.log('error on start:', error)
+  //   throw error
+  // }
 
-  for (const __chunk of chunk(JSON.parse(payload), 1024)) {
-    sr.sendAudio(Buffer.from(new Int16Array(__chunk).buffer))
-    await wait(20)
-  }
+  // for (const __chunk of chunk(JSON.parse(payload), 1024)) {
+  //   sr.sendAudio(Buffer.from(new Int16Array(__chunk).buffer))
+  //   await wait(20)
+  // }
 
-  try {
-    console.log('close...')
-    await sr.close()
-  } catch (error) {
-    console.log('error on close:', error)
-  }
+  // try {
+  //   console.log('close...')
+  //   await sr.close()
+  // } catch (error) {
+  //   console.log('error on close:', error)
+  // }
 
   ctx.body = COMMON_RESPONSE
 }

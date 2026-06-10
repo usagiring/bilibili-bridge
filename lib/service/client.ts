@@ -5,6 +5,7 @@ import { omit } from 'lodash'
 
 export function getClient(clientId: string): Client {
   const client = state.clients.find((c: any) => c.id === clientId)
+  if (!client) throw new Error(`client not found: ${clientId}`)
   return client
 }
 

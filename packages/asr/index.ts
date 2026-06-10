@@ -20,6 +20,7 @@
 // ── 统一接口（推荐） ──
 export { createRecognizer, createRecognizerOnce, RecognizerPool } from './src/factory'
 export type { PoolEntry } from './src/factory'
+export { setFfmpegPath, getAudioStream } from './src/ffmpeg'
 export type {
   Provider,
   ISpeechRecognizer,

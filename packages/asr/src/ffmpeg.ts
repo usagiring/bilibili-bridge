@@ -1,13 +1,13 @@
 import ffmpeg from 'fluent-ffmpeg'
 import axios from 'axios'
 
-export function setFfmpegPath(path) {
+export function setFfmpegPath(path: string) {
   ffmpeg.setFfmpegPath(path)
 }
 
 // https://trac.ffmpeg.org/wiki/audio%20types
 // alicloud: pcm 16bit 16000K singleChannel
-export async function getAudioStream({ url }) {
+export async function getAudioStream({ url }: { url: string }) {
   const response = await axios({
     method: 'get',
     url,
@@ -26,7 +26,7 @@ export async function getAudioStream({ url }) {
     .audioChannels(1)
     .audioFrequency(16000)
     .format('wav')
-    .on('error', function (err) {
+    .on('error', function (err: any) {
       console.log('An error occurred: ' + err.message)
     })
     .pipe()
