@@ -34,6 +34,7 @@ module.exports = [
       indent: ['warn', 2, { SwitchCase: 1 }],
       curly: ['warn', 'multi-line'],
       'comma-spacing': ['warn', { before: false, after: true }],
+      'key-spacing': ['warn', { beforeColon: false, afterColon: true }],
       'prefer-const': 'warn',
       'no-var': 'error',
 

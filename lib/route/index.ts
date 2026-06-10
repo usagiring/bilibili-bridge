@@ -12,6 +12,7 @@ import lotteryAPIs from './lottery'
 import statisticAPIs from './statistic'
 import asrAPIs from './asr'
 import userAPIs from './user'
+import clientAPIs from './client'
 import bilibiliProxyAPIs from './bilibili-proxy'
 import sseAPIs from './sse'
 
@@ -38,6 +39,7 @@ apiRouter.get('/touch', (ctx) => {
   ...statisticAPIs,
   ...asrAPIs,
   ...userAPIs,
+  ...clientAPIs,
   ...bilibiliProxyAPIs,
   ...sseAPIs,
 ]

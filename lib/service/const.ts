@@ -87,7 +87,7 @@ export const HTTP_ERROR = {
   },
 } as const
 
-export const DEFAULT_STYLE = {
+export const DEFAULT_DM_STYLE = {
   isShowFace: true,
   isShowAnchorIcon: true,
   isShowFanMedal: true,
@@ -98,15 +98,16 @@ export const DEFAULT_STYLE = {
   isShowInteractInfo: false,
   showGiftCardThreshold: 0,
   isShowSilverGift: false,
-  DMWindowOpacity: 1,
-  DMFont: 'unset',
+  font: 'unset',
   isUseMiniGiftCard: false,
-  DMWindowBackground: "rgba(0, 0, 0, 0.3)",
   adminIcon: "ios-home-outline",
   isShowAdminIcon: false,
   adminIconColor: 'coral',
-  DMChannelCount: 1,
-  DMChannelDelayTime: 20,
+  channelCount: 1,
+  channelDelayTime: 20,
+
+  windowOpacity: 1,
+  windowBackground: "rgba(0, 0, 0, 0.3)",
 
   messageContainer0: {
     background: 'rgba(0,0,0,0)',

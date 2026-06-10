@@ -15,8 +15,8 @@ const routes = [
     },
   },
   {
-    verb: 'put',
-    uri: '/setting',
+    verb: 'post',
+    uri: '/setting/update',
     middlewares: [ update ],
     validator: {
       type: 'object',

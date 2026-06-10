@@ -4,8 +4,9 @@ interface Client {
   id: string
   SSEClient: any
   bilibiliWSClient: any
-  render: any
-  room: {
+  style: any
+  
+  rooms: {
     id: string
     userId: string
     liveStatus: number
@@ -17,7 +18,8 @@ interface Client {
       isRecording: boolean
       startedAt: number
     }
-  }
+  }[]
+
   user: {
     id: string
     face: string
@@ -26,7 +28,7 @@ interface Client {
       name: string
     }
   }
-  
+
   ASR: {
     instance: any
   }

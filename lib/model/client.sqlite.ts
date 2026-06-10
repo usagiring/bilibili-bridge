@@ -1,41 +1,34 @@
 /**
  * 客户端 / Bridge 连接模型
  * 每个客户端代表一个独立的 B站直播间连接实例
+ *
+ * 字段参照 state.ts 中 Client 接口定义，嵌套结构使用 JSON 列
  */
-import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const clients = sqliteTable('client', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  /** 客户端唯一标识（UUID） */
+  clientId: text('client_id').primaryKey(),
 
-  /** 客户端名称（用于管理面板展示） */
-  name: text('name').notNull(),
+  /** 自定义样式 */
+  style: text('style', { mode: 'json' }),
 
-  /** B站直播间房间号 */
-  roomId: integer('room_id').notNull(),
+  /** 直播间信息：{ id, userId, liveStatus, liveStream, autoReplyRules, record } */
+  rooms: text('rooms', { mode: 'json' }),
 
-  /** 云服务 AccessKey / SecretId */
-  accessKeyId: text('access_key_id'),
+  /** 用户信息：{ id, face, cookie, medal: { name } } */
+  user: text('user', { mode: 'json' }),
 
-  /** 云服务 AccessKey Secret / SecretKey */
-  accessKeySecret: text('access_key_secret'),
+  /** ASR 配置：{ instance } */
+  asr: text('asr', { mode: 'json' }),
 
-  /** ASR/翻译 AppKey */
-  appKey: text('app_key'),
-
-  /** 云厂商: 'alicloud' | 'tencentcloud' */
-  provider: text('provider').notNull().default('alicloud'),
-
-  /** 状态: 'active' | 'paused' | 'closed' */
-  status: text('status').notNull().default('active'),
+  /** 机器翻译配置：{ instance, fromLang, toLang } */
+  mt: text('mt', { mode: 'json' }),
 
   createdAt: integer('created_at').notNull().default(sql`(unixepoch() * 1000)`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch() * 1000)`),
-},
-  (table) => ({
-    roomIdUniqueIdx: uniqueIndex('idx_client_room_id').on(table.roomId),
-    statusIdx: uniqueIndex('idx_client_status').on(table.status),
-  }))
+})
 
 export type ClientRow = typeof clients.$inferSelect
 export type ClientInsert = typeof clients.$inferInsert
