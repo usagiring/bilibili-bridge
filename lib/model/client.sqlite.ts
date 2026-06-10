@@ -9,7 +9,7 @@ import { sql } from 'drizzle-orm'
 
 export const clients = sqliteTable('client', {
   /** 客户端唯一标识（UUID） */
-  clientId: text('client_id').primaryKey(),
+  id: text('client_id').primaryKey(),
 
   /** 自定义样式 */
   style: text('style', { mode: 'json' }),

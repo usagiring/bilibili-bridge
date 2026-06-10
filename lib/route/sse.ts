@@ -5,7 +5,7 @@ const routes = [
   {
     verb: 'get',
     uri: '/sse/connect',
-    middlewares: [connect],
+    middlewares: [ connect ],
   },
 ]
 

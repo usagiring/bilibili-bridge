@@ -2,12 +2,9 @@ import Router from '@koa/router'
 import { version, name, description } from '../../package.json'
 import ajv from '../service/ajv'
 import { HTTP_ERROR } from '../service/const'
-import settingAPIs from './setting'
 import roomAPIs from './room'
-import giftAPIs from './gift'
 import messageAPIs from './message'
-import commentAPIs from './comment'
-import interactAPIs from './interact'
+import dmAPIs from './dm'
 import lotteryAPIs from './lottery'
 import statisticAPIs from './statistic'
 import asrAPIs from './asr'
@@ -30,11 +27,8 @@ apiRouter.get('/touch', (ctx) => {
 
 [
   ...roomAPIs,
-  ...settingAPIs,
-  ...giftAPIs,
   ...messageAPIs,
-  ...commentAPIs,
-  ...interactAPIs,
+  ...dmAPIs,
   ...lotteryAPIs,
   ...statisticAPIs,
   ...asrAPIs,

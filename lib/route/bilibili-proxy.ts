@@ -14,11 +14,11 @@ import { HTTP_ERROR } from '../service/const'
 import { getClient } from '../service/client'
 
 const routes = [
-  {
-    verb: 'get',
-    uri: '/bilibili/room/:roomId/info',
-    middlewares: [ getRoomInfo ],
-  },
+  // {
+  //   verb: 'get',
+  //   uri: '/bilibili/room/info',
+  //   middlewares: [ getRoomInfo ],
+  // },
   {
     verb: 'post',
     uri: '/bilibili/room/info',
@@ -26,7 +26,7 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/bilibili/room/:roomId/user/info',
+    uri: '/bilibili/room/user/info',
     middlewares: [ getUserInfoInRoom ],
     validator: {
       type: 'object',
@@ -37,7 +37,7 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/bilibili/room/:roomId/guard',
+    uri: '/bilibili/room/guard',
     middlewares: [ getGuardInfo ],
     validator: {
       type: 'object',
@@ -49,12 +49,12 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/bilibili/room/:roomId/comment/send',
+    uri: '/bilibili/room/comment/send',
     middlewares: [ sendComment ],
   },
   {
     verb: 'get',
-    uri: '/bilibili/room/:roomId/playurl',
+    uri: '/bilibili/room/playurl',
     middlewares: [ getPlayUrl ],
     validator: {
       type: 'object',
@@ -69,7 +69,7 @@ const routes = [
 
   {
     verb: 'get',
-    uri: '/bilibili/user/:userId/info',
+    uri: '/bilibili/user/info',
     middlewares: [ getUserInfo ],
   },
 
@@ -87,7 +87,7 @@ const routes = [
 
   {
     verb: 'post',
-    uri: '/bilibili/room/:roomId/like',
+    uri: '/bilibili/room/like',
     middlewares: [ like ],
   },
 ]

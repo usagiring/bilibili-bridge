@@ -10,12 +10,12 @@ import * as biliRecordService from '../service/bilibili/record'
 const routes = [
   {
     verb: 'get',
-    uri: '/room/:roomId/info',
+    uri: '/room/info',
     middlewares: [ getRoomInfo ],
   },
   {
     verb: 'post',
-    uri: '/room/:roomId/connect',
+    uri: '/room/connect',
     middlewares: [ connect ],
     validator: {
       type: 'object',
@@ -26,12 +26,18 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/room/:roomId/disconnect',
+    uri: '/room/disconnect',
     middlewares: [ disconnect ],
+    validator: {
+      type: 'object',
+      properties: {
+        roomId: { type: 'string' },
+      },
+    },
   },
   {
     verb: 'get',
-    uri: '/room/:roomId/real-time/viewer/count',
+    uri: '/room/real-time/viewer/count',
     middlewares: [ getRealTimeViewersCount ],
     validator: {
       type: 'object',
@@ -44,12 +50,12 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/room/:roomId/status',
+    uri: '/room/status',
     middlewares: [ getStatus ],
   },
   {
     verb: 'post',
-    uri: '/room/:roomId/record/start',
+    uri: '/room/record/start',
     middlewares: [ startRecord ],
     validator: {
       type: 'object',
@@ -65,7 +71,7 @@ const routes = [
   },
   {
     verb: 'post',
-    uri: '/room/:roomId/record/cancel',
+    uri: '/room/record/cancel',
     middlewares: [ cancelRecord ],
     validator: {
       type: 'object',
@@ -78,8 +84,14 @@ const routes = [
   },
   {
     verb: 'get',
-    uri: '/room/:roomId/record/status',
+    uri: '/room/record/status',
     middlewares: [ getRecordStatus ],
+    validator: {
+      type: 'object',
+      properties: {
+        roomId: { type: 'string' },
+      },
+    },
   },
 ]
 
@@ -96,20 +108,25 @@ async function connect(ctx) {
   const bilibiliWSClient = new BilibiliWSClient()
   await bilibiliWSClient.connect({ userId: Number(uid) || 0, roomId: Number(roomId) })
 
-  client.room.id = roomId
-  client.room.liveStatus = 1
+  let room = client.rooms.find((r: any) => r.id === roomId)
+  if (!room) {
+    room = { id: roomId, userId: '', liveStatus: 0, liveStream: '', autoReplyRules: [], record: { id: '', isRecording: false, startedAt: 0 } }
+    client.rooms.push(room)
+  }
+  room.liveStatus = 1
   client.bilibiliWSClient = bilibiliWSClient
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function disconnect(ctx) {
-  const { clientId } = ctx.__body
+  const { clientId, roomId } = ctx.__body
   const client = getClient(clientId)
   if (!client.bilibiliWSClient) throw new Error(ERROR.SYSTEM_ERROR)
 
   await client.bilibiliWSClient.close()
-  client.room.liveStatus = 0
+  const room = client.rooms.find((r: any) => r.id === roomId)
+  if (room) room.liveStatus = 0
   client.bilibiliWSClient = null
   ctx.body = COMMON_RESPONSE
 }
@@ -129,13 +146,15 @@ async function getRealTimeViewersCount(ctx) {
 
 async function getStatus(ctx) {
   const { clientId } = ctx.__body
+  const { roomId } = ctx.params
   const client = getClient(clientId)
+  const room = client.rooms.find((r: any) => r.id === roomId)
 
   ctx.body = {
     message: 'ok',
     data: {
-      roomId: client.room.id,
-      isConnected: !!client.room.liveStatus,
+      roomId: room?.id || '',
+      isConnected: !!room?.liveStatus,
     },
   }
 }
@@ -153,25 +172,28 @@ async function startRecord(ctx) {
     cookie: withCookie ? client.user?.cookie || null : null,
   })
 
-  client.record = { id, isRecording: true, startAt: Date.now() }
+  const room = client.rooms.find((r: any) => r.id === roomId)
+  if (room) room.record = { id, isRecording: true, startedAt: Date.now() }
 
   ctx.body = { message: 'ok', data: { id } }
 }
 
 async function cancelRecord(ctx) {
-  const { recordId, clientId } = ctx.__body
+  const { recordId, clientId, roomId } = ctx.__body
   const client = getClient(clientId)
 
   await biliRecordService.cancel({ id: recordId })
-  client.record = { id: '', isRecording: false, startAt: 0 }
+  const room = client.rooms.find((r: any) => r.id === roomId)
+  if (room) room.record = { id: '', isRecording: false, startedAt: 0 }
   ctx.body = COMMON_RESPONSE
 }
 
 async function getRecordStatus(ctx) {
-  const { clientId } = ctx.__body
+  const { clientId, roomId } = ctx.__body
   const client = getClient(clientId)
+  const room = client.rooms.find((r: any) => r.id === roomId)
 
-  ctx.body = { message: 'ok', data: client.record }
+  ctx.body = { message: 'ok', data: room?.record }
 }
 
 export default routes

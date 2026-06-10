@@ -1,11 +1,11 @@
 // import _ from 'lodash'
 
-interface Client {
+export interface Client {
   id: string
-  SSEClient: any
-  bilibiliWSClient: any
-  style: any
-  
+  SSEClient?: any
+  bilibiliWSClient?: any
+  style?: any
+
   rooms: {
     id: string
     userId: string
@@ -20,7 +20,7 @@ interface Client {
     }
   }[]
 
-  user: {
+  user?: {
     id: string
     face: string
     cookie: string
@@ -29,10 +29,10 @@ interface Client {
     }
   }
 
-  ASR: {
+  ASR?: {
     instance: any
   }
-  MT: {
+  MT?: {
     instance: any
     fromLang?: string
     toLang?: string
@@ -57,6 +57,7 @@ interface State {
 // NEED INITIALIZATION
 export const state: Partial<State> = {
   port: 3000,
+  clients: [],
 } as const
 
 export default state
