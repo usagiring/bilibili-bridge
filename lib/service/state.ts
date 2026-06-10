@@ -11,6 +11,12 @@ interface Client {
     liveStatus: number
     liveStream: string
     autoReplyRules: any[]
+
+    record: {
+      id: string
+      isRecording: boolean
+      startedAt: number
+    }
   }
   user: {
     id: string
@@ -20,11 +26,7 @@ interface Client {
       name: string
     }
   }
-  record: {
-    id: string
-    isRecording: boolean
-    startedAt: number
-  }
+  
   ASR: {
     instance: any
   }

@@ -3,6 +3,10 @@ import { CMD, BILI_CMD } from '../const'
 import state from '../state'
 import { commentJob, interactJob, giftJob } from './pipeline'
 import sse from '../sse'
+import { db } from '../db'
+import { lotteries } from '../../model/lottery.sqlite'
+import * as fs from 'fs'
+import path from 'path'
 
 const saveAllBiliMessage = state.saveAllBiliMessage
 
@@ -75,7 +79,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
           max_time,
           room_id,
         } = msg.data
-        wss.broadcast({
+        sse.send(clientId, {
           cmd: CMD.ANCHOR_LOT_START,
           payload: {
             id,
@@ -100,7 +104,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
           award_users: awardUsers,
         } = msg.data
 
-        wss.broadcast({
+        sse.send(clientId, {
           cmd: CMD.ANCHOR_LOT_AWARD,
           payload: {
             id,
@@ -111,21 +115,20 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         })
 
         for (const awardUser of awardUsers) {
-          const lotteryData: LotteryDTO = {
+          await db.insert(lotteries).values({
             uid: awardUser.uid,
             uname: awardUser.uname,
             avatar: awardUser.face,
             awardedAt: Date.now(),
             description: `${award_name} (天选时刻)`,
-          }
-          await LotteryModel.insert(lotteryData)
+          })
         }
       }
 
       if (msg.cmd === BILI_CMD.WATCHED_CHANGE) {
         // {"num":3727,"text_small":"3727","text_large":"3727人看过"}
         const { num } = msg.data
-        wss.broadcast({
+        sse.send(clientId, {
           cmd: CMD.WATCHED_CHANGE,
           payload: {
             watchedNumber: num,
@@ -135,7 +138,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
       if (msg.cmd === BILI_CMD.LIKE_CHANGE) {
         // {"cmd":"LIKE_INFO_V3_UPDATE","data":{"click_count":6291}}
         const { click_count } = msg.data
-        wss.broadcast({
+        sse.send(clientId, {
           cmd: CMD.LIKE_CHANGE,
           payload: {
             likeNumber: click_count,
@@ -145,7 +148,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
 
       if (msg.cmd === BILI_CMD.ONLINE_COUNT) {
         const count = msg.data.count || 0
-        wss.broadcast({
+        sse.send(clientId, {
           cmd: CMD.ONLINE_COUNT,
           payload: {
             onlineNumber: count,
@@ -156,7 +159,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
   } else {
     if (data.cmd === BILI_CMD.ROOM_REAL_TIME_MESSAGE_UPDATE) {
       const { fans, fans_club } = data.data
-      wss.broadcast({
+      sse.send(clientId, {
         cmd: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE,
         payload: {
           fansNumber: fans,
@@ -177,6 +180,10 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
   }
 
   if (saveAllBiliMessage) {
-    OtherModel.insert({ raw: data })
+    const today = new Date().toISOString().slice(0, 10)
+    const dir = path.join(process.cwd(), 'data', 'messages')
+    fs.mkdirSync(dir, { recursive: true })
+    const filePath = path.join(dir, `${roomId}_${today}.jsonl`)
+    fs.appendFileSync(filePath, JSON.stringify({ ts: Date.now(), cmd: Array.isArray(data) ? data[0]?.cmd : data.cmd, roomId, data }) + '\n')
   }
 })

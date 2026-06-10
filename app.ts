@@ -5,7 +5,6 @@ import cors from '@koa/cors'
 import bodyParser from 'koa-bodyparser'
 import { send } from '@koa/send'
 import router from './lib/route'
-import wss from './lib/service/wss'
 import state from './lib/service/state'
 // 注册事件
 import './lib/service/bilibili/handler'
@@ -19,7 +18,7 @@ const app = new Koa()
 
 app.use(cors({
   origin: '*',
-  allowMethods: ['POST', 'OPTIONS', 'PUT', 'HEAD', 'DELETE', 'PATCH']
+  allowMethods: [ 'POST', 'OPTIONS', 'PUT', 'HEAD', 'DELETE', 'PATCH' ],
 }))
 app.use(bodyParser())
 app.use(logger())
@@ -45,10 +44,6 @@ app.use(async (ctx, next) => {
 
 app.use(router.routes())
 // .use(router.allowedMethods())
-
-const server = app.listen(port)
-
-wss.init(server)
 
 console.log(`listening port: ${port} ...`)
 export default app

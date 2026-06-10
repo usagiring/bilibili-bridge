@@ -86,3 +86,109 @@ export const HTTP_ERROR = {
     message: 'SYSTEM_ERROR',
   },
 } as const
+
+export const DEFAULT_STYLE = {
+  isShowFace: true,
+  isShowAnchorIcon: true,
+  isShowFanMedal: true,
+  faceSize: 24,
+  combineSimilarTime: 3000,
+  hiddenExpiredTime: 0,
+  showHeadlineThreshold: 30,
+  isShowInteractInfo: false,
+  showGiftCardThreshold: 0,
+  isShowSilverGift: false,
+  DMWindowOpacity: 1,
+  DMFont: 'unset',
+  isUseMiniGiftCard: false,
+  DMWindowBackground: "rgba(0, 0, 0, 0.3)",
+  adminIcon: "ios-home-outline",
+  isShowAdminIcon: false,
+  adminIconColor: 'coral',
+  DMChannelCount: 1,
+  DMChannelDelayTime: 20,
+
+  messageContainer0: {
+    background: 'rgba(0,0,0,0)',
+  },
+  messageUsername0: {
+    'font-size': '16px',
+    '--textStrokeWidth': '0px',
+    '--textStrokeColor': 'white',
+    color: 'white',
+  },
+  messageComment0: {
+    'font-size': '16px',
+    color: 'white',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+  },
+
+  messageContainer1: {
+    background: 'rgba(106,106,106,0.6)',
+  },
+  messageUsername1: {
+    'font-size': '16px',
+    '--textStrokeWidth': '0px',
+    '--textStrokeColor': 'crimson',
+    color: 'white',
+  },
+  messageComment1: {
+    'font-size': '16px',
+    color: 'white',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+  },
+
+  messageContainer2: {
+    background: 'rgba(106,106,106,0.6)',
+  },
+  messageUsername2: {
+    'font-size': '16px',
+    '--textStrokeWidth': '0.2px',
+    '--textStrokeColor': 'crimson',
+    color: 'white',
+  },
+  messageComment2: {
+    'font-size': '16px',
+    color: 'white',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+  },
+
+  messageContainer3: {
+    background: 'rgba(106,106,106,0.6)',
+  },
+  messageUsername3: {
+    'font-size': '16px',
+    '--textStrokeWidth': '0.2px',
+    '--textStrokeColor': 'crimson',
+    color: 'white',
+  },
+  messageComment3: {
+    'font-size': '16px',
+    color: 'white',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+  },
+
+  messageContainer99: {
+    background: 'rgba(0,0,0,0)',
+  },
+  messageUsername99: {
+    'font-size': '16px',
+    '--textStrokeWidth': '0px',
+    '--textStrokeColor': 'white',
+    color: 'white',
+  },
+  messageComment99: {
+    'font-size': '16px',
+    color: 'white',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+  },
+
+  messageContainerInteract: {
+    background: 'rgba(0,0,0,0)',
+  },
+  messageCommentInteract: {
+    'font-size': '16px',
+    color: 'white',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+  },
+}

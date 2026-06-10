@@ -1,70 +1,68 @@
 import BilibiliRecorder from "@tokine/bilibili-recorder"
 import { CMD } from "../const"
 import state from '../state'
+import sse from '../sse'
 
-const recorder = new BilibiliRecorder({
-  onRecordRate: ({
-    id,
-    bps,
-    totalSize,
-    roomId,
-  }) => {
-    const data = {
-      cmd: CMD.RECORD_RATE,
-      payload: {
-        id,
-        bps,
-        totalSize,
-        roomId,
-      },
-    }
-    wss.broadcast(data)
-  },
+const recorder = new BilibiliRecorder()
 
-  onRecordEnd: ({
-    id,
-    roomId,
-  }) => {
-    state.unset(`recordMap.${roomId}`)
-    const data: SocketPayload = {
-      cmd: CMD.RECORD_END,
-      payload: {
-        id,
-        roomId,
-      },
-    }
-    wss.broadcast(data)
-  },
+recorder.on('rate', ({
+  id,
+  bps,
+  totalSize,
+  roomId,
+  clientId,
+}) => {
+  sse.send(clientId, {
+    cmd: CMD.RECORD_RATE,
+    payload: {
+      id,
+      bps,
+      totalSize,
+      roomId,
+    },
+  })
+})
 
-  onRecordError: ({
-    id,
-    roomId,
-  }) => {
-    state.unset(`recordMap.${roomId}`)
-    const data: SocketPayload = {
-      cmd: CMD.RECORD_ERROR,
-      payload: {
-        id,
-        roomId,
-      },
-    }
-    wss.broadcast(data)
-  },
+recorder.on('end', ({
+  id,
+  roomId,
+  clientId,
+}) => {
+  sse.send(clientId, {
+    cmd: CMD.RECORD_END,
+    payload: {
+      id,
+      roomId,
+    },
+  })
+})
 
-  onRecordClose: ({
-    id,
-    roomId,
-  }) => {
-    state.unset(`recordMap.${roomId}`)
-    const data: SocketPayload = {
-      cmd: CMD.RECORD_CLOSE,
-      payload: {
-        id,
-        roomId,
-      },
-    }
-    wss.broadcast(data)
-  },
+recorder.on('error', ({
+  id,
+  roomId,
+  clientId,
+}) => {
+  sse.send(clientId, {
+    cmd: CMD.RECORD_ERROR,
+    payload: {
+      id,
+      roomId,
+    },
+  })
+})
+
+recorder.on('close', ({
+  id,
+  roomId,
+  clientId,
+}) => {
+  sse.send(clientId, {
+    cmd: CMD.RECORD_CLOSE,
+    payload: {
+      id,
+      roomId,
+    },
+  })
 })
 
 export async function record({

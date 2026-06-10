@@ -145,6 +145,7 @@ async function startRecord(ctx) {
   const client = getClient(clientId)
 
   const { id } = await biliRecordService.record({
+    clientId,
     roomId,
     output,
     qn,

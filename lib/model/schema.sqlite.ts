@@ -34,7 +34,3 @@ export type {
 // ── 抽奖记录 ──
 export { lotteries } from './lottery.sqlite'
 export type { LotteryRow, LotteryInsert } from './lottery.sqlite'
-
-// ── 原始消息 ──
-export { others } from './other.sqlite'
-export type { OtherRow, OtherInsert } from './other.sqlite'

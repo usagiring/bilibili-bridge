@@ -6,11 +6,44 @@ const CancelToken = axios.CancelToken
 const BASE_LIVE_URL = 'https://api.live.bilibili.com'
 const DOWNLOAD_TIMER_MS = 2000
 
+// ── 事件类型 ──
+
+export interface RecordRateData {
+  id: string
+  bps: number
+  totalSize: number
+  roomId: string
+  clientId?: string
+}
+
+export interface RecordEndData {
+  id: string
+  clientId?: string
+  roomId: string
+}
+
+export interface RecordErrorData {
+  id: string
+  roomId: string
+  clientId?: string
+}
+
+export interface RecordCloseData {
+  id: string
+  roomId: string
+  clientId?: string
+}
+
+export interface RecordEvents {
+  rate: (data: RecordRateData) => void
+  end: (data: RecordEndData) => void
+  error: (data: RecordErrorData) => void
+  close: (data: RecordCloseData) => void
+}
+
+// ── 配置 ──
+
 interface Option {
-  onRecordRate?: Function
-  onRecordEnd?: Function
-  onRecordError?: Function
-  onRecordClose?: Function
   axiosRequestConfig?: AxiosRequestConfig
 }
 
@@ -23,24 +56,17 @@ interface RecordParam {
   axiosRequestConfig?: AxiosRequestConfig
 }
 
+// ── 核心类 ──
+
 class BilibiliRecorder {
-  onRecordRate?: Function
-  onRecordEnd?: Function
-  onRecordError?: Function
-  onRecordClose?: Function
   axiosInstance: AxiosInstance
   sourceMap!: { [x: string]: CancelTokenSource }
+  private _listeners: { [K in keyof RecordEvents]?: RecordEvents[K][] } = {}
 
-  constructor(option: Option) {
-    this.onRecordRate = option?.onRecordRate
-    this.onRecordEnd = option?.onRecordEnd
-    this.onRecordError = option?.onRecordError
-    this.onRecordClose = option?.onRecordClose
-
+  constructor(option: Option = {}) {
     const defaultAxiosOptions = {
       headers: {
         origin: 'https://live.bilibili.com',
-        // Host: 'api.live.bilibili.com',
         referer: 'https://live.bilibili.com/',
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
       },
@@ -48,12 +74,34 @@ class BilibiliRecorder {
     this.axiosInstance = axios.create(Object.assign({}, defaultAxiosOptions, option.axiosRequestConfig || {}))
   }
 
+  /** 注册事件监听器 */
+  on<K extends keyof RecordEvents>(event: K, listener: RecordEvents[K]): void {
+    if (!this._listeners[event]) {
+      this._listeners[event] = []
+    }
+    this._listeners[event]!.push(listener)
+  }
+
+  /** 触发事件 */
+  private emit<K extends keyof RecordEvents>(event: K, data: Parameters<RecordEvents[K]>[0]): void {
+    const listeners = this._listeners[event]
+    if (listeners) {
+      for (const listener of listeners) {
+        try {
+          ;(listener as any)(data)
+        } catch {
+          // ignore listener errors
+        }
+      }
+    }
+  }
+
   async record(param: RecordParam) {
     const now = Date.now()
     const id = String(now)
     this.sourceMap = this.sourceMap ? { ...this.sourceMap, [id]: CancelToken.source() } : { [id]: CancelToken.source() }
 
-    const { roomId, output, qn, axiosRequestConfig } = param
+    const { roomId, clientId, output, qn, axiosRequestConfig } = param
     if (!roomId) throw new Error('roomId is required.')
     const playUrl = await this.getRandomPlayUrl(param)
 
@@ -68,16 +116,13 @@ class BilibiliRecorder {
       const delta = bufferSize.current - bufferSize.preTick
       const bps = delta / (DOWNLOAD_TIMER_MS / 1000)
       bufferSize.preTick = bufferSize.current
-      // this.emitter.emit(`${id}-download-rate`, { bps, totalSize: bufferSize.current })
 
-      if (this.onRecordRate) {
-        this.onRecordRate({
-          id,
-          bps,
-          totalSize: bufferSize.current,
-          roomId,
-        })
-      }
+      this.emit('rate', {
+        id,
+        bps,
+        totalSize: bufferSize.current,
+        roomId,
+      })
     }, DOWNLOAD_TIMER_MS)
 
     liveStream.on("data", (chunk: any) => {
@@ -86,45 +131,27 @@ class BilibiliRecorder {
     })
 
     liveStream.on("end", () => {
-      // this.emitter.emit(`${id}-download-end`)
       writeStream.end()
       delete this.sourceMap[id]
       clearInterval(dowloadTimer)
 
-      if (this.onRecordEnd) {
-        this.onRecordEnd({
-          id,
-          roomId,
-        })
-      }
+      this.emit('end', { id, clientId, roomId })
     })
 
     liveStream.on("error", (e: any) => {
-      // this.emitter.emit(`${id}-download-error`)
       writeStream.end()
       delete this.sourceMap[id]
       clearInterval(dowloadTimer)
 
-      if (this.onRecordError) {
-        this.onRecordError({
-          id,
-          roomId,
-        })
-      }
+      this.emit('error', { id, clientId, roomId })
     })
 
     liveStream.on("close", () => {
-      // this.emitter.emit(`${id}-download-close`)
       delete this.sourceMap[id]
       writeStream.end()
       clearInterval(dowloadTimer)
 
-      if (this.onRecordClose) {
-        this.onRecordClose({
-          id,
-          roomId,
-        })
-      }
+      this.emit('close', { id, clientId, roomId })
     })
 
     // TODO return stream ?

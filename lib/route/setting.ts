@@ -1,7 +1,6 @@
 import { pick } from 'lodash'
 import { CMD, HTTP_ERROR } from '../service/const'
 import state from '../service/state'
-import wss from '../service/wss'
 
 const routes = [
   {

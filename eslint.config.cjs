@@ -33,6 +33,7 @@ module.exports = [
       semi: ['error', 'never'],
       indent: ['warn', 2, { SwitchCase: 1 }],
       curly: ['warn', 'multi-line'],
+      'comma-spacing': ['warn', { before: false, after: true }],
       'prefer-const': 'warn',
       'no-var': 'error',
 
