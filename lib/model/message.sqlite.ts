@@ -107,3 +107,16 @@ export interface InteractInfo {
   type: 1 | 2 | 3 // 1:进入房间 2:关注直播间 3:分享直播间
   identities: number[]
 }
+
+// ── 分类 Extra 类型别名 ──
+/** 弹幕扩展字段 */
+export type CommentExtra = EmotMap
+
+/** 礼物扩展字段 */
+export type GiftExtra = GiftInfo
+
+/** SC 扩展字段 */
+export type SuperChatExtra = GiftInfo
+
+/** 互动扩展字段 */
+export type InteractExtra = InteractInfo

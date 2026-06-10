@@ -6,7 +6,6 @@ import { CMD } from './const'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
 import type { SendMessage } from './bilibili/sdk'
 // import tts from './tts'
-import wss from './wss'
 
 interface Message {
   type: 'comment' | 'gift' | 'interact' | 'superchat'
@@ -44,260 +43,260 @@ interface Tag {
 //     sendUserCache = {}
 // }, 60 * 1000 * 10) // TODO config
 
-event.on(CMD.AUTO_REPLY, async (message: Message) => {
-  const autoReplyRules = state.autoReplyRules
-  const roomId = message.roomId
-  const isConnected = state.get(`connectionPoolMap.${roomId}.isConnected`)
-  if (!roomId || !isConnected || !autoReplyRules?.length) return
+// event.on(CMD.AUTO_REPLY, async (message: Message) => {
+//   const autoReplyRules = state.autoReplyRules
+//   const roomId = message.roomId
+//   const isConnected = state.get(`connectionPoolMap.${roomId}.isConnected`)
+//   if (!roomId || !isConnected || !autoReplyRules?.length) return
 
-  // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
-  // if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
+//   // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
+//   // if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
 
-  const autoReplyRulesSorted: Rule[] = autoReplyRules.filter(rule => rule.type === message.type)
-  for (const rule of autoReplyRulesSorted) {
-    const isPass = await isPassed(message, rule)
-    if (!isPass) continue
+//   const autoReplyRulesSorted: Rule[] = autoReplyRules.filter(rule => rule.type === message.type)
+//   for (const rule of autoReplyRulesSorted) {
+//     const isPass = await isPassed(message, rule)
+//     if (!isPass) continue
 
-    // 执行逻辑
-    let text = rule.text
-    if (!text) continue
-    text = text.replace('{user.name}', message.uname)
-    text = text.replace('{user}', message.uname)
+//     // 执行逻辑
+//     let text = rule.text
+//     if (!text) continue
+//     text = text.replace('{user.name}', message.uname)
+//     text = text.replace('{user}', message.uname)
 
-    text = text.replace('{gift.name}', message.giftName || '')
-    text = text.replace('{gift}', message.giftName || '')
+//     text = text.replace('{gift.name}', message.giftName || '')
+//     text = text.replace('{gift}', message.giftName || '')
 
-    text = text.replace('{comment.content}', message.content || '')
-    text = text.replace('{comment}', message.content || '')
+//     text = text.replace('{comment.content}', message.content || '')
+//     text = text.replace('{comment}', message.content || '')
 
-    text = text.replace('{superchat.content}', message.content || '')
-    text = text.replace('{superchat}', message.content || '')
+//     text = text.replace('{superchat.content}', message.content || '')
+//     text = text.replace('{superchat}', message.content || '')
 
-    let isAtUser = false
-    if (text.includes('{@user}')) {
-      isAtUser = true
-      text = text.replace('{@user}', '')
-    }
+//     let isAtUser = false
+//     if (text.includes('{@user}')) {
+//       isAtUser = true
+//       text = text.replace('{@user}', '')
+//     }
 
-    for (const tag of rule.tags) {
-      const userCookie = state.get('userCookie')
-      if (tag.key === 'TEXT_REPLY' && userCookie) {
-        const cookies = parseCookie(userCookie)
-        const me = cookies.DedeUserID
+//     for (const tag of rule.tags) {
+//       const userCookie = state.get('userCookie')
+//       if (tag.key === 'TEXT_REPLY' && userCookie) {
+//         const cookies = parseCookie(userCookie)
+//         const me = cookies.DedeUserID
 
-        // 当前房间主播ID
-        const roomUserId = state.get('roomUserId')
+//         // 当前房间主播ID
+//         const roomUserId = state.get('roomUserId')
 
-        // 仅在自己直播间生效 或者 开启所有用户回复设置
-        if (tag.data?.allowAllUserDanmakuReply || `${me}` === `${roomUserId}`) {
-          // do nothing
-        } else {
-          continue
-        }
+//         // 仅在自己直播间生效 或者 开启所有用户回复设置
+//         if (tag.data?.allowAllUserDanmakuReply || `${me}` === `${roomUserId}`) {
+//           // do nothing
+//         } else {
+//           continue
+//         }
 
-        const data: SendMessage = {
-          roomId,
-          message: text,
-        }
-        if (isAtUser) {
-          data.replyMid = message.uid
-        }
-        sendMessage(data, userCookie)
+//         const data: SendMessage = {
+//           roomId,
+//           message: text,
+//         }
+//         if (isAtUser) {
+//           data.replyMid = message.uid
+//         }
+//         sendMessage(data, userCookie)
 
-        // 记录被回复的uid，一段时间内不再回复
-        // sendUserCache[cacheKey] = {
-        //     sendAt: Date.now(),
-        //     name: message.uname
-        // }
-      }
+//         // 记录被回复的uid，一段时间内不再回复
+//         // sendUserCache[cacheKey] = {
+//         //     sendAt: Date.now(),
+//         //     name: message.uname
+//         // }
+//       }
 
-      // if (tag.key === 'SPEAK_REPLY' && isReadySpeak) {
-      //     isReadySpeak = false
-      //     const { voice, speed } = tag.data
-      //     tts(text, {
-      //         voice,
-      //         speed
-      //     })
-      //         .then(() => {
-      //             isReadySpeak = true
-      //         })
+//       // if (tag.key === 'SPEAK_REPLY' && isReadySpeak) {
+//       //     isReadySpeak = false
+//       //     const { voice, speed } = tag.data
+//       //     tts(text, {
+//       //         voice,
+//       //         speed
+//       //     })
+//       //         .then(() => {
+//       //             isReadySpeak = true
+//       //         })
 
-      //     // 记录被回复的uid，一段时间内不再回复
-      //     sendUserCache[cacheKey] = {
-      //         sendAt: Date.now(),
-      //         name: message.uname
-      //     }
-      // }
+//       //     // 记录被回复的uid，一段时间内不再回复
+//       //     sendUserCache[cacheKey] = {
+//       //         sendAt: Date.now(),
+//       //         name: message.uname
+//       //     }
+//       // }
 
-      if (tag.key === 'SPEAK_REPLY') {
-        const { voice, speed } = tag.data || {}
-        wss.broadcast({
-          cmd: CMD.SPEAK,
-          payload: {
-            text,
-            voice,
-            speed,
-          },
-        })
-      }
-    }
+//       if (tag.key === 'SPEAK_REPLY') {
+//         const { voice, speed } = tag.data || {}
+//         wss.broadcast({
+//           cmd: CMD.SPEAK,
+//           payload: {
+//             text,
+//             voice,
+//             speed,
+//           },
+//         })
+//       }
+//     }
 
-    // 匹配到第一条规则之后跳过
-    break
-  }
-})
+//     // 匹配到第一条规则之后跳过
+//     break
+//   }
+// })
 
-async function isPassed(message, rule) {
-  if (!rule.enable) return false
-  for (const tag of rule.tags) {
-    if (tag.key === 'LEVEL') {
-      // const { level } = tag.data || {}
-      // if(level && lel)
-    }
-    if (tag.key === 'ROLE') {
-      const { roles } = tag.data || {}
-      // 如果没有role字段表示无法确定身份，不通过
-      if (!Number.isFinite(message.role)) return false
-      if (roles && roles.length && !roles.includes(message.role)) {
-        return false
-      }
-    }
-    if (tag.key === 'FILTER') {
-      const { filter } = tag.data || {}
-      if (filter && message.content) {
-        const regexp = new RegExp(filter)
-        if (!regexp.test(message.content)) {
-          return false
-        }
-      }
-    }
-    if (tag.key === 'GIFT') {
-      if (!Number.isFinite(message.giftId)) return false
-      const { giftIds } = tag.data || {}
-      if (giftIds && giftIds.length && Number.isFinite(message.giftId)) {
-        if (!giftIds.includes(`${message.giftId}`)) {
-          return false
-        }
-      }
-    }
-    if (tag.key === 'MEDAL') {
-      if (!message.medalName) return false
-      const medalName = state.get('medalName')
-      if (message.medalName !== medalName) {
-        return false
-      }
-    }
-    if (tag.key === 'GOLD') {
-      if (message.coinType !== 1) {
-        return false
-      }
-    }
-    if (tag.key === 'SILVER') {
-      if (message.coinType !== 2) {
-        return false
-      }
-    }
-  }
+// async function isPassed(message, rule) {
+//   if (!rule.enable) return false
+//   for (const tag of rule.tags) {
+//     if (tag.key === 'LEVEL') {
+//       // const { level } = tag.data || {}
+//       // if(level && lel)
+//     }
+//     if (tag.key === 'ROLE') {
+//       const { roles } = tag.data || {}
+//       // 如果没有role字段表示无法确定身份，不通过
+//       if (!Number.isFinite(message.role)) return false
+//       if (roles && roles.length && !roles.includes(message.role)) {
+//         return false
+//       }
+//     }
+//     if (tag.key === 'FILTER') {
+//       const { filter } = tag.data || {}
+//       if (filter && message.content) {
+//         const regexp = new RegExp(filter)
+//         if (!regexp.test(message.content)) {
+//           return false
+//         }
+//       }
+//     }
+//     if (tag.key === 'GIFT') {
+//       if (!Number.isFinite(message.giftId)) return false
+//       const { giftIds } = tag.data || {}
+//       if (giftIds && giftIds.length && Number.isFinite(message.giftId)) {
+//         if (!giftIds.includes(`${message.giftId}`)) {
+//           return false
+//         }
+//       }
+//     }
+//     if (tag.key === 'MEDAL') {
+//       if (!message.medalName) return false
+//       const medalName = state.get('medalName')
+//       if (message.medalName !== medalName) {
+//         return false
+//       }
+//     }
+//     if (tag.key === 'GOLD') {
+//       if (message.coinType !== 1) {
+//         return false
+//       }
+//     }
+//     if (tag.key === 'SILVER') {
+//       if (message.coinType !== 2) {
+//         return false
+//       }
+//     }
+//   }
 
-  return true
-}
+//   return true
+// }
 
-let muteCommandCache = {}
-setInterval(() => {
-  // TODO
-  muteCommandCache = {}
-}, 60 * 1000 * 10) // 10min
+// let muteCommandCache = {}
+// setInterval(() => {
+//   // TODO
+//   muteCommandCache = {}
+// }, 60 * 1000 * 10) // 10min
 
-event.on(CMD.DANMAKU_COMMAND, async (comment) => {
-  const muteCommandSetting = state.get('muteCommandSetting')
-  if (!muteCommandSetting) return
-  const userCookie = state.get('userCookie')
-  if (!userCookie) return
-  const { count, enable, roles, useHintText } = muteCommandSetting
-  if (!enable) return
+// event.on(CMD.DANMAKU_COMMAND, async (comment) => {
+//   const muteCommandSetting = state.get('muteCommandSetting')
+//   if (!muteCommandSetting) return
+//   const userCookie = state.get('userCookie')
+//   if (!userCookie) return
+//   const { count, enable, roles, useHintText } = muteCommandSetting
+//   if (!enable) return
 
-  const { content, roomId, isAdmin, role, uid } = comment
-  const keyword = muteCommandSetting.keyword || '#禁言:'
-  if (!content.startsWith(keyword)) return
-  const username = content.replace(keyword, '').trim()
-  // [] = all
-  // [1, 2, 3, admin, owner]
-  // 当前房间主播ID
-  const roomUserId = state.get('roomUserId')
-  const isOwner = roomUserId && `${roomUserId}` === `${uid}`
-  if (
-    roles?.length &&
-    !roles.includes(`${role}`) &&
-    !(isAdmin && roles.includes('admin')) &&
-    !(isOwner && roles.includes('owner'))
-  ) {
-    return
-  }
+//   const { content, roomId, isAdmin, role, uid } = comment
+//   const keyword = muteCommandSetting.keyword || '#禁言:'
+//   if (!content.startsWith(keyword)) return
+//   const username = content.replace(keyword, '').trim()
+//   // [] = all
+//   // [1, 2, 3, admin, owner]
+//   // 当前房间主播ID
+//   const roomUserId = state.get('roomUserId')
+//   const isOwner = roomUserId && `${roomUserId}` === `${uid}`
+//   if (
+//     roles?.length &&
+//     !roles.includes(`${role}`) &&
+//     !(isAdmin && roles.includes('admin')) &&
+//     !(isOwner && roles.includes('owner'))
+//   ) {
+//     return
+//   }
 
-  if (muteCommandCache[content] && muteCommandCache[content].expiredAt > new Date().getTime()) {
-    if (!muteCommandCache[content].uids?.[uid]) {
-      muteCommandCache[content].current++
-      muteCommandCache[content].uids[uid] = true
-    }
-  } else {
-    muteCommandCache[content] = {
-      uids: { [uid]: true },
-      expiredAt: new Date().getTime() + 60 * 1000, // 1min
-      current: 1,
-      count,
-      isSendHintText: false,
-    }
-  }
+//   if (muteCommandCache[content] && muteCommandCache[content].expiredAt > new Date().getTime()) {
+//     if (!muteCommandCache[content].uids?.[uid]) {
+//       muteCommandCache[content].current++
+//       muteCommandCache[content].uids[uid] = true
+//     }
+//   } else {
+//     muteCommandCache[content] = {
+//       uids: { [uid]: true },
+//       expiredAt: new Date().getTime() + 60 * 1000, // 1min
+//       current: 1,
+//       count,
+//       isSendHintText: false,
+//     }
+//   }
 
-  const { current: __current, count: __count, isSendHintText } = muteCommandCache[content]
-  if (__current < __count) {
-    // sendHintText()
-    if (!useHintText) return
-    if (isSendHintText) return
-    let hintText = muteCommandSetting.hintText
-    hintText = hintText.replace('{user}', username)
-    hintText = hintText.replace('{count}', __count)
-    sendMessage({
-      roomId,
-      message: hintText,
-    }, userCookie)
-    muteCommandCache[content].isSendHintText = true
-    return
-  }
+//   const { current: __current, count: __count, isSendHintText } = muteCommandCache[content]
+//   if (__current < __count) {
+//     // sendHintText()
+//     if (!useHintText) return
+//     if (isSendHintText) return
+//     let hintText = muteCommandSetting.hintText
+//     hintText = hintText.replace('{user}', username)
+//     hintText = hintText.replace('{count}', __count)
+//     sendMessage({
+//       roomId,
+//       message: hintText,
+//     }, userCookie)
+//     muteCommandCache[content].isSendHintText = true
+//     return
+//   }
 
-  try {
-    const { data } = await searchUser({ name: username }, userCookie)
-    const user = data?.items?.[0]
-    if (!user) return
-    // {
-    //  "uid": 0,
-    //  "face": "",
-    //  "uname": ""
-    // }
+//   try {
+//     const { data } = await searchUser({ name: username }, userCookie)
+//     const user = data?.items?.[0]
+//     if (!user) return
+//     // {
+//     //  "uid": 0,
+//     //  "face": "",
+//     //  "uname": ""
+//     // }
 
-    // 成功与否都返回 {}
-    await addSilentUser({
-      roomId,
-      tuid: user.uid,
-    }, userCookie)
+//     // 成功与否都返回 {}
+//     await addSilentUser({
+//       roomId,
+//       tuid: user.uid,
+//     }, userCookie)
 
-    wss.broadcast({
-      cmd: CMD.DANMAKU_COMMAND_RESULT,
-      payload: {
-        status: 'success',
-        type: 'mute',
-        message: 'ok',
-        user,
-      },
-    })
-  } catch (e) {
-    wss.broadcast({
-      cmd: CMD.DANMAKU_COMMAND_RESULT,
-      payload: {
-        status: 'failed',
-        type: 'mute',
-        message: (e as Error).message,
-      },
-    })
-  }
-})
+//     wss.broadcast({
+//       cmd: CMD.DANMAKU_COMMAND_RESULT,
+//       payload: {
+//         status: 'success',
+//         type: 'mute',
+//         message: 'ok',
+//         user,
+//       },
+//     })
+//   } catch (e) {
+//     wss.broadcast({
+//       cmd: CMD.DANMAKU_COMMAND_RESULT,
+//       payload: {
+//         status: 'failed',
+//         type: 'mute',
+//         message: (e as Error).message,
+//       },
+//     })
+//   }
+// })

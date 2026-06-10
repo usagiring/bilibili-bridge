@@ -1,5 +1,4 @@
 import BilibiliRecorder from "@tokine/bilibili-recorder"
-import wss, { SocketPayload } from "../wss"
 import { CMD } from "../const"
 import state from '../state'
 
@@ -10,7 +9,7 @@ const recorder = new BilibiliRecorder({
     totalSize,
     roomId,
   }) => {
-    const data: SocketPayload = {
+    const data = {
       cmd: CMD.RECORD_RATE,
       payload: {
         id,
@@ -69,12 +68,14 @@ const recorder = new BilibiliRecorder({
 })
 
 export async function record({
+  clientId,
   roomId,
   output,
   qn,
   platform,
   cookie,
 }: {
+  clientId: string
   roomId: string
   output: string
   qn?: number
@@ -82,6 +83,7 @@ export async function record({
   cookie?: string
 }) {
   const { id } = await recorder.record({
+    clientId,
     roomId,
     output,
     qn,

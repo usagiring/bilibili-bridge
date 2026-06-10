@@ -15,17 +15,9 @@
 export { clients } from './client.sqlite'
 export type { ClientRow, ClientInsert } from './client.sqlite'
 
-// ── 客户端-房间关联 ──
-export { clientRooms } from './client-room.sqlite'
-export type { ClientRoomRow, ClientRoomInsert, ClientRoomFeatures } from './client-room.sqlite'
-
 // ── 用户 ──
 export { users } from './user.sqlite'
 export type { UserRow, UserInsert } from './user.sqlite'
-
-// ── 直播间 ──
-export { rooms } from './room.sqlite'
-export type { RoomRow, RoomInsert } from './room.sqlite'
 
 // ── 统一消息 ──
 export { messages } from './message.sqlite'
@@ -46,4 +38,3 @@ export type { LotteryRow, LotteryInsert } from './lottery.sqlite'
 // ── 原始消息 ──
 export { others } from './other.sqlite'
 export type { OtherRow, OtherInsert } from './other.sqlite'
-

@@ -5,12 +5,12 @@ interface Client {
   SSEClient: any
   bilibiliWSClient: any
   render: any
-  autoReplyRules: any[]
   room: {
     id: string
     userId: string
     liveStatus: number
     liveStream: string
+    autoReplyRules: any[]
   }
   user: {
     id: string
@@ -33,10 +33,6 @@ interface Client {
     fromLang?: string
     toLang?: string
   }
-  /** ASR 实时流 */
-  liveStream?: any
-  /** 语音识别 Token */
-  aliToken?: string
 }
 
 interface State {

@@ -15,6 +15,7 @@ interface Option {
 }
 
 interface RecordParam {
+  clientId?: string
   roomId: string
   output: string
   qn?: number,
@@ -28,7 +29,7 @@ class BilibiliRecorder {
   onRecordError?: Function
   onRecordClose?: Function
   axiosInstance: AxiosInstance
-  sourceMap: { [x: string]: CancelTokenSource }
+  sourceMap!: { [x: string]: CancelTokenSource }
 
   constructor(option: Option) {
     this.onRecordRate = option?.onRecordRate
@@ -60,7 +61,7 @@ class BilibiliRecorder {
     const liveStream = await this.getLiveStream({ playUrl, id, axiosRequestConfig })
     const bufferSize = {
       current: 0,
-      preTick: 0
+      preTick: 0,
     }
 
     const dowloadTimer = setInterval(() => {
@@ -74,12 +75,12 @@ class BilibiliRecorder {
           id,
           bps,
           totalSize: bufferSize.current,
-          roomId: roomId,
+          roomId,
         })
       }
     }, DOWNLOAD_TIMER_MS)
 
-    liveStream.on("data", (chunk) => {
+    liveStream.on("data", (chunk: any) => {
       bufferSize.current = bufferSize.current + chunk.length
       writeStream.write(Buffer.from(chunk))
     })
@@ -93,12 +94,12 @@ class BilibiliRecorder {
       if (this.onRecordEnd) {
         this.onRecordEnd({
           id,
-          roomId: roomId,
+          roomId,
         })
       }
     })
 
-    liveStream.on("error", (e) => {
+    liveStream.on("error", (e: any) => {
       // this.emitter.emit(`${id}-download-error`)
       writeStream.end()
       delete this.sourceMap[id]
@@ -107,7 +108,7 @@ class BilibiliRecorder {
       if (this.onRecordError) {
         this.onRecordError({
           id,
-          roomId: roomId,
+          roomId,
         })
       }
     })
@@ -121,14 +122,14 @@ class BilibiliRecorder {
       if (this.onRecordClose) {
         this.onRecordClose({
           id,
-          roomId: roomId,
+          roomId,
         })
       }
     })
 
     // TODO return stream ?
     return {
-      id
+      id,
     }
   }
 
@@ -145,7 +146,7 @@ class BilibiliRecorder {
     roomId,
     platform,
     qn,
-    axiosRequestConfig = {}
+    axiosRequestConfig = {},
   }: RecordParam) {
     if (!roomId) {
       throw new Error('not found roomId.')
@@ -165,11 +166,11 @@ class BilibiliRecorder {
   async getLiveStream({
     playUrl,
     id,
-    axiosRequestConfig = {}
+    axiosRequestConfig = {},
   }: {
     playUrl: string
     id?: string
-    axiosRequestConfig: AxiosRequestConfig
+    axiosRequestConfig?: AxiosRequestConfig
   }) {
     const _id = id || Object.keys(this.sourceMap)[0]
     if (!_id) {

@@ -1,10 +1,7 @@
 import event from '../event'
 import { CMD, BILI_CMD } from '../const'
 import state from '../state'
-import wss from '../wss'
 import { commentJob, interactJob, giftJob } from './pipeline'
-import { LotteryDTO, Model as LotteryModel } from '../../model/lottery'
-import { Model as OtherModel } from '../../model/other'
 import sse from '../sse'
 
 const saveAllBiliMessage = state.saveAllBiliMessage

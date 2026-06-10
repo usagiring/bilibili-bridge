@@ -130,6 +130,10 @@ importers:
       axios:
         specifier: ^1.7.2
         version: 1.16.1
+    devDependencies:
+      '@types/node':
+        specifier: ^25.8.0
+        version: 25.8.0
 
   packages/mt:
     dependencies:

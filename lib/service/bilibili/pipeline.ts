@@ -162,6 +162,11 @@ export async function giftJob({ msg, roomId, clientId }) {
   db.insert(messages).values(gift).run()
 }
 
+const roleTransformMap = {
+  1: 3, // 总督
+  2: 2, // 提督
+  3: 1, // 舰长
+}
 export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
   if (!msg.cmd.includes(BILI_CMD.DANMU_MSG)) return
   const dmV2 = msg.dm_v2
@@ -194,8 +199,9 @@ export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
     face = user.base?.face
   }
 
-  const roles = [ msg.info[7] ]
-  if (isAdmin) roles.push(4)
+  const roles = [ roleTransformMap[msg.info[7]] ]
+  if (isAdmin) roles.push(98)
+  // TODO 房主
 
   const comment: MessageInsert = {
     roomId,
