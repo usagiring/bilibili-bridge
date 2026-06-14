@@ -6,10 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "pnpm --filter @tokine/asr --filter @tokine/mt --filter @tokine/bilibili-recorder run build && tsc && cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
-    "start": "node ./dist/index",
+    "start": "node ./dist/app",
     "start:test": "node ./bin/run-test.js",
-    "dev": "tsx watch index.ts",
-    "dev:win": "tsx watch index.ts",
+    "dev": "tsx watch app.ts",
+    "dev:win": "tsx watch app.ts",
     "test": "mocha",
     "lint": "eslint \"lib/**/*.ts\" \"packages/*/src/**/*.ts\"",
     "format": "eslint --fix \"lib/**/*.ts\" \"packages/*/src/**/*.ts\"",

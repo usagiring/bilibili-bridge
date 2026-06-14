@@ -2,7 +2,7 @@ import { db } from '../service/db'
 import { clients } from '../model/schema.sqlite'
 import { eq } from 'drizzle-orm'
 
-import { createClient, getClient, omitInstance } from '../service/client'
+import { createClient, getClient } from '../service/client'
 import { set } from 'lodash'
 
 const routes = [
@@ -36,13 +36,13 @@ const routes = [
       type: 'object',
       properties: {
         clientId: { type: 'string' },
-        KVs: {
+        kvs: {
           type: 'array',
           items: {
             type: 'object',
             properties: {
               key: { type: 'string' },
-              value: { type: 'string' },
+              // value: { type: 'any' },
             },
           },
         },
@@ -86,27 +86,28 @@ function getConfig(ctx) {
     return
   }
 
-  ctx.body = { message: 'ok', data: omitInstance(client) }
+  ctx.body = { message: 'ok', data: client.config }
 }
 
 function updateConfig(ctx) {
-  const { clientId, KVs } = ctx.__body
+  const { clientId, kvs } = ctx.__body
 
-  const client = omitInstance(getClient(clientId))
+  const client = getClient(clientId)
+  const config = client.config || {}
 
-  KVs.forEach(({ key, value }: { key: string, value: any }) => {
-    set(client, key, value)
+  kvs.forEach(({ key, value }: { key: string, value: any }) => {
+    set(config, key, value)
   })
 
   db.update(clients)
     .set({
-      ...client,
+      config,
       updatedAt: Date.now(),
     })
     .where(eq(clients.id, clientId))
     .run()
 
-  ctx.body = { message: 'ok', data: client }
+  ctx.body = { message: 'ok', data: config }
 }
 
 export default routes

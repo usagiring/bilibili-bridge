@@ -4,8 +4,9 @@ import { getRoomInfoV2 } from '../service/bilibili/sdk'
 import { sql } from 'drizzle-orm'
 import { messages } from '../model/message.sqlite'
 import { db } from '../service/db'
-import { getClient } from '../service/client'
+import { getClient, getUserCookie } from '../service/client'
 import * as biliRecordService from '../service/bilibili/record'
+import { state } from '../service/state'
 
 const routes = [
   {
@@ -21,6 +22,8 @@ const routes = [
       type: 'object',
       properties: {
         roomId: { type: 'string' },
+        userId: { type: 'string' },
+        clientId: { type: 'string' },
       },
     },
   },
@@ -102,32 +105,35 @@ async function getRoomInfo(ctx) {
 }
 
 async function connect(ctx) {
-  const { roomId, uid, clientId } = ctx.__body
-  const client = getClient(clientId)
+  const { roomId, userId, clientId } = ctx.__body
 
-  const bilibiliWSClient = new BilibiliWSClient()
-  await bilibiliWSClient.connect({ userId: Number(uid) || 0, roomId: Number(roomId) })
+  const instance = state.bilibiliWSInstances.find(i => i.roomId === roomId)
+  if (!instance) {
+    const bilibiliWSClient = new BilibiliWSClient()
+    await bilibiliWSClient.connect({ userId: Number(userId) || 0, roomId: Number(roomId) })
 
-  let room = client.rooms.find((r: any) => r.id === roomId)
-  if (!room) {
-    room = { id: roomId, userId: '', liveStatus: 0, liveStream: '', autoReplyRules: [], record: { id: '', isRecording: false, startedAt: 0 } }
-    client.rooms.push(room)
+    state.bilibiliWSInstances?.push({
+      instance: bilibiliWSClient,
+      roomId,
+      userId,
+      clientId,
+    })
   }
-  room.liveStatus = 1
-  client.bilibiliWSClient = bilibiliWSClient
 
   ctx.body = COMMON_RESPONSE
 }
 
 async function disconnect(ctx) {
   const { clientId, roomId } = ctx.__body
-  const client = getClient(clientId)
-  if (!client.bilibiliWSClient) throw new Error(ERROR.SYSTEM_ERROR)
 
-  await client.bilibiliWSClient.close()
-  const room = client.rooms.find((r: any) => r.id === roomId)
-  if (room) room.liveStatus = 0
-  client.bilibiliWSClient = null
+  const instance = state.bilibiliWSInstances.find(instance => instance.roomId === roomId)
+  if (instance) {
+    await instance.instance.close()
+    state.bilibiliWSInstances = state.bilibiliWSInstances?.filter(i => i.roomId !== roomId)
+  } else {
+    // throw new Error(ERROR.SYSTEM_ERROR)
+  }
+
   ctx.body = COMMON_RESPONSE
 }
 
@@ -147,21 +153,20 @@ async function getRealTimeViewersCount(ctx) {
 async function getStatus(ctx) {
   const { clientId } = ctx.__body
   const { roomId } = ctx.params
-  const client = getClient(clientId)
-  const room = client.rooms.find((r: any) => r.id === roomId)
+  // const client = getClient(clientId)
+  // const room = client.rooms.find((r: any) => r.id === roomId)
 
-  ctx.body = {
-    message: 'ok',
-    data: {
-      roomId: room?.id || '',
-      isConnected: !!room?.liveStatus,
-    },
-  }
+  // ctx.body = {
+  //   message: 'ok',
+  //   data: {
+  //     roomId: room?.id || '',
+  //     isConnected: !!room?.liveStatus,
+  //   },
+  // }
 }
 
 async function startRecord(ctx) {
   const { roomId, output, qn, platform, withCookie, clientId } = ctx.__body
-  const client = getClient(clientId)
 
   const { id } = await biliRecordService.record({
     clientId,
@@ -169,11 +174,11 @@ async function startRecord(ctx) {
     output,
     qn,
     platform,
-    cookie: withCookie ? client.user?.cookie || null : null,
+    cookie: withCookie ? getUserCookie({ clientId }) || null : null,
   })
 
-  const room = client.rooms.find((r: any) => r.id === roomId)
-  if (room) room.record = { id, isRecording: true, startedAt: Date.now() }
+  // const room = client.rooms.find((r: any) => r.id === roomId)
+  // if (room) room.record = { id, isRecording: true, startedAt: Date.now() }
 
   ctx.body = { message: 'ok', data: { id } }
 }
@@ -183,17 +188,17 @@ async function cancelRecord(ctx) {
   const client = getClient(clientId)
 
   await biliRecordService.cancel({ id: recordId })
-  const room = client.rooms.find((r: any) => r.id === roomId)
-  if (room) room.record = { id: '', isRecording: false, startedAt: 0 }
+  // const room = client.rooms.find((r: any) => r.id === roomId)
+  // if (room) room.record = { id: '', isRecording: false, startedAt: 0 }
   ctx.body = COMMON_RESPONSE
 }
 
 async function getRecordStatus(ctx) {
   const { clientId, roomId } = ctx.__body
   const client = getClient(clientId)
-  const room = client.rooms.find((r: any) => r.id === roomId)
+  // const room = client.rooms.find((r: any) => r.id === roomId)
 
-  ctx.body = { message: 'ok', data: room?.record }
+  // ctx.body = { message: 'ok', data: room?.record }
 }
 
 export default routes

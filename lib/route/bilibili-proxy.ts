@@ -11,7 +11,7 @@ import {
   like as likeApi,
 } from '../service/bilibili/sdk'
 import { HTTP_ERROR } from '../service/const'
-import { getClient } from '../service/client'
+import { getUserCookie } from '../service/client'
 
 const routes = [
   // {
@@ -100,7 +100,7 @@ async function getRoomInfo(ctx) {
 
 async function getUserInfoInRoom(ctx) {
   const { roomId, clientId } = ctx.__body
-  const cookie = getClient(clientId).user?.cookie
+  const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
   ctx.body = await getInfoByUser(roomId, cookie)
 }
@@ -117,14 +117,14 @@ async function getGuardInfo(ctx) {
 
 async function sendComment(ctx) {
   const { roomId, comment, clientId } = ctx.__body
-  const cookie = getClient(clientId).user?.cookie
+  const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
   ctx.body = await sendMessage({ message: comment, roomId }, cookie)
 }
 
 async function wearMedal(ctx) {
   const { medalId, clientId } = ctx.__body
-  const cookie = getClient(clientId).user?.cookie
+  const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
   ctx.body = await wearMedalAPI(medalId, cookie)
 }
@@ -137,7 +137,7 @@ async function getRoomInfoByIds(ctx) {
 
 async function getMedalList(ctx) {
   const { page, pageSize, clientId } = ctx.__body
-  const cookie = getClient(clientId).user?.cookie
+  const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
   ctx.body = await getMedalListAPI({ page, pageSize, userCookie: cookie })
 }
@@ -148,7 +148,7 @@ async function getPlayUrl(ctx) {
   const playUrl = await getRandomPlayUrl({
     roomId,
     qn,
-    userCookie: withCookie ? getClient(clientId).user?.cookie || null : null,
+    userCookie: withCookie ? getUserCookie({ clientId }) : null,
   })
 
   ctx.body = { message: 'ok', data: { url: playUrl } }
@@ -156,7 +156,7 @@ async function getPlayUrl(ctx) {
 
 async function like(ctx) {
   const { roomId, ruid, count, clientId } = ctx.__body
-  const cookie = getClient(clientId).user?.cookie
+  const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
   ctx.body = await likeApi({ room_id: roomId, click_time: count, anchor_id: ruid }, cookie)
 }

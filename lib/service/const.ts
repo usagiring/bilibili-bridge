@@ -87,10 +87,23 @@ export const HTTP_ERROR = {
   },
 } as const
 
-export const DEFAULT_DM_STYLE = {
+interface Window {
+  id: string
+  type: 'live' | 'dm' | 'dmRaw' | 'asr'
+  roomId: number
+
+  x: number
+  y: number
+  width: number
+  height: number
+
+}
+
+const DM_STYLE = {
   isShowFace: true,
   isShowAnchorIcon: true,
   isShowFanMedal: true,
+  isShowHeadline: true,
   faceSize: 24,
   combineSimilarTime: 3000,
   hiddenExpiredTime: 0,
@@ -99,15 +112,24 @@ export const DEFAULT_DM_STYLE = {
   showGiftCardThreshold: 0,
   isShowSilverGift: false,
   font: 'unset',
+  fontWeight: '',
   isUseMiniGiftCard: false,
   adminIcon: "ios-home-outline",
   isShowAdminIcon: false,
   adminIconColor: 'coral',
+  isShowType1: false, // 显示节奏风暴弹幕
+  isShowType2: false, // 显示天选时刻弹幕
   channelCount: 1,
   channelDelayTime: 20,
+  isShowSuperChatJPN: false,
 
   windowOpacity: 1,
   windowBackground: "rgba(0, 0, 0, 0.3)",
+  isWindowAlwaysOnTop: false,
+
+  messageSettings: [],
+
+  borderImages: [],
 
   messageContainer0: {
     background: 'rgba(0,0,0,0)',
@@ -192,4 +214,123 @@ export const DEFAULT_DM_STYLE = {
     color: 'white',
     "--textStrokeColor": 'rgba(0,0,0,1)',
   },
+}
+
+const DM_RAW_STYLE = {
+  isWindowAlwaysOnTop: false,
+  windowOpacity: 1,
+  windowBackground: "rgba(0, 0, 0, 0.3)",
+
+  direction: '',
+  emojiSize: 24,
+  styleExtend: '',
+
+  windowOnTopLevel: '',
+  isWindowOnTopForce: false,
+  ignoreMouseEvent: true,
+}
+
+const LIVE_CONFIG = {
+  isWindowAlwaysOnTop: false,
+  windowOpacity: 1,
+  windowBackground: "rgba(0, 0, 0, 0.3)",
+  isWithCookie: false,
+  volume: 100,
+}
+
+const MESSAGE_CONFIG = {
+  isRealTimeMode: false,
+  isShowUserSpaceLink: false,
+}
+
+const ASR_CONFIG = {
+  showLineCount: 3,
+  audioFrom: '',
+  // ffmpegExe: string
+}
+
+const MT_CONFIG = {
+  fromLang: '',
+  toLang: '',
+  disableMircrophotoNoticeMessage: false,
+}
+
+const CHART_CONFIG = {
+  colors: [],
+}
+
+const RECORD_CONFIG = {
+  savePath: '',
+  quality: '',
+}
+
+interface Provider {
+  type: string
+  service: string
+  appKey: string
+  accessKeyId: string
+  accessKeySecret: string
+
+}
+
+export interface Room {
+  id: string
+  userId: string
+  liveStatus: number
+  liveStream: string
+
+  isAutoReply: boolean
+  autoReplyRules: any[]
+
+  voteOptions: Array<{ keyword: string; value: string }>
+}
+
+export const DEFAULT_CONFIG: Config = {
+  dmStyle: DM_STYLE,
+  dmRawStyle: DM_RAW_STYLE,
+  liveConfig: LIVE_CONFIG,
+  messageConfig: MESSAGE_CONFIG,
+  recordConfig: RECORD_CONFIG,
+  asrConfig: ASR_CONFIG,
+  mtConfig: MT_CONFIG,
+  chartConfig: CHART_CONFIG,
+
+  rooms: [],
+  windows: [],
+  providers: [],
+
+  recordDir: '',
+  isAutoRecord: false,
+  signInMessage: '111',
+  waitingSpeakerCount: 0,
+}
+
+interface User {
+  id: string
+  face: string
+  cookie: string
+}
+
+export interface Config {
+  // 全局设置
+  recordDir: string
+  isAutoRecord: boolean
+  signInMessage: string
+  isNeedRefreshCookieCache?: number
+  refreshToken?: string
+  waitingSpeakerCount?: number
+
+  user?: User,
+  rooms: Room[],
+  windows: Window[],
+  providers: Provider[],
+
+  dmStyle: any,
+  dmRawStyle: any,
+  liveConfig: any,
+  messageConfig: any,
+  recordConfig: any,
+  asrConfig: any,
+  mtConfig: any,
+  chartConfig: any,
 }

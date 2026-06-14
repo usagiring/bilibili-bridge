@@ -29,8 +29,8 @@ const routes = [
 
 async function status(ctx) {
   const { clientId } = ctx.__body
-  const client = getClient(clientId)
-  ctx.body = { message: client.ASR.instance ? '1' : '0' }
+  // const client = getClient(clientId)
+  // ctx.body = { message: client.ASR.instance ? '1' : '0' }
 }
 
 async function initial(ctx) {
@@ -58,34 +58,34 @@ async function initial(ctx) {
   asr.on('changed', (result: AsrResult) => sse.send(clientId, { cmd: CMD.ASR_SENTENCE_CHANGE, payload: result }))
 
   await asr.start()
-  client.ASR.instance = asr
-  ctx.body = COMMON_RESPONSE
+  // client.ASR.instance = asr
+  // ctx.body = COMMON_RESPONSE
 }
 
 async function liveStreamStart(ctx) {
   const { playUrl, ffmpegPath, clientId } = ctx.__body
   const client = getClient(clientId)
 
-  if (!client.ASR.instance) throw HTTP_ERROR.PARAMS_ERROR
+  // if (!client.ASR.instance) throw HTTP_ERROR.PARAMS_ERROR
 
-  if (ffmpegPath) setFfmpegPath(ffmpegPath)
+  // if (ffmpegPath) setFfmpegPath(ffmpegPath)
 
-  const stream = await getAudioStream({ url: playUrl })
-  const asr = client.ASR.instance
+  // const stream = await getAudioStream({ url: playUrl })
+  // const asr = client.ASR.instance
 
-  stream.on('data', (chunk: Buffer) => {
-    try {
-      asr.sendAudio(chunk)
-    } catch (e) {
-      console.error('send audio failed', e)
-      stream.end(null)
-      closeASR(client)
-    }
-  })
+  // stream.on('data', (chunk: Buffer) => {
+  //   try {
+  //     asr.sendAudio(chunk)
+  //   } catch (e) {
+  //     console.error('send audio failed', e)
+  //     stream.end(null)
+  //     closeASR(client)
+  //   }
+  // })
 
-  stream.on('close', () => console.log('stream close'))
-  stream.on('end', () => console.log('stream end'))
-  stream.on('error', () => console.log('stream error'))
+  // stream.on('close', () => console.log('stream close'))
+  // stream.on('end', () => console.log('stream end'))
+  // stream.on('error', () => console.log('stream error'))
 
   // client.liveStream = stream
   ctx.body = COMMON_RESPONSE
@@ -108,28 +108,28 @@ async function close(ctx) {
 }
 
 async function sendAudio(ctx) {
-  const { clientId, data } = ctx.__body
-  const client = getClient(clientId)
+  // const { clientId, data } = ctx.__body
+  // const client = getClient(clientId)
 
-  if (!client.ASR.instance) {
-    ctx.status = 400
-    ctx.body = { message: 'ASR 未初始化' }
-    return
-  }
-  if (!data) {
-    ctx.status = 400
-    ctx.body = { message: '缺少 data 字段' }
-    return
-  }
+  // if (!client.ASR.instance) {
+  //   ctx.status = 400
+  //   ctx.body = { message: 'ASR 未初始化' }
+  //   return
+  // }
+  // if (!data) {
+  //   ctx.status = 400
+  //   ctx.body = { message: '缺少 data 字段' }
+  //   return
+  // }
 
-  try {
-    client.ASR.instance.sendAudio(Buffer.from(new Int16Array(data).buffer))
-    ctx.body = { message: 'ok' }
-  } catch {
-    console.log('ASR sendAudio failed, closing...')
-    closeASR(client)
-    ctx.body = { message: 'ok', closed: true }
-  }
+  // try {
+  //   client.ASR.instance.sendAudio(Buffer.from(new Int16Array(data).buffer))
+  //   ctx.body = { message: 'ok' }
+  // } catch {
+  //   console.log('ASR sendAudio failed, closing...')
+  //   closeASR(client)
+  //   ctx.body = { message: 'ok', closed: true }
+  // }
 }
 
 async function closeASR(client: any) {
@@ -145,47 +145,47 @@ async function translateSentence(ctx) {
   const { from, to, text, accessKeyId, accessKeySecret, payload, clientId } = ctx.__body
   const client = getClient(clientId)
 
-  if (!client.MT.instance) {
-    client.MT.instance = createTranslator('alicloud', { accessKeyId, accessKeySecret })
-  }
+  // if (!client.MT.instance) {
+  //   client.MT.instance = createTranslator('alicloud', { accessKeyId, accessKeySecret })
+  // }
 
   const result = await doTranslate(client, clientId, { text, from, to, extraPayload: payload })
   ctx.body = { message: result?.translated || '' }
 }
 
 async function translateOpen(ctx) {
-  const { accessKeyId, accessKeySecret, fromLang, toLang, clientId } = ctx.__body
-  const client = getClient(clientId)
+  // const { accessKeyId, accessKeySecret, fromLang, toLang, clientId } = ctx.__body
+  // const client = getClient(clientId)
 
-  if (!client.MT.instance) {
-    client.MT.instance = createTranslator('alicloud', { accessKeyId, accessKeySecret })
-  }
-  client.MT.fromLang = fromLang
-  client.MT.toLang = toLang
-  ctx.body = COMMON_RESPONSE
+  // if (!client.MT.instance) {
+  //   client.MT.instance = createTranslator('alicloud', { accessKeyId, accessKeySecret })
+  // }
+  // client.MT.fromLang = fromLang
+  // client.MT.toLang = toLang
+  // ctx.body = COMMON_RESPONSE
 }
 
 async function translateClose(ctx) {
   const { clientId } = ctx.__body
   const client = getClient(clientId)
 
-  client.MT.fromLang = undefined
-  client.MT.toLang = undefined
-  client.MT.instance = null
-  ctx.body = COMMON_RESPONSE
+  // client.MT.fromLang = undefined
+  // client.MT.toLang = undefined
+  // client.MT.instance = null
+  // ctx.body = COMMON_RESPONSE
 }
 
 async function translateStatus(ctx) {
   const { clientId } = ctx.__body
   const client = getClient(clientId)
 
-  ctx.body = {
-    message: client.MT.instance ? '1' : '0',
-    data: {
-      fromLang: client.MT.fromLang,
-      toLang: client.MT.toLang,
-    },
-  }
+  // ctx.body = {
+  //   message: client.MT.instance ? '1' : '0',
+  //   data: {
+  //     fromLang: client.MT.fromLang,
+  //     toLang: client.MT.toLang,
+  //   },
+  // }
 }
 
 // ── 语音识别 ──

@@ -4,7 +4,7 @@ import {
   loginFromQrCode as loginFromQrCodeApi,
   refreshCookie as refreshCookieApi,
 } from '../service/bilibili/sdk'
-import { getClient } from '../service/client'
+import { getUserCookie } from '../service/client'
 import { HTTP_ERROR } from '../service/const'
 
 const routes = [
@@ -16,11 +16,11 @@ const routes = [
 
 async function isNeedRefreshCookie(ctx) {
   const { clientId } = ctx.__body
-  const userCookie = getClient(clientId).user?.cookie
+  const cookie = getUserCookie({ clientId })
   const result = { isNeedRefreshCookie: true, timestamp: Date.now() }
   try {
-    if (userCookie) {
-      const { data } = await checkCookie(userCookie)
+    if (cookie) {
+      const { data } = await checkCookie(cookie)
       result.isNeedRefreshCookie = data.refresh
       result.timestamp = data.timestamp
     }
@@ -31,9 +31,9 @@ async function isNeedRefreshCookie(ctx) {
 
 async function refreshCookie(ctx) {
   const { refreshToken, clientId } = ctx.__body
-  const userCookie = getClient(clientId).user?.cookie
-  if (!refreshToken || !userCookie) throw HTTP_ERROR.PARAMS_ERROR
-  const result = await refreshCookieApi({ refreshToken, userCookie })
+  const cookie = getUserCookie({ clientId })
+  if (!refreshToken || !cookie) throw HTTP_ERROR.PARAMS_ERROR
+  const result = await refreshCookieApi({ refreshToken, userCookie: cookie })
 
   ctx.body = { message: 'ok', data: result }
 }
@@ -56,7 +56,7 @@ async function loginFromQrCode(ctx) {
 
   // 保存 cookie 到客户端
   if (cookie) {
-    getClient(clientId).user.cookie = cookie
+    getUserCookie({ clientId })
   }
 
   ctx.body = { ...res.data.data, cookie }

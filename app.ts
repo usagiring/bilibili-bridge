@@ -9,7 +9,6 @@ import state from './lib/service/state'
 // 注册事件
 import './lib/service/bilibili/handler'
 import './lib/service/handler'
-
 import './lib/service/protobuf'
 
 const port = state.port || 3000

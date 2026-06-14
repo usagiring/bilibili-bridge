@@ -1,7 +1,6 @@
 import crypto from 'crypto'
-import { DEFAULT_DM_STYLE } from './const'
+import { DEFAULT_CONFIG, Room } from './const'
 import state, { Client } from './state'
-import { omit } from 'lodash'
 
 export function getClient(clientId: string): Client {
   const client = state.clients.find((c: any) => c.id === clientId)
@@ -13,11 +12,7 @@ export function createClient() {
   const id = crypto.randomUUID()
   const client = {
     id,
-    style: DEFAULT_DM_STYLE,
-    rooms: [],
-    user: null,
-    ASR: { instance: null },
-    MT: { instance: null },
+    config: DEFAULT_CONFIG,
   }
 
   state.clients.push(client)
@@ -25,16 +20,30 @@ export function createClient() {
   return client
 }
 
-/**
- * 剔除运行时的实例引用，返回可持久化到 DB 的纯数据对象
- */
-export function omitInstance(client: Client) {
+export function getRoom({
+  // clientId,
+  roomId,
+}): Room {
+  // const client = getClient(clientId)
+
   return {
-    id: client.id,
-    style: client.style,
-    rooms: client.rooms,
-    user: client.user,
-    asr: client.ASR ? omit(client.ASR, 'instance') : null,
-    mt: client.MT ? omit(client.MT, 'instance') : null,
+    id: roomId,
+    userId: '',
+    liveStatus: 0,
+    liveStream: '',
+
+    isAutoReply: false,
+    autoReplyRules: [],
+
+    voteOptions: [],
   }
+  // return client.config.rooms.find((room: any) => room.id === roomId)
+}
+
+// TODO: IF CLOUD AUTH
+export function getUserCookie({
+  clientId,
+}): string | null {
+  const client = getClient(clientId)
+  return client.config?.user?.cookie || null
 }

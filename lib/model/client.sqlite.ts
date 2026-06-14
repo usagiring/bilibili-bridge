@@ -12,19 +12,7 @@ export const clients = sqliteTable('client', {
   id: text('client_id').primaryKey(),
 
   /** 自定义样式 */
-  style: text('style', { mode: 'json' }),
-
-  /** 直播间信息：{ id, userId, liveStatus, liveStream, autoReplyRules, record } */
-  rooms: text('rooms', { mode: 'json' }),
-
-  /** 用户信息：{ id, face, cookie, medal: { name } } */
-  user: text('user', { mode: 'json' }),
-
-  /** ASR 配置：{ instance } */
-  asr: text('asr', { mode: 'json' }),
-
-  /** 机器翻译配置：{ instance, fromLang, toLang } */
-  mt: text('mt', { mode: 'json' }),
+  config: text('config', { mode: 'json' }),
 
   createdAt: integer('created_at').notNull().default(sql`(unixepoch() * 1000)`),
   updatedAt: integer('updated_at').notNull().default(sql`(unixepoch() * 1000)`),

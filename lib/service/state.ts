@@ -1,42 +1,12 @@
-// import _ from 'lodash'
+import { Config } from './const'
 
 export interface Client {
   id: string
   SSEClient?: any
-  bilibiliWSClient?: any
-  style?: any
+  ASRInstance?: any
+  MTInstance?: any
 
-  rooms: {
-    id: string
-    userId: string
-    liveStatus: number
-    liveStream: string
-    autoReplyRules: any[]
-
-    record: {
-      id: string
-      isRecording: boolean
-      startedAt: number
-    }
-  }[]
-
-  user?: {
-    id: string
-    face: string
-    cookie: string
-    medal: {
-      name: string
-    }
-  }
-
-  ASR?: {
-    instance: any
-  }
-  MT?: {
-    instance: any
-    fromLang?: string
-    toLang?: string
-  }
+  config?: Config
 }
 
 interface State {
@@ -52,12 +22,20 @@ interface State {
   dmV2Decoder: any
 
   clients?: Client[]
+
+  bilibiliWSInstances?: {
+    clientId: string
+    roomId: string
+    userId: string
+    instance: any
+  }[]
 }
 
 // NEED INITIALIZATION
 export const state: Partial<State> = {
   port: 3000,
   clients: [],
+  bilibiliWSInstances: [],
 } as const
 
 export default state
