@@ -5,4 +5,5 @@ db
 dist
 .vscode
 *.tsbuildinfo
-db.sqlite
+db.sqlite*
+.tsbuildinfo
