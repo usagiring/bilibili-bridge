@@ -14,11 +14,11 @@ import { HTTP_ERROR } from '../service/const'
 import { getUserCookie } from '../service/client'
 
 const routes = [
-  // {
-  //   verb: 'get',
-  //   uri: '/bilibili/room/info',
-  //   middlewares: [ getRoomInfo ],
-  // },
+  {
+    verb: 'get',
+    uri: '/bilibili/room/info',
+    middlewares: [ getRoomInfo ],
+  },
   {
     verb: 'post',
     uri: '/bilibili/room/info',

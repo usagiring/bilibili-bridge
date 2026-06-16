@@ -11,12 +11,12 @@ import path from 'path'
 const saveAllBiliMessage = state.saveAllBiliMessage
 
 event.on(CMD.NINKI, async (data) => {
-  const { count, clientId, roomId } = data
+  const { count: ninkiNumber, clientId, roomId } = data
 
   sse.send(clientId, {
     cmd: CMD.NINKI,
     payload: {
-      count,
+      ninkiNumber,
       roomId,
     },
   })
@@ -127,11 +127,12 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
 
       if (msg.cmd === BILI_CMD.WATCHED_CHANGE) {
         // {"num":3727,"text_small":"3727","text_large":"3727人看过"}
-        const { num } = msg.data
+        const { num: watchedNumber } = msg.data
         sse.send(clientId, {
           cmd: CMD.WATCHED_CHANGE,
           payload: {
-            watchedNumber: num,
+            roomId,
+            watchedNumber,
           },
         })
       }
@@ -141,6 +142,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         sse.send(clientId, {
           cmd: CMD.LIKE_CHANGE,
           payload: {
+            roomId,
             likeNumber: click_count,
           },
         })
@@ -151,6 +153,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         sse.send(clientId, {
           cmd: CMD.ONLINE_COUNT,
           payload: {
+            roomId,
             onlineNumber: count,
           },
         })
@@ -162,8 +165,9 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
       sse.send(clientId, {
         cmd: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE,
         payload: {
+          roomId,
           fansNumber: fans,
-          fansClubNumber: fans_club,
+          fansclubNumber: fans_club,
         },
       })
     }
