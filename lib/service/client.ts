@@ -3,7 +3,7 @@ import { DEFAULT_CONFIG, Room } from './const'
 import state, { Client } from './state'
 
 export function getClient(clientId: string): Client {
-  const client = state.clients.find((c: any) => c.id === clientId)
+  const client = state.clients.find((c: Client) => c.id === clientId)
   if (!client) throw new Error(`client not found: ${clientId}`)
   return client
 }
@@ -14,8 +14,6 @@ export function createClient() {
     id,
     config: DEFAULT_CONFIG,
   }
-
-  state.clients.push(client)
 
   return client
 }

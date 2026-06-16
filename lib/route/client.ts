@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 
 import { createClient, getClient } from '../service/client'
 import { set } from 'lodash'
+import state, { Client } from '../service/state'
 
 const routes = [
   {
@@ -56,14 +57,16 @@ function register(ctx) {
 
   console.log('Registering client:', clientId)
   if (clientId) {
-    const existing = db
+    const client = db
       .select()
       .from(clients)
       .where(eq(clients.id, clientId))
-      .get()
+      .get() as Client
 
-    if (existing) {
-      ctx.body = { message: 'ok', data: existing }
+    if (client) {
+      state.clients.push(client)
+
+      ctx.body = { message: 'ok', data: client }
       return
     }
   }
@@ -73,6 +76,7 @@ function register(ctx) {
   db.insert(clients)
     .values(client)
     .run()
+  state.clients.push(client)
 
   ctx.body = { message: 'ok', data: client }
 }

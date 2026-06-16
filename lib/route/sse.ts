@@ -28,6 +28,8 @@ async function connect(ctx) {
   }
 
   // 注册 SSE 连接（此方法内部会保持连接不释放）
+  // 必须显式告知 Koa 不要接管响应，否则 Koa 可能在中间件返回后关闭连接
+  ctx.respond = false
   sse.register(ctx, clientId)
 
   // 不调用 next()，连接由 sse.register() 接管
