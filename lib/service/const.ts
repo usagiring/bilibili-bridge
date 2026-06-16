@@ -129,7 +129,18 @@ const DM_STYLE = {
 
   messageSettings: [],
 
-  borderImages: [],
+  borderImages: [
+    {
+      isAdaptContent: false,
+      dataUrl: '',
+      isSelected: false,
+      'border-width': 15,
+      'border-image-width': '1.5',
+      'border-image-slice': '50',
+      'border-image-repeat': 'stretch',
+      'border-image-outset': '0',
+    },
+  ],
 
   messageContainer0: {
     background: 'rgba(0,0,0,0)',
@@ -216,14 +227,15 @@ const DM_STYLE = {
   },
 }
 
-const DM_RAW_STYLE = {
+const DM_RAW_STYLE: DmRawStyle = {
   isWindowAlwaysOnTop: false,
   windowOpacity: 1,
   windowBackground: "rgba(0, 0, 0, 0.3)",
 
-  direction: '',
+  duration: 10000,
+  direction: 'RL',
   emojiSize: 24,
-  styleExtend: '',
+  styleExtend: 'bilibili',
 
   windowOnTopLevel: '',
   isWindowOnTopForce: false,
@@ -262,6 +274,7 @@ const CHART_CONFIG = {
 const RECORD_CONFIG = {
   savePath: '',
   quality: '',
+  isAutoRecord: false,
 }
 
 interface Provider {
@@ -299,8 +312,6 @@ export const DEFAULT_CONFIG: Config = {
   windows: [],
   providers: [],
 
-  recordDir: '',
-  isAutoRecord: false,
   signInMessage: '111',
   waitingSpeakerCount: 0,
 }
@@ -311,10 +322,107 @@ interface User {
   cookie: string
 }
 
+// ── 样式值 ──
+type StyleValue = Record<string, string>
+
+// ── Config 子类型 ──
+
+export interface DmStyle {
+  isShowFace: boolean
+  isShowAnchorIcon: boolean
+  isShowFanMedal: boolean
+  isShowHeadline: boolean
+  faceSize: number
+  combineSimilarTime: number
+  hiddenExpiredTime: number
+  showHeadlineThreshold: number
+  isShowInteractInfo: boolean
+  showGiftCardThreshold: number
+  isShowSilverGift: boolean
+  font: string
+  fontWeight: string
+  isUseMiniGiftCard: boolean
+  adminIcon: string
+  isShowAdminIcon: boolean
+  adminIconColor: string
+  isShowType1: boolean
+  isShowType2: boolean
+  channelCount: number
+  channelDelayTime: number
+  isShowSuperChatJPN: boolean
+  windowOpacity: number
+  windowBackground: string
+  isWindowAlwaysOnTop: boolean
+  messageSettings: any[]
+  borderImages: any[]
+  messageContainer0: StyleValue
+  messageUsername0: StyleValue
+  messageComment0: StyleValue
+  messageContainer1: StyleValue
+  messageUsername1: StyleValue
+  messageComment1: StyleValue
+  messageContainer2: StyleValue
+  messageUsername2: StyleValue
+  messageComment2: StyleValue
+  messageContainer3: StyleValue
+  messageUsername3: StyleValue
+  messageComment3: StyleValue
+  messageContainer99: StyleValue
+  messageUsername99: StyleValue
+  messageComment99: StyleValue
+  messageContainerInteract: StyleValue
+  messageCommentInteract: StyleValue
+}
+
+export interface DmRawStyle {
+  isWindowAlwaysOnTop: boolean
+  windowOpacity: number
+  windowBackground: string
+  direction: 'RL' | 'LR'
+  emojiSize: number
+  styleExtend: 'bilibili' | 'self'
+  duration: number
+  windowOnTopLevel: string
+  isWindowOnTopForce: boolean
+  ignoreMouseEvent: boolean
+}
+
+export interface LiveConfig {
+  isWindowAlwaysOnTop: boolean
+  windowOpacity: number
+  windowBackground: string
+  isWithCookie: boolean
+  volume: number
+}
+
+export interface MessageConfig {
+  isRealTimeMode: boolean
+  isShowUserSpaceLink: boolean
+}
+
+export interface AsrConfig {
+  showLineCount: number
+  audioFrom: string
+}
+
+export interface MtConfig {
+  fromLang: string
+  toLang: string
+  disableMircrophotoNoticeMessage: boolean
+}
+
+export interface ChartConfig {
+  colors: string[]
+}
+
+export interface RecordConfig {
+  savePath: string
+  quality: string
+  isAutoRecord: boolean
+}
+
 export interface Config {
   // 全局设置
-  recordDir: string
-  isAutoRecord: boolean
   signInMessage: string
   isNeedRefreshCookieCache?: number
   refreshToken?: string
@@ -325,12 +433,12 @@ export interface Config {
   windows: Window[],
   providers: Provider[],
 
-  dmStyle: any,
-  dmRawStyle: any,
-  liveConfig: any,
-  messageConfig: any,
-  recordConfig: any,
-  asrConfig: any,
-  mtConfig: any,
-  chartConfig: any,
+  dmStyle: DmStyle,
+  dmRawStyle: DmRawStyle,
+  liveConfig: LiveConfig,
+  messageConfig: MessageConfig,
+  recordConfig: RecordConfig,
+  asrConfig: AsrConfig,
+  mtConfig: MtConfig,
+  chartConfig: ChartConfig,
 }
