@@ -54,6 +54,7 @@ const routes = [
 function register(ctx) {
   const { clientId } = ctx.__body
 
+  console.log('Registering client:', clientId)
   if (clientId) {
     const existing = db
       .select()
