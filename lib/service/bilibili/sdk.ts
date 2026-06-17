@@ -13,14 +13,22 @@ const defaultHeaders = {
   "sec-fetch-dest": "empty",
   "sec-fetch-mode": "cors",
   "sec-fetch-site": "same-site",
-  accept: "application/json, text/javascript, */*; q=0.01",
-  "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,ja;q=0.7",
-  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+  accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+  "accept-language": "zh-CN,zh;q=0.9",
+  "accept-encoding": "gzip, deflate, br, zstd",
+  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 }
 
 const postHeader = Object.assign({}, defaultHeaders, {
   "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
 })
+
+// B站的API风控可能是某种置信机制
+// 其中 buvid3 最重要，初始态（finger、homepage）不可用，当走完后续某个流程后变为可信 buvid
+// 猜测 1. GenWebTicket 接口。 2. 过一段时间？ 未实测
+// cookie中带上可信 buvid 即可
+
+// 另外的办法，似乎带上 wbi 签名即可
 
 interface BaseResponse {
   code: number,
@@ -44,10 +52,70 @@ export async function getRoomInfoV1(roomId) {
 }
 
 export async function getRoomInfoV2(roomId) {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?room_id=${roomId}`, {
-    headers: defaultHeaders,
+  const querystring = await getSignedQueryString({
+    params: {
+      room_id: roomId,
+    },
+  })
+
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?${querystring}`, {
+    headers: defaultHeaders
   })
   return res.data
+}
+
+//{ buvid3: string; b_nut: string }
+async function getHomepageSetCookie() {
+  const res = await axios.head(`https://www.bilibili.com`, {
+    headers: {
+      "sec-ch-ua": 'Google Chrome";v="149", "Chromium";v="149", "Not)A;Brand";v="24',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": '"Windows"',
+      "sec-fetch-dest": "document",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-site": "none",
+      "sec-fetch-user": "?1",
+      accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "accept-language": "zh-CN,zh;q=0.9",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+    },
+  })
+
+  const setCookies: string[] = res.headers['set-cookie'] ?? []
+
+  const cookies: Record<string, string> = setCookies.reduce((map, setCookie) => {
+    return Object.assign(map, parseCookie(setCookie))
+  }, {})
+
+  return cookies
+}
+
+// { LIVE_BUVID: string }
+async function getLiveSetCookie() {
+  const res = await axios.head('https://api.live.bilibili.com/room/v1/area/getList?parent_id=2&platform=web', {
+    headers: {
+      "accept": "application/json, text/plain, */*",
+      "accept-language": "zh-CN",
+      "priority": "u=1, i",
+      "sec-ch-ua": "\"Not/A)Brand\";v=\"99\", \"Chromium\";v=\"148\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "cookie": "PVID=17",
+      "Referer": "https://live.bilibili.com/"
+    }
+  })
+
+  const setCookies: string[] = res.headers['set-cookie'] ?? []
+
+  const cookies: Record<string, string> = setCookies.reduce((map, setCookie) => {
+    return Object.assign(map, parseCookie(setCookie))
+  }, {})
+
+  return cookies
 }
 
 export async function getInfoByUser(roomId, userCookie) {
@@ -247,6 +315,18 @@ export async function getFinger(): Promise<BaseResponse & {
   return res.data
 }
 
+export async function getFingerV2(): Promise<BaseResponse & {
+  data: {
+    b_3: string
+    b_4: string
+  }
+}> {
+  const res = await axios.get(`${baseUrl}/x/frontend/finger/spi_v2`, {
+    headers: defaultHeaders,
+  })
+  return res.data
+}
+
 export async function checkCookie(userCookie): Promise<BaseResponse & {
   data: {
     refresh: boolean
@@ -424,7 +504,7 @@ async function getCorrespondPath() {
     },
     { name: "RSA-OAEP", hash: "SHA-256" },
     true,
-    [ "encrypt" ],
+    ["encrypt"],
   )
 
   const ts = Date.now()
