@@ -6,10 +6,8 @@ ajv.addKeyword({
   keyword: 'separator',
   modifying: true,
   compile: (separator: string) => {
-    console.log(separator, 'separator')
     return function coerceArray(data: any, dataCxt?: any) {
-      console.log(data, dataCxt)
-      if (typeof data === 'string' && data.includes(separator)) {
+      if (typeof data === 'string') {
         const { parentData, parentDataProperty } = dataCxt
         parentData[parentDataProperty] = data
           .split(separator)

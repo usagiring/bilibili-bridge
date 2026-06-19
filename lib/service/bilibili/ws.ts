@@ -20,7 +20,7 @@ class WSClient {
   ws!: WebSocket
   heartBeatTimer: ReturnType<typeof setInterval> | undefined
   options?: ConnectOption
-  autoReConnect = true
+  autoReconnect = true
 
   constructor(options?: ConnectOption) {
     this.options = options
@@ -37,6 +37,9 @@ class WSClient {
       return
     } else if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
       console.log('room connecting..., nothing todo.')
+      return
+    } else if (this.ws && this.ws.readyState === WebSocket.CLOSING) {
+      console.log('room closing..., waiting before reconnect')
       return
     }
 
@@ -61,7 +64,7 @@ class WSClient {
       buvid = finger.data.b_3
     }
 
-    this.autoReConnect = true
+    this.autoReconnect = true
     console.log(`room connect, roomId: ${roomId}`)
 
     const ws = new WebSocket(URI)
@@ -129,7 +132,7 @@ class WSClient {
         clearInterval(self.heartBeatTimer)
 
         // 报错重连
-        if (self.autoReConnect) {
+        if (self.autoReconnect) {
           console.log('after 3s auto reconnect...')
           setTimeout(() => {
             self.connect(options)
@@ -142,7 +145,7 @@ class WSClient {
         clearInterval(self.heartBeatTimer)
 
         // 报错重连
-        if (self.autoReConnect) {
+        if (self.autoReconnect) {
           console.log('after 3s auto reconnect...')
           setTimeout(() => {
             self.connect(options)
@@ -154,9 +157,12 @@ class WSClient {
 
   // 手动关闭
   async close() {
-    this.autoReConnect = false
+    this.autoReconnect = false
     if (!this.ws) return
-    // error code not work...
+
+    clearInterval(this.heartBeatTimer)
+    this.ws.removeAllListeners()
+    // this.ws.terminate()
     this.ws.close(4001, 'manual close')
   }
 

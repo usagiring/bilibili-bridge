@@ -138,7 +138,7 @@ async function disconnect(ctx) {
     await instance.instance.close()
     state.bilibiliWSInstances = state.bilibiliWSInstances?.filter(i => i.roomId !== roomId)
   } else {
-    // throw new Error(ERROR.SYSTEM_ERROR)
+    throw new Error(ERROR.SYSTEM_ERROR)
   }
 
   ctx.body = COMMON_RESPONSE
