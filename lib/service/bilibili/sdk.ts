@@ -59,7 +59,7 @@ export async function getRoomInfoV2(roomId) {
   })
 
   const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getInfoByRoom?${querystring}`, {
-    headers: defaultHeaders
+    headers: defaultHeaders,
   })
   return res.data
 }
@@ -105,8 +105,8 @@ async function getLiveSetCookie() {
       "sec-fetch-mode": "cors",
       "sec-fetch-site": "same-site",
       "cookie": "PVID=17",
-      "Referer": "https://live.bilibili.com/"
-    }
+      "Referer": "https://live.bilibili.com/",
+    },
   })
 
   const setCookies: string[] = res.headers['set-cookie'] ?? []
@@ -143,7 +143,14 @@ export async function getDamankuInfo(roomId, userCookie): Promise<BaseResponse &
     }[]
   }
 }> {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?id=${roomId}&type=0`, {
+  const querystring = await getSignedQueryString({
+    params: {
+      id: roomId,
+      type: 0,
+    },
+  })
+
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/index/getDanmuInfo?${querystring}`, {
     headers: userCookie ? Object.assign({}, defaultHeaders, { cookie: userCookie }) : defaultHeaders,
   })
   return res.data
@@ -504,7 +511,7 @@ async function getCorrespondPath() {
     },
     { name: "RSA-OAEP", hash: "SHA-256" },
     true,
-    ["encrypt"],
+    [ "encrypt" ],
   )
 
   const ts = Date.now()

@@ -55,6 +55,13 @@ const routes = [
     verb: 'get',
     uri: '/room/status',
     middlewares: [ getStatus ],
+    validator: {
+      type: 'object',
+      required: [ 'roomIds' ],
+      properties: {
+        roomIds: { type: 'array', items: { type: 'string' }, separator: ',' },
+      },
+    },
   },
   {
     verb: 'post',
@@ -110,7 +117,7 @@ async function connect(ctx) {
   const instance = state.bilibiliWSInstances.find(i => i.roomId === roomId)
   if (!instance) {
     const bilibiliWSClient = new BilibiliWSClient()
-    await bilibiliWSClient.connect({ userId: Number(userId) || 0, roomId: Number(roomId) })
+    await bilibiliWSClient.connect({ userId: Number(userId) || 0, roomId: Number(roomId), clientId })
 
     state.bilibiliWSInstances?.push({
       instance: bilibiliWSClient,
@@ -151,18 +158,23 @@ async function getRealTimeViewersCount(ctx) {
 }
 
 async function getStatus(ctx) {
-  const { clientId } = ctx.__body
-  const { roomId } = ctx.params
-  // const client = getClient(clientId)
-  // const room = client.rooms.find((r: any) => r.id === roomId)
+  const { clientId, roomIds } = ctx.__body
 
-  // ctx.body = {
-  //   message: 'ok',
-  //   data: {
-  //     roomId: room?.id || '',
-  //     isConnected: !!room?.liveStatus,
-  //   },
-  // }
+  const data = roomIds.map(roomId => {
+    const isConnected = !!state.bilibiliWSInstances.find(i => {
+      return i.roomId  === roomId && i.clientId === clientId && i.instance
+    })
+
+    return {
+      roomId, 
+      isConnected,
+    }
+  })
+
+  ctx.body = {
+    message: 'ok',
+    data,
+  }
 }
 
 async function startRecord(ctx) {

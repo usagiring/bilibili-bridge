@@ -5,13 +5,13 @@ import decompress from 'brotli/decompress'
 import event from '../event'
 import { parseCookie } from '../util'
 import { CMD } from '../const'
-import { getDamankuInfo, getFinger } from './sdk'
+import { getDamankuInfo, getFinger, getFingerV2 } from './sdk'
 
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
 interface ConnectOption {
   roomId: number
-  clientId?: string
+  clientId: string
   userId?: number
   cookie?: string
 }
@@ -57,7 +57,7 @@ class WSClient {
     const danmakuInfo = await getDamankuInfo(roomId, cookie)
 
     if (!buvid) {
-      const finger = await getFinger()
+      const finger = await getFingerV2()
       buvid = finger.data.b_3
     }
 
@@ -84,7 +84,7 @@ class WSClient {
       platform: "web",
       type: 2,
       buvid: buvid || '',
-      key: danmakuInfo.data.token || '',
+      key: danmakuInfo?.data?.token || '',
     }
 
     return new Promise<void>((resolve, reject) => {
