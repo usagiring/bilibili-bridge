@@ -22,12 +22,7 @@ async function connect(ctx) {
     return
   }
 
-  // 如果已有同 ID 连接，先关闭旧的
-  if (sse.isConnected(clientId)) {
-    console.log(`[SSE] replacing existing connection: ${clientId}`)
-  }
-
-  // 注册 SSE 连接（此方法内部会保持连接不释放）
+  // 注册 SSE 连接（同一个 clientId 允许多个连接并存）
   // 必须显式告知 Koa 不要接管响应，否则 Koa 可能在中间件返回后关闭连接
   ctx.respond = false
   sse.register(ctx, clientId)

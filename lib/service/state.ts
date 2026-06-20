@@ -2,11 +2,16 @@ import { Config } from './const'
 
 export interface Client {
   id: string
-  SSEClient?: any
   ASRInstance?: any
   MTInstance?: any
 
   config?: Config
+}
+
+interface SSEClientEntry {
+  clientId: string
+  ctx: any
+  lastAlive: number
 }
 
 interface State {
@@ -23,6 +28,8 @@ interface State {
 
   clients?: Client[]
 
+  sseClients?: SSEClientEntry[]
+
   bilibiliWSInstances?: {
     clientId: string
     roomId: string
@@ -35,6 +42,7 @@ interface State {
 export const state: Partial<State> = {
   port: 3000,
   clients: [],
+  sseClients: [],
   bilibiliWSInstances: [],
 } as const
 

@@ -1,15 +1,19 @@
 import { Context } from 'koa'
-import { getClient } from './client'
 import state from './state'
 
 class SSEService {
+  private heartBeatTimer: ReturnType<typeof setInterval> | null = null
+  private readonly HEARTBEAT_MS = 30_000
+
+  private get sseClients() {
+    return state.sseClients!
+  }
+
   /**
    * 注册 SSE 客户端连接
-   * 调用后持续保持连接，直到客户端断开
+   * 同一个 clientId 允许多个连接并存
    */
   register(ctx: Context, clientId: string): void {
-    const client = getClient(clientId)
-
     // 设置 SSE 响应头
     ctx.set({
       'Content-Type': 'text/event-stream',
@@ -20,58 +24,97 @@ class SSEService {
     ctx.status = 200
     ctx.res.flushHeaders()
 
-    // 如果有旧的 SSE 连接，先关闭
-    if (client.SSEClient) {
-      try { client.SSEClient.ctx.res.end() } catch { /* ignore */ }
-    }
+    const entry = { clientId, ctx, lastAlive: Date.now() }
+    this.sseClients.push(entry)
 
-    client.SSEClient = { ctx }
+    this.startHeartbeat()
 
     console.log(`[SSE] client connected: ${clientId}, sseTotal: ${this.sseCount}`)
 
     this.send(clientId, { type: 'connected', clientId })
 
     ctx.req.on('close', () => {
-      if (client.SSEClient?.ctx === ctx) {
-        delete client.SSEClient
-      }
+      const idx = this.sseClients.indexOf(entry)
+      if (idx !== -1) this.sseClients.splice(idx, 1)
       console.log(`[SSE] client disconnected: ${clientId}, sseTotal: ${this.sseCount}`)
+      if (this.sseCount === 0) this.stopHeartbeat()
     })
   }
 
-  private get clients(): any[] {
-    return ((state as any).clients || []) as any[]
+  /** 断开指定客户端的所有 SSE 连接 */
+  disconnect(clientId: string): void {
+    for (let i = this.sseClients.length - 1; i >= 0; i--) {
+      if (this.sseClients[i].clientId === clientId) {
+        try { this.sseClients[i].ctx.res.end() } catch { /* ignore */ }
+        this.sseClients.splice(i, 1)
+      }
+    }
   }
 
-  /** 向指定客户端发送消息 */
+  /** 向指定客户端的所有连接发送消息 */
   send(clientId: string, data: Record<string, unknown>): boolean {
-    const client = getClient(clientId)
-    if (!client.SSEClient) return false
+    const targets = this.sseClients.filter((e) => e.clientId === clientId)
+    if (!targets.length) return false
 
-    try {
-      client.SSEClient.ctx.res.write(`data: ${JSON.stringify(data)}\n\n`)
-      return true
-    } catch {
-      delete client.SSEClient
-      return false
-    }
+    let sent = false
+    targets.forEach((entry) => {
+      try {
+        entry.ctx.res.write(`data: ${JSON.stringify(data)}\n\n`)
+        entry.lastAlive = Date.now()
+        sent = true
+      } catch {
+        this.remove(entry)
+      }
+    })
+    return sent
   }
 
   /** 向所有 SSE 连接的客户端广播消息 */
   broadcast(data: Record<string, unknown>): void {
-    this.clients.forEach((c) => {
-      if (c.SSEClient) {
-        try { c.SSEClient.ctx.res.write(`data: ${JSON.stringify(data)}\n\n`) } catch { delete c.SSEClient }
+    this.sseClients.slice().forEach((entry) => {
+      try {
+        entry.ctx.res.write(`data: ${JSON.stringify(data)}\n\n`)
+        entry.lastAlive = Date.now()
+      } catch {
+        this.remove(entry)
       }
     })
   }
 
   get sseCount(): number {
-    return this.clients.filter((c: any) => !!c.SSEClient).length
+    return this.sseClients.length
   }
 
   isConnected(clientId: string): boolean {
-    return !!getClient(clientId).SSEClient
+    return this.sseClients.some((e) => e.clientId === clientId)
+  }
+
+  private startHeartbeat(): void {
+    if (this.heartBeatTimer) return
+    this.heartBeatTimer = setInterval(() => {
+      this.sseClients.slice().forEach((entry) => {
+        try {
+          entry.ctx.res.write(': heartbeat\n\n')
+          entry.lastAlive = Date.now()
+        } catch {
+          try { entry.ctx.res.end() } catch { /* ignore */ }
+          this.remove(entry)
+        }
+      })
+      if (this.sseClients.length === 0) this.stopHeartbeat()
+    }, this.HEARTBEAT_MS)
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartBeatTimer) {
+      clearInterval(this.heartBeatTimer)
+      this.heartBeatTimer = null
+    }
+  }
+
+  private remove(entry: { ctx: any }): void {
+    const idx = this.sseClients.indexOf(entry as any)
+    if (idx !== -1) this.sseClients.splice(idx, 1)
   }
 }
 
