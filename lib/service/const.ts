@@ -1,6 +1,23 @@
 export const BILI_CMD = {
   PREPARING: 'PREPARING',
   INTERACT_WORD: 'INTERACT_WORD',
+  /**
+   * {
+      dmscore: 4,
+      pb: 'EgbokbEqKioiAQEoATC6JziptuTRBkDetcj47jNKLAjHuRoQHhoJ5aSn5q+N6bmFINWQtAEowIGDBjDAgYMGOMCBgwZguidojdsBYgB42Ibdldzt2N0YmgEAsgHBARJTCgbokbEqKioSSWh0dHA6Ly9pMS5oZHNsYi5jb20vYmZzL2ZhY2UvZDY0MDUyNzNmNWZiYzhjNzNhNzI0ODAxZjQyYjNhM2M3YTViYTgwZi5naWYaZAoJ5aSn5q+N6bmFEB4YwIGDBiDAgYMGKMCBgwYw1ZC0ATgCUMe5GmCN2wF6CSM5MTkyOThDQ4IBCSM5MTkyOThDQ4oBCSM5MTkyOThDQ5IBByNGRkZGRkaaAQkjOTE5Mjk4RTYiAggOMgC6AQDCAQA='
+    }
+   */
+  INTERACT_WORD_V2: 'INTERACT_WORD_V2',
+  /**
+   * {
+      data: '{"fade_duration":10000,"cnt":7,"card_appear_interval":0,"suffix_text":"人正在点赞","reset_cnt":1,"display_flag":1}',
+      dmscore: 36,
+      id: 173603624640512,
+      status: 4,
+      type: 106
+    }
+   */
+  DM_INTERACTION: 'DM_INTERACTION',
   DANMU_MSG: 'DANMU_MSG',
   SEND_GIFT: 'SEND_GIFT',
   LIVE: 'LIVE',

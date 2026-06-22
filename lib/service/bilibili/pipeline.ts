@@ -119,39 +119,35 @@ interface InteractData {
   }
 }
 
-export async function commentJob({ msg, roomId, clientId }) {
+export async function   commentJob({ msg, roomId, clientId }) {
   const comment = parseComment({ msg, roomId, clientId })
   if (!comment) return
 
-  sse.send({ clientId, event: CMD.MESSAGE, data: comment })
-  
-  event.emit(CMD.AUTO_REPLY, comment)
-  event.emit(CMD.DANMAKU_COMMAND, comment)
+  const result = db.insert(messages).values(comment).returning().get()
 
-  db.insert(messages).values(comment).run()
+  sse.send({ clientId, event: CMD.MESSAGE, data: result })
+  event.emit(CMD.AUTO_REPLY, result)
+  event.emit(CMD.DANMAKU_COMMAND, result)
 }
 
 export async function interactJob({ msg, roomId, clientId }) {
   const interact = parseInteract({ msg, clientId })
   if (!interact) return
 
-  sse.send({ clientId, event: CMD.MESSAGE, data: interact })
+  const result = db.insert(messages).values(interact).returning().get()
 
-  event.emit(CMD.AUTO_REPLY, interact)
-
-  db.insert(messages).values(interact).run()
+  sse.send({ clientId, event: CMD.MESSAGE, data: result })
+  event.emit(CMD.AUTO_REPLY, result)
 }
 
 export async function giftJob({ msg, roomId, clientId }) {
   const gift = parseGift({ msg, clientId, roomId })
   if (!gift) return
 
-  // TODO ComboId
-  sse.send({ clientId, event: CMD.MESSAGE, data: gift })
+  const result = db.insert(messages).values(gift).returning().get()
 
-  event.emit(CMD.AUTO_REPLY, gift)
-
-  db.insert(messages).values(gift).run()
+  sse.send({ clientId, event: CMD.MESSAGE, data: result })
+  event.emit(CMD.AUTO_REPLY, result)
 }
 
 const roleTransformMap = {
@@ -191,21 +187,22 @@ export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
     face = user.base?.face
   }
 
-  const roles = [ roleTransformMap[msg.info[7]] ]
+  const anchorRole = roleTransformMap[msg.info[7]]
+  const roles = [ anchorRole || 0 ]
   if (isAdmin) roles.push(99)
   // TODO 房主
 
   const comment: MessageInsert = {
-    roomId,
+    roomId: String(roomId),
     clientId,
     category: 'comment',
     content: msg.info[1],
     sendAt: msg.info[0][4],
-    userId: uid,
+    userId: String(uid),
     username: name,
     usernameColor: transformColorNumber2String(msg.info[0][12]), // ?
     roles,
-    color: transformColorNumber2String(msg.info[0][3]),
+    color: transformColorNumber2String(msg.info[0][3]), // 弹幕原生原色
     type: msg.info[0][9], // 0：普通弹幕 1：节奏风暴 2：天选时刻
     face,
   }
@@ -214,7 +211,7 @@ export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
     comment.medal = {
       name: user.medal.name,
       level: user.medal.level,
-      roomId: medalRoomId,
+      roomId: String(medalRoomId),
       color: {
         bg: user.medal.v2_medal_color_start,
         border: user.medal.v2_medal_color_border,
@@ -256,7 +253,9 @@ const contentMap = {
 }
   
 export function parseInteract({ msg, clientId }): MessageInsert {
-  if (msg.cmd !== BILI_CMD.INTERACT_WORD) return
+  if (msg.cmd !== BILI_CMD.INTERACT_WORD_V2) return
+  console.log(msg.data)
+
   const {
     // identities,
     msg_type: type,
@@ -271,13 +270,13 @@ export function parseInteract({ msg, clientId }): MessageInsert {
   } = msg.data as InteractData
 
   const interact: MessageInsert = {
-    roomId,
+    roomId: String(roomId),
     clientId,
     category: 'interact',
     content: `${uname} ${contentMap[type]}`,
     type, // 1 进入直播间 2 关注直播间 3 分享直播间
-    sendAt: timestamp * 1000, // 
-    userId: uid,
+    sendAt: timestamp * 1000,
+    userId: String(uid),
     username: uname,
     usernameColor: uname_color,
     face: uinfo?.base?.face,
@@ -322,16 +321,19 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     const { uname, face, guard_level } = user_info
     const { num, gift_id, gift_name } = gift
 
+    const anchorRole = guard_level
+    const roles = [ anchorRole || 0 ]
+
     return {
-      roomId,
+      roomId: String(roomId),
       clientId,
       category: 'superchat',
       content: message,
       sendAt: now,
-      userId: uid,
+      userId: String(uid),
       username: uname,
       face,
-      roles: [ guard_level ],
+      roles,
       gift: {
         id: gift_id,
         type: 'superchat',
@@ -347,17 +349,20 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
   if (msg.cmd === BILI_CMD.GUARD_BUY) {
     const { uid, username, guard_level, num, price, gift_id, gift_name } = msg.data
 
+    const anchorRole = guard_level
+    const roles = [ anchorRole || 0 ]
+
     return {
-      roomId,
+      roomId: String(roomId),
       category: 'gift',
       clientId,
       content: `${username} 赠送了 ${String(gift_name)}`,
       sendAt: now,
-      userId: uid,
+      userId: String(uid),
       username,
-      roles: [ guard_level ],
+      roles,
       gift: {
-        id: gift_id,
+        id: String(gift_id),
         type: 'anchor',
         name: String(gift_name),
         price: price / RATE,
@@ -370,16 +375,19 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
   if (msg.cmd === BILI_CMD.SEND_GIFT) {
     const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id } = msg.data
 
+    const anchorRole = guard_level
+    const roles = [ anchorRole || 0 ]
+    
     return {
-      roomId,
+      roomId: String(roomId),
       content: `${uname} 赠送了 ${String(giftName)}`,
       clientId,
       category: 'gift',
       sendAt: now,
-      userId: uid,
+      userId: String(uid),
       username: uname,
       face,
-      roles: [ guard_level ],
+      roles,
       gift: {
         id: giftId,
         type: 'gift',

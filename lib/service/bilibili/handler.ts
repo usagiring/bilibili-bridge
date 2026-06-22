@@ -17,18 +17,25 @@ event.on(CMD.NINKI, async (data) => {
 })
 
 event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
+  
   if (Array.isArray(data)) {
+
     for (const msg of data) {
+      console.log(msg.cmd)
       if (msg.cmd.includes(BILI_CMD.DANMU_MSG)) {
         await commentJob({ msg, roomId, clientId })
         continue
       }
 
-      if (msg.cmd === BILI_CMD.INTERACT_WORD) {
+      if(msg.cmd === BILI_CMD.INTERACT_WORD_V2) {
         await interactJob({ msg, roomId, clientId })
         continue
       }
 
+      if(msg.cmd === 'DM_INTERACTION') {
+        console.log(msg.data)
+      }
+      
       if (
         msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE ||
         msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE_JPN ||
@@ -120,6 +127,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
       }
     }
   } else {
+    console.log(data.cmd)
     if (data.cmd === BILI_CMD.ROOM_REAL_TIME_MESSAGE_UPDATE) {
       const { fans, fans_club } = data.data
       sse.send({ clientId, event: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE, data: { roomId, fansNumber: fans, fansclubNumber: fans_club } })

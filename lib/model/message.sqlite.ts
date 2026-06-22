@@ -22,7 +22,7 @@ export const messages = sqliteTable('message', {
 
   // ── 分类 ──
   category: text('category').notNull(), // 'comment' | 'gift' | 'guard' | 'superchat' | 'interact'
-  type: integer('type'),
+  type: integer('type'), // 0：普通弹幕 1：节奏风暴 2：天选时刻
 
   // ── 时间 & 房间 ──
   sendAt: integer('send_at').notNull(),
@@ -84,7 +84,7 @@ export interface EmotInfo {
 export type EmotMap = Record<string, EmotInfo>
 
 export interface GiftInfo {
-  id: number
+  id: string
   type: 'gift' | 'anchor' | 'superchat'
   name: string
   price: number
