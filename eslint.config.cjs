@@ -56,6 +56,8 @@ module.exports = [
       'comma-dangle': ['warn', 'always-multiline'],
       'array-bracket-spacing': ['warn', 'always'],
       'object-curly-spacing': ['warn', 'always'],
+      'space-infix-ops': ['warn'],
+      'no-multi-spaces': ['warn'],
 
       // ── 项目宽松策略 ──
       'require-yield': 'off',

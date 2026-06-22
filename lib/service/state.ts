@@ -24,7 +24,8 @@ interface State {
   }
   userInfoFrequencyLimit: number
   saveAllBiliMessage: boolean
-  dmV2Decoder: any
+  dmV2Decoder: (base64Str: string) => any
+  interactDecoder?: (base64Str: string) => any
 
   clients?: Client[]
 

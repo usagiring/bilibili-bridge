@@ -119,7 +119,32 @@ interface InteractData {
   }
 }
 
-export async function   commentJob({ msg, roomId, clientId }) {
+interface InteractV2 {
+  userId: string
+  roomId: string
+  type: number
+  sendAt: string
+  user: {
+    id: string
+    info: {
+      username: string
+      face: string
+      usernameColor: string
+    }
+    medal: {
+      name: string
+      level: number
+      anchor: number
+      color1: string
+      color2: string
+      color3: string
+      color4: string
+      color5: string
+    }
+  }
+}
+
+export async function commentJob({ msg, roomId, clientId }) {
   const comment = parseComment({ msg, roomId, clientId })
   if (!comment) return
 
@@ -155,7 +180,7 @@ const roleTransformMap = {
   2: 2, // 提督
   3: 1, // 舰长
 }
-export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
+export function parseComment({ msg, roomId, clientId } ): MessageInsert {
   if (!msg.cmd.includes(BILI_CMD.DANMU_MSG)) return
   const dmV2 = msg.dm_v2
 
@@ -252,59 +277,54 @@ const contentMap = {
   3: '分享直播间',
 }
   
-export function parseInteract({ msg, clientId }): MessageInsert {
+export function parseInteract ({ msg, clientId }): MessageInsert {
   if (msg.cmd !== BILI_CMD.INTERACT_WORD_V2) return
-  console.log(msg.data)
+  const pb = msg.data?.pb
+  if(!pb) return 
+  const pbDecoder = state.interactDecoder
+  if(!pbDecoder) return 
 
-  const {
-    // identities,
-    msg_type: type,
-    roomid: roomId,
-    score,
-    timestamp,
-    uid,
-    uname,
-    uname_color,
-    fans_medal,
-    uinfo,
-  } = msg.data as InteractData
+  console.log(pb)
+  const data: InteractV2 = pbDecoder(pb)
+  console.log(data)
+
+  const roomId = data.roomId
+  const type = data.type
+  const sendAt = data.sendAt
+  const userId = data.userId
+  const username = data.user?.info?.username
+  const usernameColor = data.user?.info?.usernameColor
+  const face = data.user?.info?.face
+  const medal = data.user?.medal
+
+  let content = `${username} ${contentMap[type]}`
+  if(medal.anchor > 0 && type === 1) {
+    content = `${username} 光临直播间`
+  }
 
   const interact: MessageInsert = {
     roomId: String(roomId),
     clientId,
     category: 'interact',
-    content: `${uname} ${contentMap[type]}`,
+    content,
     type, // 1 进入直播间 2 关注直播间 3 分享直播间
-    sendAt: timestamp * 1000,
-    userId: String(uid),
-    username: uname,
-    usernameColor: uname_color,
-    face: uinfo?.base?.face,
+    sendAt: Number(sendAt) * 1000,
+    userId: String(userId),
+    username,
+    usernameColor,
+    face,
   }
 
-  if (uinfo?.medal) {
+  if (medal) {
     interact.medal = {
-      name: uinfo?.medal?.name,
-      level: uinfo?.medal?.level,
-      anchor: uinfo?.medal?.guard_level,
+      name: medal.name,
+      level: medal.level,
+      anchor: medal.anchor,
       color: {
-        bg: uinfo.medal.v2_medal_color_start,
-        border: uinfo.medal.v2_medal_color_border,
-        level: uinfo.medal.v2_medal_color_level,
-        text: uinfo.medal.v2_medal_color_text,
-      },
-    }
-  } else if (fans_medal && fans_medal.medal_name) {
-    const { guard_level, medal_color_border, medal_color_end, medal_color_start, medal_level, medal_name } = fans_medal
-    interact.medal = {
-      name: medal_name,
-      level: medal_level,
-      anchor: guard_level,
-      color: {
-        border: transformColorNumber2String(medal_color_border),
-        bg: transformColorNumber2String(medal_color_start),
-        text: '#FFFFFF',
-        level: 'FFFFFF',
+        bg: medal.color5,
+        border: medal.color5,
+        level: medal.color4, // #FFFFFF
+        text: medal.color4, // #FFFFFF
       },
     }
   }

@@ -85,3 +85,57 @@ message DM {
   User user = 20;
   Liver liver = 21;
 }
+
+message InteractMedal {
+  int32 unknown1 = 1;
+  int32 level = 2;
+  string name = 3;
+  int32 color3 = 4; // border color
+  int32 color1 = 5; // start color
+  int32 color2 = 6; // end color
+  int32 color4 = 7; // ?
+  int32 unkonwn8 = 8;
+  int32 roomId = 12;
+  int32 unkonwn13 = 13;
+}
+
+message InteractUserField2 {
+  string username = 1;
+  string face = 2;
+  string usernameColor = 8;
+}
+
+// 粉丝牌
+message InteractUserField3 {
+  string name = 1;
+  int32 level = 2;
+  int32 anchor = 11;
+  string color1 = 15;
+  string color2 = 16;
+  string color3 = 17;
+  string color4 = 18;
+  string color5 = 19;
+}
+
+message InteractUserField4 {
+  int32 type = 1;
+}
+
+message InteractUser {
+  int64 id = 1;
+  InteractUserField2 info = 2;
+  InteractUserField3 medal = 3;
+  InteractUserField4 unknown4 = 4;
+}
+
+// InteractWordV2 消息的 protobuf 解码
+message Interact {
+  int64 userId = 1;
+  int32 username = 2;
+  int32 type = 5;
+  int64 roomId = 6;
+  int64 sendAt = 7; // 1782128768
+  // int64 unknown8 = 8; // 1782184939957
+  // InteractMedal medal = 9;
+  InteractUser user = 22;
+}
