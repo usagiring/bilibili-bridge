@@ -13,13 +13,7 @@ const saveAllBiliMessage = state.saveAllBiliMessage
 event.on(CMD.NINKI, async (data) => {
   const { count: ninkiNumber, clientId, roomId } = data
 
-  sse.send(clientId, {
-    cmd: CMD.NINKI,
-    payload: {
-      ninkiNumber,
-      roomId,
-    },
-  })
+  sse.send({ clientId, event: CMD.NINKI, data: { ninkiNumber, roomId } })
 })
 
 event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
@@ -47,22 +41,12 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
 
       if (msg.cmd === BILI_CMD.LIVE) {
         // 直播中
-        sse.send(clientId, {
-          cmd: CMD.LIVE,
-          payload: {
-            roomId,
-          },
-        })
+        sse.send({ clientId, event: CMD.LIVE, data: { roomId } })
         continue
       }
       if (msg.cmd === BILI_CMD.PREPARING) {
         // 未开播
-        sse.send(clientId, {
-          cmd: CMD.PREPARING,
-          payload: {
-            roomId,
-          },
-        })
+        sse.send({ clientId, event: CMD.PREPARING, data: { roomId } })
         continue
       }
 
@@ -79,21 +63,18 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
           max_time,
           room_id,
         } = msg.data
-        sse.send(clientId, {
-          cmd: CMD.ANCHOR_LOT_START,
-          payload: {
-            id,
-            roomId: room_id,
-            awardName: award_name,
-            awardNumber: award_num,
-            danmaku: danmu,
-            giftId: gift_id,
-            giftName: gift_name,
-            giftNumber: gift_num,
-            giftPrice: gift_price,
-            maxTime: max_time,
-          },
-        })
+        sse.send({ clientId, event: CMD.ANCHOR_LOT_START, data: {
+          id,
+          roomId: room_id,
+          awardName: award_name,
+          awardNumber: award_num,
+          danmaku: danmu,
+          giftId: gift_id,
+          giftName: gift_name,
+          giftNumber: gift_num,
+          giftPrice: gift_price,
+          maxTime: max_time,
+        } })
       }
 
       if (msg.cmd === BILI_CMD.ANCHOR_LOT_AWARD) {
@@ -104,15 +85,12 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
           award_users: awardUsers,
         } = msg.data
 
-        sse.send(clientId, {
-          cmd: CMD.ANCHOR_LOT_AWARD,
-          payload: {
-            id,
-            awardName: award_name,
-            awardNumber: award_num,
-            awardUsers,
-          },
-        })
+        sse.send({ clientId, event: CMD.ANCHOR_LOT_AWARD, data: {
+          id,
+          awardName: award_name,
+          awardNumber: award_num,
+          awardUsers,
+        } })
 
         for (const awardUser of awardUsers) {
           await db.insert(lotteries).values({
@@ -128,48 +106,23 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
       if (msg.cmd === BILI_CMD.WATCHED_CHANGE) {
         // {"num":3727,"text_small":"3727","text_large":"3727人看过"}
         const { num: watchedNumber } = msg.data
-        sse.send(clientId, {
-          cmd: CMD.WATCHED_CHANGE,
-          payload: {
-            roomId,
-            watchedNumber,
-          },
-        })
+        sse.send({ clientId, event: CMD.WATCHED_CHANGE, data: { roomId, watchedNumber } })
       }
       if (msg.cmd === BILI_CMD.LIKE_CHANGE) {
         // {"cmd":"LIKE_INFO_V3_UPDATE","data":{"click_count":6291}}
         const { click_count } = msg.data
-        sse.send(clientId, {
-          cmd: CMD.LIKE_CHANGE,
-          payload: {
-            roomId,
-            likeNumber: click_count,
-          },
-        })
+        sse.send({ clientId, event: CMD.LIKE_CHANGE, data: { roomId, likeNumber: click_count } })
       }
 
       if (msg.cmd === BILI_CMD.ONLINE_COUNT) {
         const count = msg.data.count || 0
-        sse.send(clientId, {
-          cmd: CMD.ONLINE_COUNT,
-          payload: {
-            roomId,
-            onlineNumber: count,
-          },
-        })
+        sse.send({ clientId, event: CMD.ONLINE_COUNT, data: { roomId, onlineNumber: count } })
       }
     }
   } else {
     if (data.cmd === BILI_CMD.ROOM_REAL_TIME_MESSAGE_UPDATE) {
       const { fans, fans_club } = data.data
-      sse.send(clientId, {
-        cmd: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE,
-        payload: {
-          roomId,
-          fansNumber: fans,
-          fansclubNumber: fans_club,
-        },
-      })
+      sse.send({ clientId, event: CMD.ROOM_REAL_TIME_MESSAGE_UPDATE, data: { roomId, fansNumber: fans, fansclubNumber: fans_club } })
     }
 
     // if (data.cmd === BILI_CMDS.LOG_IN_NOTICE) {

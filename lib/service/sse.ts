@@ -31,7 +31,7 @@ class SSEService {
 
     console.log(`[SSE] client connected: ${clientId}, sseTotal: ${this.sseCount}`)
 
-    this.send(clientId, { type: 'connected', clientId })
+    this.send({ clientId, event: 'connected', data: { clientId } })
 
     ctx.req.on('close', () => {
       const idx = this.sseClients.indexOf(entry)
@@ -52,14 +52,26 @@ class SSEService {
   }
 
   /** 向指定客户端的所有连接发送消息 */
-  send(clientId: string, data: Record<string, unknown>): boolean {
+  send({
+    clientId,
+    event,
+    data,
+  }: {
+    clientId: string
+    event: string
+    data: Record<string, unknown>
+  }): boolean {
     const targets = this.sseClients.filter((e) => e.clientId === clientId)
     if (!targets.length) return false
 
     let sent = false
     targets.forEach((entry) => {
       try {
-        entry.ctx.res.write(`data: ${JSON.stringify(data)}\n\n`)
+        const d = JSON.stringify({
+          event,
+          data,
+        })
+        entry.ctx.res.write(`data: ${d}\n\n`)
         entry.lastAlive = Date.now()
         sent = true
       } catch {

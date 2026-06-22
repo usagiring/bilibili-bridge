@@ -43,10 +43,10 @@ async function initial(ctx) {
   await asr.initial({ appKey, accessKeyId, accessKeySecret })
 
   asr.on('begin', (result: AsrResult) =>
-    sse.send(clientId, { cmd: CMD.ASR_SENTENCE_BEGIN, payload: result }))
+    sse.send({ clientId, event: CMD.ASR_SENTENCE_BEGIN, data: result }))
 
   asr.on('end', async (result: AsrResult) => {
-    sse.send(clientId, { cmd: CMD.ASR_SENTENCE_END, payload: result })
+    sse.send({ clientId, event: CMD.ASR_SENTENCE_END, data: result })
     if (result.text) {
       await doTranslate(client, clientId, {
         text: result.text,
@@ -55,7 +55,7 @@ async function initial(ctx) {
     }
   })
 
-  asr.on('changed', (result: AsrResult) => sse.send(clientId, { cmd: CMD.ASR_SENTENCE_CHANGE, payload: result }))
+  asr.on('changed', (result: AsrResult) => sse.send({ clientId, event: CMD.ASR_SENTENCE_CHANGE, data: result }))
 
   await asr.start()
   // client.ASR.instance = asr
@@ -258,7 +258,7 @@ async function doTranslate(
   if (!toLang || fromLang === toLang) return null
 
   const result = await client.MT.instance.translate({ text, from: fromLang, to: toLang })
-  sse.send(clientId, { cmd: CMD.MECHINE_TRANSLATE, payload: { ...extraPayload, message: result.translated } })
+  sse.send({ clientId, event: CMD.MECHINE_TRANSLATE, data: { ...extraPayload, message: result.translated } })
   return result
 }
 

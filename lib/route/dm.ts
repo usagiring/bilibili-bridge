@@ -23,14 +23,14 @@ const routes = [
 
 async function clear(ctx) {
   const { clientId } = ctx.__body
-  sse.send(clientId, { cmd: CMD.MESSAGE_CLEAR })
+  sse.send({ clientId, event: CMD.MESSAGE_CLEAR, data: {} })
   ctx.body = { message: 'ok' }
 }
 
 async function sendMessages(ctx) {
   const { category, data, clientId } = ctx.__body
   const cmd = categoryToCmd(category)
-  sse.send(clientId, { cmd, payload: data })
+  sse.send({ clientId, event: cmd, data })
   ctx.body = COMMON_RESPONSE
 }
 

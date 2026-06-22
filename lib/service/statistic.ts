@@ -38,7 +38,7 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   const giftRows = await db
     .select({
       userId: messages.userId,
-      userName: messages.userName,
+      username: messages.username,
       gift: messages.gift,
     })
     .from(messages)
@@ -48,14 +48,14 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
       ...conditions,
     ))
 
-  const userGiftMap: Record<string, { userName: string; totalPrice: number }> = {}
+  const userGiftMap: Record<string, { username: string; totalPrice: number }> = {}
   for (const row of giftRows) {
     const gift = row.gift as GiftInfo
     const totalPrice = (gift.count || 0) * gift.price
     if (userGiftMap[row.userId]) {
       userGiftMap[row.userId].totalPrice += totalPrice
     } else {
-      userGiftMap[row.userId] = { userName: row.userName, totalPrice }
+      userGiftMap[row.userId] = { username: row.username, totalPrice }
     }
   }
 
@@ -79,7 +79,7 @@ async function statistic({ roomId, start, end }): Promise<StatisticResult> {
   const commentRows = await db
     .select({
       userId: messages.userId,
-      userName: messages.userName,
+      userName: messages.username,
       sendAt: messages.sendAt,
     })
     .from(messages)
@@ -169,7 +169,7 @@ async function generateCSV({ roomId, start, end }) {
   const rows = await db
     .select({
       userId: messages.userId,
-      userName: messages.userName,
+      userName: messages.username,
       roomId: messages.roomId,
       sendAt: messages.sendAt,
       gift: messages.gift,

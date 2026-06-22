@@ -32,13 +32,17 @@ export const messages = sqliteTable('message', {
 
   // ── 用户公共字段 ──
   userId: text('user_id').notNull(),
-  userName: text('user_name').notNull(),
-  userNameColor: text('user_name_color'), // 用户名颜色（十六进制字符串），如果有的话
+  username: text('user_name').notNull(),
+  usernameColor: text('user_name_color'), // 用户名颜色（十六进制字符串），如果有的话
   roles: text('roles', { mode: 'json' }).$type<Role[]>(), // 身份标识数组
   face: text('face'),
 
   // ── 表情（JSON，弹幕特有）──
   emots: text('emots', { mode: 'json' }).$type<EmotMap>(),
+  
+  voiceUrl: text('voice_url'),
+  fileDuration: text('file_duration'),
+  emojiUrl: text('emoji_url'),
 
   // ── 礼物特有字段 (JSON) ──
   gift: text('gift', { mode: 'json' }).$type<GiftInfo>(),
@@ -81,11 +85,11 @@ export type EmotMap = Record<string, EmotInfo>
 
 export interface GiftInfo {
   id: number
-  type: 'gift' | 'guard' | 'superchat'
+  type: 'gift' | 'anchor' | 'superchat'
   name: string
   price: number
   count: number
-  coinType: 1 | 2 // 1:金瓜子 2:银瓜子
+  coinType: 'gold' | 'silver'
   batchComboId?: string
   contentJpn?: string  // SC 日文内容（superchat 特有）
 }
@@ -94,7 +98,7 @@ export interface MedalInfo {
   name: string
   level: number
   roomId?: string
-  guard?: number
+  anchor?: number
   color: {
     border: string
     bg: string

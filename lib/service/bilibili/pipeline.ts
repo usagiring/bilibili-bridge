@@ -123,10 +123,7 @@ export async function commentJob({ msg, roomId, clientId }) {
   const comment = parseComment({ msg, roomId, clientId })
   if (!comment) return
 
-  sse.send(clientId, {
-    cmd: CMD.COMMENT,
-    payload: comment,
-  })
+  sse.send({ clientId, event: CMD.MESSAGE, data: comment })
   
   event.emit(CMD.AUTO_REPLY, comment)
   event.emit(CMD.DANMAKU_COMMAND, comment)
@@ -138,10 +135,7 @@ export async function interactJob({ msg, roomId, clientId }) {
   const interact = parseInteract({ msg, clientId })
   if (!interact) return
 
-  sse.send(clientId, {
-    cmd: CMD.INTERACT,
-    payload: interact,
-  })
+  sse.send({ clientId, event: CMD.MESSAGE, data: interact })
 
   event.emit(CMD.AUTO_REPLY, interact)
 
@@ -152,10 +146,8 @@ export async function giftJob({ msg, roomId, clientId }) {
   const gift = parseGift({ msg, clientId, roomId })
   if (!gift) return
 
-  sse.send(clientId, {
-    cmd: gift.category === 'superchat' ? CMD.SUPER_CHAT : CMD.GIFT,
-    payload: gift,
-  })
+  // TODO ComboId
+  sse.send({ clientId, event: CMD.MESSAGE, data: gift })
 
   event.emit(CMD.AUTO_REPLY, gift)
 
@@ -200,7 +192,7 @@ export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
   }
 
   const roles = [ roleTransformMap[msg.info[7]] ]
-  if (isAdmin) roles.push(98)
+  if (isAdmin) roles.push(99)
   // TODO 房主
 
   const comment: MessageInsert = {
@@ -210,8 +202,8 @@ export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
     content: msg.info[1],
     sendAt: msg.info[0][4],
     userId: uid,
-    userName: name,
-    userNameColor: transformColorNumber2String(msg.info[0][12]), // ?
+    username: name,
+    usernameColor: transformColorNumber2String(msg.info[0][12]), // ?
     roles,
     color: transformColorNumber2String(msg.info[0][3]),
     type: msg.info[0][9], // 0：普通弹幕 1：节奏风暴 2：天选时刻
@@ -245,15 +237,11 @@ export function parseComment({ msg, roomId, clientId   } ): MessageInsert {
   }
 
   if (voiceUrl && fileDuration) {
-    Object.assign(comment, {
-      voiceUrl,
-      fileDuration,
-    })
+    comment.voiceUrl = voiceUrl
+    comment.fileDuration = fileDuration
   }
   if (emojiUrl) {
-    Object.assign(comment, {
-      emojiUrl,
-    })
+    comment.emojiUrl = emojiUrl
   }
   if (extra) {
     comment.emots = extra.emots
@@ -290,8 +278,8 @@ export function parseInteract({ msg, clientId }): MessageInsert {
     type, // 1 进入直播间 2 关注直播间 3 分享直播间
     sendAt: timestamp * 1000, // 
     userId: uid,
-    userName: uname,
-    userNameColor: uname_color,
+    username: uname,
+    usernameColor: uname_color,
     face: uinfo?.base?.face,
   }
 
@@ -299,7 +287,7 @@ export function parseInteract({ msg, clientId }): MessageInsert {
     interact.medal = {
       name: uinfo?.medal?.name,
       level: uinfo?.medal?.level,
-      guard: uinfo?.medal?.guard_level,
+      anchor: uinfo?.medal?.guard_level,
       color: {
         bg: uinfo.medal.v2_medal_color_start,
         border: uinfo.medal.v2_medal_color_border,
@@ -312,7 +300,7 @@ export function parseInteract({ msg, clientId }): MessageInsert {
     interact.medal = {
       name: medal_name,
       level: medal_level,
-      guard: guard_level,
+      anchor: guard_level,
       color: {
         border: transformColorNumber2String(medal_color_border),
         bg: transformColorNumber2String(medal_color_start),
@@ -341,7 +329,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
       content: message,
       sendAt: now,
       userId: uid,
-      userName: uname,
+      username: uname,
       face,
       roles: [ guard_level ],
       gift: {
@@ -350,7 +338,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         name: 'superchat',
         price,
         count: num || 1,
-        coinType: 1,
+        coinType: 'gold',
         contentJpn: message_jpn,
       },
     }
@@ -366,15 +354,15 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
       content: `${username} 赠送了 ${String(gift_name)}`,
       sendAt: now,
       userId: uid,
-      userName: username,
+      username,
       roles: [ guard_level ],
       gift: {
         id: gift_id,
-        type: 'guard',
+        type: 'anchor',
         name: String(gift_name),
         price: price / RATE,
         count: num,
-        coinType: 1,
+        coinType: 'gold',
       },
     }
   }
@@ -388,8 +376,8 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
       clientId,
       category: 'gift',
       sendAt: now,
-      userId:uid,
-      userName: uname,
+      userId: uid,
+      username: uname,
       face,
       roles: [ guard_level ],
       gift: {
@@ -398,7 +386,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         name: String(giftName),
         price: coin_type === 'gold' ? price / RATE : 0,
         count: num,
-        coinType: coin_type === 'gold' ? 1 : 2,
+        coinType: coin_type,
         batchComboId: batch_combo_id,
       },
     }

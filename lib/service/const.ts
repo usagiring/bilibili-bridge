@@ -62,6 +62,8 @@ export const CMD = {
   RECORD_ERROR: 'RECORD_ERROR',
   RECORD_CLOSE: 'RECORD_CLOSE',
   ONLINE_COUNT: 'ONLINE_COUNT',
+  DM_STYLE: 'DM_STYLE',
+  DM_RAW_STYLE: 'DM_RAW_STYLE',
 } as const
 
 export const ERROR = {
@@ -96,10 +98,9 @@ interface Window {
   y: number
   width: number
   height: number
-
 }
 
-const DM_STYLE = {
+const DM_STYLE: DmStyle = {
   isShowFace: true,
   isShowAnchorIcon: true,
   isShowFanMedal: true,
@@ -127,7 +128,24 @@ const DM_STYLE = {
   windowBackground: "rgba(0, 0, 0, 0.3)",
   isWindowAlwaysOnTop: false,
 
-  messageSettings: [],
+  messageSlots: [ 
+    {
+      type: 'medal',
+      isShow: true,
+    },
+    {
+      type: 'face',
+      isShow: true,
+    },
+    {
+      type: 'name',
+      isShow: true,
+    },
+    {
+      type: 'comment',
+      isShow: true,
+    },
+  ],
 
   borderImages: [
     {
@@ -322,11 +340,15 @@ interface User {
   cookie: string
 }
 
+interface MessageSlot {
+  type: 'medal' | 'face' | 'name' | 'comment'
+  isShow: boolean
+}
+
 // ── 样式值 ──
 type StyleValue = Record<string, string>
 
 // ── Config 子类型 ──
-
 export interface DmStyle {
   isShowFace: boolean
   isShowAnchorIcon: boolean
@@ -353,7 +375,7 @@ export interface DmStyle {
   windowOpacity: number
   windowBackground: string
   isWindowAlwaysOnTop: boolean
-  messageSettings: any[]
+  messageSlots: MessageSlot[]
   borderImages: any[]
   messageContainer0: StyleValue
   messageUsername0: StyleValue

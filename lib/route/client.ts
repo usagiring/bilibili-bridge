@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm'
 import { createClient, getClient } from '../service/client'
 import { set } from 'lodash'
 import state, { Client } from '../service/state'
+import { sse } from '../service/sse'
+import { CMD } from '../service/const'
 
 const routes = [
   {
@@ -98,10 +100,16 @@ function updateConfig(ctx) {
   const { clientId, kvs } = ctx.__body
 
   const client = getClient(clientId)
-  const config = client.config || {}
+  const config  = client.config
+
+  // const sendSSEKeys = [ 'dmStyle', 'dmRawStyle' ]
+  const shouldSendSSE = true
 
   kvs.forEach(({ key, value }: { key: string, value: any }) => {
     set(config, key, value)
+    // if (sendSSEKeys.includes(key)) {
+    //   shouldSendSSE = true
+    // }
   })
 
   db.update(clients)
@@ -111,6 +119,13 @@ function updateConfig(ctx) {
     })
     .where(eq(clients.id, clientId))
     .run()
+
+  if (shouldSendSSE) {
+    // const dmConfig: Record<string, any> = {}
+    // sendSSEKeys.forEach((k) => { dmConfig[k] = config[k] })
+    sse.send({ clientId, event: CMD.DM_STYLE, data: config.dmStyle as any })
+    sse.send({ clientId, event: CMD.DM_RAW_STYLE, data: config.dmRawStyle as any })
+  }
 
   ctx.body = { message: 'ok', data: config }
 }

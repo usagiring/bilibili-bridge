@@ -12,15 +12,7 @@ recorder.on('rate', ({
   roomId,
   clientId,
 }) => {
-  sse.send(clientId, {
-    cmd: CMD.RECORD_RATE,
-    payload: {
-      id,
-      bps,
-      totalSize,
-      roomId,
-    },
-  })
+  sse.send({ clientId, event: CMD.RECORD_RATE, data: { id, bps, totalSize, roomId } })
 })
 
 recorder.on('end', ({
@@ -28,13 +20,7 @@ recorder.on('end', ({
   roomId,
   clientId,
 }) => {
-  sse.send(clientId, {
-    cmd: CMD.RECORD_END,
-    payload: {
-      id,
-      roomId,
-    },
-  })
+  sse.send({ clientId, event: CMD.RECORD_END, data: { id, roomId } })
 })
 
 recorder.on('error', ({
@@ -42,13 +28,7 @@ recorder.on('error', ({
   roomId,
   clientId,
 }) => {
-  sse.send(clientId, {
-    cmd: CMD.RECORD_ERROR,
-    payload: {
-      id,
-      roomId,
-    },
-  })
+  sse.send({ clientId, event: CMD.RECORD_ERROR, data: { id, roomId } })
 })
 
 recorder.on('close', ({
@@ -56,13 +36,7 @@ recorder.on('close', ({
   roomId,
   clientId,
 }) => {
-  sse.send(clientId, {
-    cmd: CMD.RECORD_CLOSE,
-    payload: {
-      id,
-      roomId,
-    },
-  })
+  sse.send({ clientId, event: CMD.RECORD_CLOSE, data: { id, roomId } })
 })
 
 export async function record({
