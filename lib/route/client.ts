@@ -1,12 +1,11 @@
 import { db } from '../service/db'
 import { clients } from '../model/schema.sqlite'
 import { eq } from 'drizzle-orm'
-
 import { createClient, getClient } from '../service/client'
-import { set } from 'lodash'
+import { set, cloneDeep } from 'lodash'
 import state, { Client } from '../service/state'
 import { sse } from '../service/sse'
-import { CMD } from '../service/const'
+import { CMD, DM_STYLE } from '../service/const'
 
 const routes = [
   {
@@ -51,6 +50,18 @@ const routes = [
         },
       },
     },
+  },
+  {
+    verb: 'post',
+    uri: '/client/config/dm-style/restore',
+    middlewares: [ restoreDMStyle ],
+    validator: {
+      type: 'object',
+      properties: {
+        clientId: { type: 'string' },
+      },
+    },
+    
   },
 ]
 
@@ -100,7 +111,7 @@ function updateConfig(ctx) {
   const { clientId, kvs } = ctx.__body
 
   const client = getClient(clientId)
-  const config  = client.config
+  const config = client.config
 
   // const sendSSEKeys = [ 'dmStyle', 'dmRawStyle' ]
   const shouldSendSSE = true
@@ -123,9 +134,30 @@ function updateConfig(ctx) {
   if (shouldSendSSE) {
     // const dmConfig: Record<string, any> = {}
     // sendSSEKeys.forEach((k) => { dmConfig[k] = config[k] })
-    sse.send({ clientId, event: CMD.DM_STYLE, data: config.dmStyle as any })
-    sse.send({ clientId, event: CMD.DM_RAW_STYLE, data: config.dmRawStyle as any })
+    sse.send({ clientId, event: CMD.DM_STYLE, data: config.dmStyle })
+    sse.send({ clientId, event: CMD.DM_RAW_STYLE, data: config.dmRawStyle })
   }
+
+  ctx.body = { message: 'ok', data: config }
+}
+
+function restoreDMStyle (ctx) {
+  const { clientId } = ctx.__body
+
+  const client = getClient(clientId)
+  const config = client.config
+
+  config.dmStyle = cloneDeep(DM_STYLE)
+
+  db.update(clients)
+    .set({
+      config,
+      updatedAt: Date.now(),
+    })
+    .where(eq(clients.id, clientId))
+    .run()
+
+  sse.send({ clientId, event: CMD.DM_STYLE, data: config.dmStyle })
 
   ctx.body = { message: 'ok', data: config }
 }

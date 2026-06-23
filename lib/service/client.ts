@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { DEFAULT_CONFIG, Room } from './const'
 import state, { Client } from './state'
+import { cloneDeep } from 'lodash'
 
 export function getClient(clientId: string): Client {
   const client = state.clients.find((c: Client) => c.id === clientId)
@@ -12,7 +13,7 @@ export function createClient() {
   const id = crypto.randomUUID()
   const client = {
     id,
-    config: DEFAULT_CONFIG,
+    config: cloneDeep(DEFAULT_CONFIG),
   }
 
   return client

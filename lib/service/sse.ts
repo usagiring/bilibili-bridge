@@ -59,7 +59,7 @@ class SSEService {
   }: {
     clientId: string
     event: string
-    data: Record<string, unknown>
+    data: Record<string, any>
   }): boolean {
     const targets = this.sseClients.filter((e) => e.clientId === clientId)
     if (!targets.length) return false
