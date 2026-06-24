@@ -22,9 +22,7 @@ app.use(cors({
 app.use(bodyParser())
 app.use(logger())
 
-const html = state.htmlPath || path.join(__dirname, '../node_modules/@tokine/bilibili-danmaku-page')
-console.log(html)
-app.use(serve(html, {
+app.use(serve({
   maxage: 60 * 1000,
   defer: false,
 }))
@@ -51,27 +49,34 @@ app.listen(port)
 
 export default app
 
-function serve(root, opts: any = {}) {
-  opts.root = path.resolve(root)
+function serve(opts: any = {}) {
+  const defaultRoot = path.join(__dirname, '../bilibili-live-danmaku/web/dist')
+
   opts.index = opts.index ?? 'index.html'
 
   return async function serve(ctx, next) {
+    // 每次请求动态读取 htmlPath，支持运行时修改
+    const root = state.htmlPath || defaultRoot
+
+    // 每次请求创建独立 opts，避免并发覆盖
+    const sendOpts = { ...opts, root: path.resolve(root) }
+
     // defer: 先让下游处理，没命中再用 send 兜底
     // !defer: 先用 send 响应，没命中再交给下游
-    if (opts.defer) {
+    if (sendOpts.defer) {
       await next()
       if (ctx.body != null || ctx.status !== 404) return
     }
 
     if (ctx.method === 'HEAD' || ctx.method === 'GET') {
       try {
-        await send(ctx, ctx.path, opts)
+        await send(ctx, ctx.path, sendOpts)
       } catch (err) {
         if (err.status !== 404) throw err
       }
     }
 
-    if (!opts.defer) {
+    if (!sendOpts.defer) {
       await next()
     }
   }

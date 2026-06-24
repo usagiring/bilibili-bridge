@@ -183,14 +183,14 @@ export const DM_STYLE: DmStyle = {
   messageUsername0: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
-    '--textStrokeColor': 'white',
-    color: 'rgba(88,88,88,1)',
+    "--textStrokeColor": 'rgba(0,0,0,1)',
+    color: 'white',
   },
   messageComment0: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
 
   messageContainer1: {
@@ -200,13 +200,13 @@ export const DM_STYLE: DmStyle = {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
   messageComment1: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
 
   messageContainer2: {
@@ -216,13 +216,13 @@ export const DM_STYLE: DmStyle = {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
   messageComment2: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
 
   messageContainer3: {
@@ -232,13 +232,13 @@ export const DM_STYLE: DmStyle = {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
   messageComment3: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
 
   messageContainer99: {
@@ -248,29 +248,29 @@ export const DM_STYLE: DmStyle = {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
   messageComment99: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
 
   messageContainerInteract: {
     background: 'rgba(0,0,0,0)',
   },
-  messageNameInteract: {
+  messageUsernameInteract: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
   messageCommentInteract: {
     'font-size': '16px',
     '--textStrokeWidth': '0px',
     "--textStrokeColor": 'rgba(0,0,0,1)',
-    color: 'rgba(88,88,88,1)',
+    color: 'white',
   },
 }
 
@@ -422,7 +422,7 @@ export interface DmStyle {
   messageUsername99: StyleValue
   messageComment99: StyleValue
   messageContainerInteract: StyleValue
-  messageNameInteract: StyleValue
+  messageUsernameInteract: StyleValue
   messageCommentInteract: StyleValue
 }
 

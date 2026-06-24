@@ -21,7 +21,7 @@ export const messages = sqliteTable('message', {
   color: text('color'), // 弹幕颜色（十六进制字符串），礼物和其他消息可为空
 
   // ── 分类 ──
-  category: text('category').notNull(), // 'comment' | 'gift' | 'guard' | 'superchat' | 'interact'
+  category: text('category').notNull(), // 'comment' | 'gift' | 'superchat' | 'interact'
   type: integer('type'), // 0：普通弹幕 1：节奏风暴 2：天选时刻
 
   // ── 时间 & 房间 ──
@@ -91,7 +91,7 @@ export interface GiftInfo {
   count: number
   coinType: 'gold' | 'silver'
   batchComboId?: string
-  contentJpn?: string  // SC 日文内容（superchat 特有）
+  contentJpn?: string // SC 日文内容（superchat 特有）
 }
 
 export interface MedalInfo {

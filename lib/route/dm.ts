@@ -28,20 +28,9 @@ async function clear(ctx) {
 }
 
 async function sendMessages(ctx) {
-  const { category, data, clientId } = ctx.__body
-  const cmd = categoryToCmd(category)
-  sse.send({ clientId, event: cmd, data })
+  const { data, clientId } = ctx.__body
+  sse.send({ clientId, event: CMD.MESSAGE, data })
   ctx.body = COMMON_RESPONSE
-}
-
-function categoryToCmd(category: string) {
-  switch (category) {
-    case 'comment':   return CMD.COMMENT
-    case 'gift':      return CMD.GIFT
-    case 'interact':  return CMD.INTERACT
-    case 'superChat': return CMD.SUPER_CHAT
-    default:          return ''
-  }
 }
 
 export default routes

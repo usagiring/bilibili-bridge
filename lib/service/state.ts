@@ -22,7 +22,6 @@ interface State {
   wbi: {
     mixinKey?: string
   }
-  userInfoFrequencyLimit: number
   saveAllBiliMessage: boolean
   dmV2Decoder: (base64Str: string) => any
   interactDecoder?: (base64Str: string) => any
@@ -42,6 +41,8 @@ interface State {
 // NEED INITIALIZATION
 export const state: Partial<State> = {
   port: 3000,
+  htmlPath: '',
+  userDataPath: '',
   clients: [],
   sseClients: [],
   bilibiliWSInstances: [],

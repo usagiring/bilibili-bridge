@@ -284,9 +284,7 @@ export function parseInteract ({ msg, clientId }): MessageInsert {
   const pbDecoder = state.interactDecoder
   if(!pbDecoder) return 
 
-  console.log(pb)
   const data: InteractV2 = pbDecoder(pb)
-  console.log(data)
 
   const roomId = data.roomId
   const type = data.type
@@ -297,10 +295,10 @@ export function parseInteract ({ msg, clientId }): MessageInsert {
   const face = data.user?.info?.face
   const medal = data.user?.medal
 
-  let content = `${username} ${contentMap[type]}`
-  if(medal.anchor > 0 && type === 1) {
-    content = `${username} 光临直播间`
-  }
+  const content = `${username} ${contentMap[type]}`
+  // if(medal.anchor > 0 && type === 1) {
+  //   content = `${username} 光临直播间`
+  // }
 
   const interact: MessageInsert = {
     roomId: String(roomId),
