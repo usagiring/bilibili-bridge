@@ -341,6 +341,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
 
     const anchorRole = guard_level
     const roles = [ anchorRole || 0 ]
+    const count = num || 1
 
     return {
       roomId: String(roomId),
@@ -357,8 +358,9 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         type: 'superchat',
         name: 'superchat',
         price,
-        count: num || 1,
+        count,
         coinType: 'gold',
+        totalPrice: price * count,
         contentJpn: message_jpn,
       },
     }
@@ -369,6 +371,9 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
 
     const anchorRole = guard_level
     const roles = [ anchorRole || 0 ]
+
+    const priceRMB = price / RATE
+    const count = num || 1
 
     return {
       roomId: String(roomId),
@@ -383,8 +388,9 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         id: String(gift_id),
         type: 'anchor',
         name: String(gift_name),
-        price: price / RATE,
-        count: num,
+        price: priceRMB,
+        count,
+        totalPrice: priceRMB * count,
         coinType: 'gold',
       },
     }
@@ -396,6 +402,9 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     const anchorRole = guard_level
     const roles = [ anchorRole || 0 ]
     
+    const priceRMB = coin_type === 'gold' ? price / RATE : 0
+    const count = num || 1
+
     return {
       roomId: String(roomId),
       content: `${uname} 赠送了 ${String(giftName)}`,
@@ -410,9 +419,10 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         id: giftId,
         type: 'gift',
         name: String(giftName),
-        price: coin_type === 'gold' ? price / RATE : 0,
-        count: num,
+        price: priceRMB,
+        count,
         coinType: coin_type,
+        totalPrice: priceRMB * count,
         batchComboId: batch_combo_id,
       },
     }

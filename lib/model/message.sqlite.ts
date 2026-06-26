@@ -91,6 +91,7 @@ export interface GiftInfo {
   count: number
   coinType: 'gold' | 'silver'
   batchComboId?: string
+  totalPrice: number
   contentJpn?: string // SC 日文内容（superchat 特有）
 }
 
