@@ -117,7 +117,13 @@ async function connect(ctx) {
   const instance = state.bilibiliWSInstances.find(i => i.roomId === roomId)
   if (!instance) {
     const bilibiliWSClient = new BilibiliWSClient()
-    await bilibiliWSClient.connect({ userId: Number(userId) || 0, roomId: Number(roomId), clientId })
+    const cookie = getUserCookie({ clientId })
+    await bilibiliWSClient.connect({ 
+      userId: Number(userId) || 0,
+      roomId: Number(roomId),
+      clientId,
+      cookie,
+    })
 
     state.bilibiliWSInstances?.push({
       instance: bilibiliWSClient,
@@ -162,7 +168,7 @@ async function getStatus(ctx) {
 
   const data = roomIds.map(roomId => {
     const isConnected = !!state.bilibiliWSInstances.find(i => {
-      return i.roomId  === roomId && i.clientId === clientId && i.instance
+      return i.roomId === roomId && i.clientId === clientId && i.instance
     })
 
     return {

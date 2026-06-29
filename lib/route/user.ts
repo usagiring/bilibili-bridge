@@ -1,11 +1,14 @@
+import { eq } from 'drizzle-orm'
+import { clients } from '../model/client.sqlite'
 import {
   checkCookie,
   getQrCode as getQrCodeApi,
   loginFromQrCode as loginFromQrCodeApi,
   refreshCookie as refreshCookieApi,
 } from '../service/bilibili/sdk'
-import { getUserCookie } from '../service/client'
+import { getClient, getUserCookie } from '../service/client'
 import { HTTP_ERROR } from '../service/const'
+import { db } from '../service/db'
 
 const routes = [
   { verb: 'get', uri: '/cookie/refresh/check', middlewares: [ isNeedRefreshCookie ] },
@@ -46,6 +49,7 @@ async function loginFromQrCode(ctx) {
   const { qrCodeKey, clientId } = ctx.__body
   const res = await loginFromQrCodeApi(qrCodeKey)
 
+  // has error
   if (res.data.data.code) {
     ctx.body = { ...res.data.data }
     return
@@ -53,13 +57,30 @@ async function loginFromQrCode(ctx) {
 
   const cookies = res.headers['set-cookie'] ?? []
   const cookie = cookies.map((c: string) => c.split(';')[0]).join(';')
+  const refreshToken = res.data.data.refresh_token
 
-  // 保存 cookie 到客户端
-  if (cookie) {
-    getUserCookie({ clientId })
+  const user = {
+    cookie,
+    refreshToken,
   }
 
-  ctx.body = { ...res.data.data, cookie }
+  const client = getClient(clientId)
+  const config = client.config
+
+  config.user = user
+
+  db.update(clients)
+    .set({
+      config,
+      updatedAt: Date.now(),
+    })
+    .where(eq(clients.id, clientId))
+    .run()
+
+  ctx.body = {
+    cookie,
+    refreshToken,
+  }
 }
 
 export default routes

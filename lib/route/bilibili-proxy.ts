@@ -7,8 +7,8 @@ import {
   wearMedal as wearMedalAPI,
   getRoomInfoByIds as getRoomInfoByIdsAPI,
   getMedalList as getMedalListAPI,
-  getRandomPlayUrl,
   like as likeApi,
+  getPlayUrl as getPlayUrlApi,
 } from '../service/bilibili/sdk'
 import { HTTP_ERROR } from '../service/const'
 import { getUserCookie } from '../service/client'
@@ -145,13 +145,15 @@ async function getMedalList(ctx) {
 async function getPlayUrl(ctx) {
   const { roomId, qn, withCookie, clientId } = ctx.__body
 
-  const playUrl = await getRandomPlayUrl({
+  const result = await getPlayUrlApi({
     roomId,
     qn,
     userCookie: withCookie ? getUserCookie({ clientId }) : null,
+    platform: 'web',
   })
+  const urls = result.data.durl.map(d => d.url)
 
-  ctx.body = { message: 'ok', data: { url: playUrl } }
+  ctx.body = { message: 'ok', data: { urls } }
 }
 
 async function like(ctx) {

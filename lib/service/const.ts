@@ -129,10 +129,10 @@ export const DM_STYLE: DmStyle = {
   isShowInteractInfo: false,
   showGiftCardThreshold: 0,
   isShowSilverGift: false,
-  font: 'unset',
-  fontWeight: '',
+  font: 'auto',
+  fontWeight: 'normal',
   isUseMiniGiftCard: false,
-  adminIcon: "ios-home-outline",
+  adminIcon: "md-star",
   isShowAdminIcon: false,
   adminIconColor: 'coral',
   isShowType1: false, // 显示节奏风暴弹幕
@@ -364,9 +364,10 @@ export const DEFAULT_CONFIG: Config = {
 }
 
 interface User {
-  id: string
-  face: string
+  id?: string
+  face?: string
   cookie: string
+  refreshToken: string
 }
 
 interface MessageSlot {
@@ -477,7 +478,6 @@ export interface Config {
   // 全局设置
   signInMessage: string
   isNeedRefreshCookieCache?: number
-  refreshToken?: string
   waitingSpeakerCount?: number
 
   user?: User,

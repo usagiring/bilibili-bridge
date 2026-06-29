@@ -461,7 +461,7 @@ async function getSignedQueryString({ params }) {
   const currTime = Math.round(Date.now() / 1000)
   // const chr_filter = /[!'\(\)*]/g
 
-  Object.assign(params, { wts: currTime })    // 添加 wts 字段
+  Object.assign(params, { wts: currTime }) // 添加 wts 字段
 
   const querystring = Object.keys(params)
     .sort() // 按照 key 重排参数
