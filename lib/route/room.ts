@@ -34,6 +34,7 @@ const routes = [
     validator: {
       type: 'object',
       properties: {
+        clientId: { type: 'string' },
         roomId: { type: 'string' },
       },
     },

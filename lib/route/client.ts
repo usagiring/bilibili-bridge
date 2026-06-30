@@ -2,7 +2,7 @@ import { db } from '../service/db'
 import { clients } from '../model/schema.sqlite'
 import { eq } from 'drizzle-orm'
 import { createClient, getClient } from '../service/client'
-import { set, cloneDeep } from 'lodash'
+import { set, cloneDeep, pick } from 'lodash'
 import state, { Client } from '../service/state'
 import { sse } from '../service/sse'
 import { CMD, DM_STYLE } from '../service/const'
@@ -113,14 +113,12 @@ function updateConfig(ctx) {
   const client = getClient(clientId)
   const config = client.config
 
-  // const sendSSEKeys = [ 'dmStyle', 'dmRawStyle' ]
-  const shouldSendSSE = true
+  const rootKeySet = new Set()
 
   kvs.forEach(({ key, value }: { key: string, value: any }) => {
     set(config, key, value)
-    // if (sendSSEKeys.includes(key)) {
-    //   shouldSendSSE = true
-    // }
+
+    rootKeySet.add(getRootKey(key))
   })
 
   db.update(clients)
@@ -131,14 +129,24 @@ function updateConfig(ctx) {
     .where(eq(clients.id, clientId))
     .run()
 
-  if (shouldSendSSE) {
-    // const dmConfig: Record<string, any> = {}
-    // sendSSEKeys.forEach((k) => { dmConfig[k] = config[k] })
-    sse.send({ clientId, event: CMD.DM_STYLE, data: config.dmStyle })
-    sse.send({ clientId, event: CMD.DM_RAW_STYLE, data: config.dmRawStyle })
+  const rootKeys = [ ...rootKeySet ]
+
+  const shouldSendSSEKeys = [
+    { key: 'dmStyle', event: 'DM_STYLE' }, 
+    { key: 'dmRawStyle', event: 'DM_RAW_STYLE' }, 
+    { key: 'liveConfig', event: 'LIVE_CONFIG' }, 
+  ]
+  for(const k of shouldSendSSEKeys) {
+    if(!rootKeySet.has(k.key)) continue
+    sse.send({ clientId, event: CMD[k.event], data: config[k.key] })
   }
 
-  ctx.body = { message: 'ok', data: config }
+  ctx.body = { message: 'ok', data: pick(config, rootKeys) }
+}
+
+function getRootKey(path: string): string {
+  // 'dmStyle.messageSlots[0].isShow' → 'dmStyle'
+  return path.split('.')[0].split('[')[0]
 }
 
 function restoreDMStyle (ctx) {

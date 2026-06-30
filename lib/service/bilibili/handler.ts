@@ -4,7 +4,7 @@ import state from '../state'
 import { commentJob, interactJob, giftJob } from './pipeline'
 import sse from '../sse'
 import { db } from '../db'
-import { lotteries } from '../../model/lottery.sqlite'
+// import { lotteries } from '../../model/lottery.sqlite'
 import * as fs from 'fs'
 import path from 'path'
 
@@ -93,13 +93,13 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         } })
 
         for (const awardUser of awardUsers) {
-          await db.insert(lotteries).values({
-            uid: awardUser.uid,
-            uname: awardUser.uname,
-            avatar: awardUser.face,
-            awardedAt: Date.now(),
-            description: `${award_name} (天选时刻)`,
-          })
+          // await db.insert(lotteries).values({
+          //   uid: awardUser.uid,
+          //   uname: awardUser.uname,
+          //   avatar: awardUser.face,
+          //   awardedAt: Date.now(),
+          //   description: `${award_name} (天选时刻)`,
+          // })
         }
       }
 

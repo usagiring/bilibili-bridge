@@ -15,10 +15,6 @@
 export { clients } from './client.sqlite'
 export type { ClientRow, ClientInsert } from './client.sqlite'
 
-// ── 用户 ──
-export { users } from './user.sqlite'
-export type { UserRow, UserInsert } from './user.sqlite'
-
 // ── 统一消息 ──
 export { messages } from './message.sqlite'
 export type {
@@ -30,7 +26,3 @@ export type {
   InteractExtra,
   MedalInfo,
 } from './message.sqlite'
-
-// ── 抽奖记录 ──
-export { lotteries } from './lottery.sqlite'
-export type { LotteryRow, LotteryInsert } from './lottery.sqlite'

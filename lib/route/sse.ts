@@ -1,5 +1,4 @@
 import sse from '../service/sse'
-import { COMMON_RESPONSE } from '../service/const'
 
 const routes = [
   {

@@ -20,17 +20,6 @@ sqlite.exec(`CREATE TABLE IF NOT EXISTS client (
   updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 )`)
 
-sqlite.exec(`CREATE TABLE IF NOT EXISTS "user" (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  uid INTEGER NOT NULL UNIQUE,
-  name TEXT NOT NULL,
-  avatar TEXT NOT NULL,
-  sex TEXT,
-  level INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
-  updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
-)`)
-
 sqlite.exec(`CREATE TABLE IF NOT EXISTS message (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   content TEXT NOT NULL,
@@ -52,27 +41,12 @@ sqlite.exec(`CREATE TABLE IF NOT EXISTS message (
   created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 )`)
 
-sqlite.exec(`CREATE TABLE IF NOT EXISTS lottery (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  uid INTEGER NOT NULL,
-  uname TEXT NOT NULL,
-  avatar TEXT NOT NULL,
-  awarded_at INTEGER NOT NULL,
-  description TEXT,
-  created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
-)`)
-
-// 索引（CREATE INDEX IF NOT EXISTS）
+// 索引
 for (const idx of [
-  'CREATE INDEX IF NOT EXISTS idx_msg_category ON message(category)',
-  'CREATE INDEX IF NOT EXISTS idx_msg_uid ON message(user_id)',
-  'CREATE INDEX IF NOT EXISTS idx_msg_room_id ON message(room_id)',
-  'CREATE INDEX IF NOT EXISTS idx_msg_send_at ON message(send_at)',
-  'CREATE INDEX IF NOT EXISTS idx_msg_room_category ON message(room_id, category)',
-  'CREATE INDEX IF NOT EXISTS idx_msg_room_send_at ON message(room_id, send_at)',
-  'CREATE INDEX IF NOT EXISTS idx_user_uid ON "user"(uid)',
-  'CREATE INDEX IF NOT EXISTS idx_lottery_uid ON lottery(uid)',
-  'CREATE INDEX IF NOT EXISTS idx_lottery_awarded_at ON lottery(awarded_at)',
+  // 游标分页：(room_id, send_at, id) 覆盖 message.ts 的游标查询
+  'CREATE INDEX IF NOT EXISTS idx_msg_room_sendat_id ON message(room_id, send_at, id)',
+  // 统计查询：(room_id, category, send_at) 覆盖 stats.ts 的所有查询
+  'CREATE INDEX IF NOT EXISTS idx_msg_room_category_sendat ON message(room_id, category, send_at)',
 ]) {
   sqlite.exec(idx)
 }

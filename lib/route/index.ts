@@ -5,8 +5,7 @@ import { HTTP_ERROR } from '../service/const'
 import roomAPIs from './room'
 import messageAPIs from './message'
 import dmAPIs from './dm'
-import lotteryAPIs from './lottery'
-import statisticAPIs from './statistic'
+import statsAPIs from './stats'
 import asrAPIs from './asr'
 import userAPIs from './user'
 import clientAPIs from './client'
@@ -29,8 +28,7 @@ apiRouter.get('/touch', (ctx) => {
   ...roomAPIs,
   ...messageAPIs,
   ...dmAPIs,
-  ...lotteryAPIs,
-  ...statisticAPIs,
+  ...statsAPIs,
   ...asrAPIs,
   ...userAPIs,
   ...clientAPIs,
@@ -47,7 +45,7 @@ apiRouter.get('/touch', (ctx) => {
   })
 
 router.use('/api', apiRouter.routes(), apiRouter.allowedMethods())
-router.get('/', (ctx, next) => {
+router.get('/', (ctx) => {
   ctx.body = {
     name,
     version,

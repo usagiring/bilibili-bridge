@@ -9,6 +9,7 @@ const routes = [
     middlewares: [ query ],
     validator: {
       type: 'object',
+      required: [ 'roomId' ],
       properties: {
         clientId: { type: 'string' },
         roomId: { type: 'string' },
@@ -107,7 +108,7 @@ async function count(ctx) {
 }
 
 function buildConditions(filters: {
-  roomId?: string
+  roomId: string
   userId?: string
   username?: string
   content?: string
@@ -118,10 +119,11 @@ function buildConditions(filters: {
   sendAtGte?: number
   cursor?: string
 }) {
-  const conditions = []
+  const conditions = [
+    eq(messages.roomId, filters.roomId),
+  ]
 
   // 精确条件 — 各自独立 AND
-  if (filters.roomId) conditions.push(eq(messages.roomId, filters.roomId))
   if (filters.category?.length) conditions.push(inArray(messages.category, filters.category))
   if (filters.sendAtGte) conditions.push(gte(messages.sendAt, filters.sendAtGte))
   if (filters.sendAtLte) conditions.push(lte(messages.sendAt, filters.sendAtLte))

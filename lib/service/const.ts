@@ -81,6 +81,7 @@ export const CMD = {
   ONLINE_COUNT: 'ONLINE_COUNT',
   DM_STYLE: 'DM_STYLE',
   DM_RAW_STYLE: 'DM_RAW_STYLE',
+  LIVE_CONFIG: 'LIVE_CONFIG',
 } as const
 
 export const ERROR = {
@@ -324,6 +325,12 @@ const RECORD_CONFIG = {
   isAutoRecord: false,
 }
 
+const VOTE_CONFIG = {
+  options: [],
+  isAccurateMatch: false,
+  isAllowReVote: false,
+}
+
 interface Provider {
   type: string
   service: string
@@ -345,6 +352,13 @@ export interface Room {
   voteOptions: Array<{ keyword: string; value: string }>
 }
 
+interface VoteConfig {
+  options: {
+    value: string
+    description?: string
+  }[]
+}
+
 export const DEFAULT_CONFIG: Config = {
   dmStyle: DM_STYLE,
   dmRawStyle: DM_RAW_STYLE,
@@ -354,6 +368,7 @@ export const DEFAULT_CONFIG: Config = {
   asrConfig: ASR_CONFIG,
   mtConfig: MT_CONFIG,
   chartConfig: CHART_CONFIG,
+  voteConfig: VOTE_CONFIG,
 
   rooms: [],
   windows: [],
@@ -480,17 +495,18 @@ export interface Config {
   isNeedRefreshCookieCache?: number
   waitingSpeakerCount?: number
 
-  user?: User,
-  rooms: Room[],
-  windows: Window[],
-  providers: Provider[],
+  user?: User
+  rooms: Room[]
+  windows: Window[]
+  providers: Provider[]
 
-  dmStyle: DmStyle,
-  dmRawStyle: DmRawStyle,
-  liveConfig: LiveConfig,
-  messageConfig: MessageConfig,
-  recordConfig: RecordConfig,
-  asrConfig: AsrConfig,
-  mtConfig: MtConfig,
-  chartConfig: ChartConfig,
+  dmStyle: DmStyle
+  dmRawStyle: DmRawStyle
+  liveConfig: LiveConfig
+  messageConfig: MessageConfig
+  recordConfig: RecordConfig
+  asrConfig: AsrConfig
+  mtConfig: MtConfig
+  chartConfig: ChartConfig
+  voteConfig: VoteConfig
 }
