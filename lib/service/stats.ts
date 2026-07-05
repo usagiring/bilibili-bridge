@@ -113,7 +113,7 @@ export async function getStats({
   }
 
   return {
-    totalGold: totalGold * 1000,
+    totalGold: Math.round(totalGold * 1000),
     totalSendGiftUser: giftEntries.length,
     // topSendGiftUser,
     totalComment: commentRows.length,

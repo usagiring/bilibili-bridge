@@ -157,7 +157,44 @@ export async function getDamankuInfo(roomId, userCookie): Promise<BaseResponse &
 }
 
 export async function getGiftConfig(roomId, platform = 'pc') {
-  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/giftPanel/giftConfig?platform=${platform}&room_id=${roomId}`, {
+  const querystring = await getSignedQueryString({
+    params: {
+      platform,
+      room_id: roomId,
+    },
+  })
+
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/giftPanel/giftConfig?${querystring}`, {
+    headers: defaultHeaders,
+  })
+  return res.data
+}
+
+export async function getGiftList({
+  roomId, 
+  platform = 'pc',
+  roomUserId, 
+} : {
+  roomId: string
+  roomUserId: string
+  platform?: string
+}) {
+  const querystring = await getSignedQueryString({
+    params: {
+      platform,
+      room_id: roomId,
+      area_parent_id: 6,
+      area_id: 236,
+      source: 'live',
+      build: 0,
+      ruid: roomUserId,
+      base_version: 0,
+      receive_users: '',
+      web_location: 444.8,
+    },
+  })
+
+  const res = await axios.get(`${baseLiveUrl}/xlive/web-room/v1/giftPanel/roomGiftList?${querystring}`, {
     headers: defaultHeaders,
   })
   return res.data

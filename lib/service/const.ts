@@ -345,11 +345,6 @@ export interface Room {
   userId: string
   liveStatus: number
   liveStream: string
-
-  isAutoReply: boolean
-  autoReplyRules: any[]
-
-  voteOptions: Array<{ keyword: string; value: string }>
 }
 
 interface VoteConfig {
@@ -369,6 +364,7 @@ export const DEFAULT_CONFIG: Config = {
   mtConfig: MT_CONFIG,
   chartConfig: CHART_CONFIG,
   voteConfig: VOTE_CONFIG,
+  autoReplyRule: {},
 
   rooms: [],
   windows: [],
@@ -489,6 +485,26 @@ export interface RecordConfig {
   isAutoRecord: boolean
 }
 
+export interface ReplyRuleTag {
+  id: string
+  key: string
+  name: string
+  kind: 'condition' | 'action'
+  description?: string
+  data?: any
+  display?: string
+}
+
+export interface AutoReplyRule {
+  id: string
+  roomId: string
+  type: string
+  text: string
+  sortOrder?: number
+  isEnable: boolean
+  tags: ReplyRuleTag[]
+}
+
 export interface Config {
   // 全局设置
   signInMessage: string
@@ -509,4 +525,5 @@ export interface Config {
   mtConfig: MtConfig
   chartConfig: ChartConfig
   voteConfig: VoteConfig
+  autoReplyRule: Record<string, AutoReplyRule>
 }

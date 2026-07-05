@@ -1,205 +1,146 @@
 import event from './event'
-import state from './state'
 import { parseCookie } from './util'
-import { CMD } from './const'
-// import giftService from './'
+import { AutoReplyRule, CMD } from './const'
 import { sendMessage, addSilentUser, searchUser } from './bilibili/sdk'
 import type { SendMessage } from './bilibili/sdk'
-// import tts from './tts'
+import { getClient } from '../service/client'
+import { MessageRow } from '../model/schema.sqlite'
+import { sse } from './sse'
 
-interface Message {
-  type: 'comment' | 'gift' | 'interact' | 'superchat'
-  uid: number
-  uname: string
-  medalName?: string
-  role?: number
-  content?: string
-  coinType?: string
-  giftId?: string
-  giftName?: string
-  roomId: number
+const sendRoomCache = new Map()
+setInterval(() => {
+  sendRoomCache.clear()
+}, 60 * 1000 * 10) 
+
+event.on(CMD.AUTO_REPLY, async ({ clientId, message }: { clientId: string; message: MessageRow }) => {
+  const clientConfig = getClient(clientId)?.config
+  const rule = clientConfig?.autoReplyRule || {}
+  const roomId = message.roomId
+  if(!roomId ) return 
+  const rules = Object.values(rule).filter(r => r.roomId === message.roomId && r.isEnable)
+  if (!rules?.length) return
+
+  rules.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+
+  for (const rule of rules) {
+    let text = rule.text
+    if (!text) continue
+
+    const isPass = await isPassed({ message, rule })
+    if (!isPass) continue
+
+    // 执行逻辑
+    text = text.replace('{user.name}', message.username || '')
+    text = text.replace('{user}', message.username || '')
+
+    text = text.replace('{gift.name}', message.gift?.name || '')
+    text = text.replace('{gift}', message.gift?.name || '')
+    text = text.replace('{gift.count}', message.gift?.count ? `${message.gift.count}` : '')
+
+    text = text.replace('{comment.content}', message.content || '')
+    text = text.replace('{comment}', message.content || '')
+
+    text = text.replace('{superchat.content}', message.content || '')
+    text = text.replace('{superchat}', message.content || '')
+
+    let isAtUser = false
+    if (text.includes('{@user}')) {
+      isAtUser = true
+      text = text.replace('{@user}', '')
+    }
+
+    const actionTags = rule.tags.filter(tag => tag.kind === 'action')
+    for (const tag of actionTags) {
+      const userCookie = clientConfig?.user?.cookie
+      if (tag.key === 'TEXT_REPLY' && userCookie) {
+
+        const cacheKey = `roomId:${message.roomId}`
+
+        // 一段时间内同一个房间不重复发送，防止触发限流
+        const cache = sendRoomCache.get(cacheKey)
+        if(cache && cache > Date.now() - 7 * 1000) return 
+
+        const cookies = parseCookie(userCookie)
+        const me = cookies.DedeUserID
+
+        // 当前房间主播ID
+        const roomUserId = clientConfig.rooms.find(r => r.id === roomId)?.userId
+
+        // 未开启允许所有用户回复 且 非当前直播间主播，不进行操作
+        if (!tag.data?.allowAllUserDMReply && `${me}` !== `${roomUserId}`) {
+          continue
+        }
+
+        // TODO String userId ?
+        const data: SendMessage = {
+          roomId: Number(roomId),
+          message: text,
+        }
+        if (isAtUser) data.replyMid = Number(message.userId)
+
+        sendMessage(data, userCookie)
+        
+        sendRoomCache.set(cacheKey, Date.now())
+      }
+
+      if (tag.key === 'SPEAK_REPLY') {
+        const { voice, speed } = tag.data || {}
+        sse.send({ clientId, event: CMD.SPEAK, data: { text, voice, speed } })
+      }
+    }
+
+    // 匹配到第一条规则之后跳过
+    break
+  }
+})
+
+async function isPassed({ message, rule } : { message: MessageRow; rule: AutoReplyRule }) {
+  if(message.category !== rule.type) return false
+  if(!rule.tags?.length) return false
+  for (const tag of rule.tags) {
+    // TODO
+    if (tag.key === 'LEVEL') {
+      // const { level } = tag.data || {}
+      // if(level && lel)
+    }
+    if (tag.key === 'ROLE') {
+      const roles = tag.data?.roles
+      if(!roles?.length) return false
+      // 如果没有role字段表示无法确定身份，不通过
+      if(!message.roles?.length) return false
+
+      return roles.some(role => message.roles?.includes(role))
+    }
+    if (tag.key === 'FILTER') {
+      const filter = tag.data?.filter
+      if(!filter || !message.content) return false
+
+      const regexp = new RegExp(filter)
+      return regexp.test(message.content)
+    }
+    if (tag.key === 'GIFT') {
+      if(!message.gift || !message.gift?.id) return false
+
+      const giftIds = tag.data?.giftIds
+      if(!giftIds?.length) return false
+
+      return giftIds.includes(message.gift.id)
+    }
+    if (tag.key === 'MEDAL') {
+      if (!message.medal?.name) return false
+      const roomMedalName = ''
+      return message.medal.name === roomMedalName
+    }
+    if (tag.key === 'PRICE') {
+      if (!message.gift || !message.gift?.price) return false
+      const minPrice = tag.data?.minPrice || 0
+      const totalPrice = message.gift.totalPrice || 0
+      return totalPrice >= minPrice
+    }
+  }
+
+  return false
 }
-
-interface Rule {
-  type: 'comment' | 'gift' | 'interact' | 'superchat'
-  text: string
-  enable: boolean
-  // priority: number
-  tags: Tag[]
-}
-
-interface Tag {
-  id: number
-  key: 'LEVEL' | 'ROLE' | 'FILTER' | 'GIFT' | 'MEDAL' | 'GOLD' | 'SILVER' | 'TEXT_REPLY' | 'SPEAK_REPLY'
-  name: string
-  content: string
-  data?: { [x: string]: any }
-}
-
-// let isReadySpeak = true
-// [uid]: { sendAt, name }
-// let sendUserCache = {}
-// setInterval(() => {
-//     sendUserCache = {}
-// }, 60 * 1000 * 10) // TODO config
-
-// event.on(CMD.AUTO_REPLY, async (message: Message) => {
-//   const autoReplyRules = state.autoReplyRules
-//   const roomId = message.roomId
-//   const isConnected = state.get(`connectionPoolMap.${roomId}.isConnected`)
-//   if (!roomId || !isConnected || !autoReplyRules?.length) return
-
-//   // const cacheKey = message.giftId ? `${message.uid}:${message.giftId}` : `${message.uid}`
-//   // if (sendUserCache[cacheKey] && sendUserCache[cacheKey].sendAt > Date.now() - 60 * 1000) return
-
-//   const autoReplyRulesSorted: Rule[] = autoReplyRules.filter(rule => rule.type === message.type)
-//   for (const rule of autoReplyRulesSorted) {
-//     const isPass = await isPassed(message, rule)
-//     if (!isPass) continue
-
-//     // 执行逻辑
-//     let text = rule.text
-//     if (!text) continue
-//     text = text.replace('{user.name}', message.uname)
-//     text = text.replace('{user}', message.uname)
-
-//     text = text.replace('{gift.name}', message.giftName || '')
-//     text = text.replace('{gift}', message.giftName || '')
-
-//     text = text.replace('{comment.content}', message.content || '')
-//     text = text.replace('{comment}', message.content || '')
-
-//     text = text.replace('{superchat.content}', message.content || '')
-//     text = text.replace('{superchat}', message.content || '')
-
-//     let isAtUser = false
-//     if (text.includes('{@user}')) {
-//       isAtUser = true
-//       text = text.replace('{@user}', '')
-//     }
-
-//     for (const tag of rule.tags) {
-//       const userCookie = state.get('userCookie')
-//       if (tag.key === 'TEXT_REPLY' && userCookie) {
-//         const cookies = parseCookie(userCookie)
-//         const me = cookies.DedeUserID
-
-//         // 当前房间主播ID
-//         const roomUserId = state.get('roomUserId')
-
-//         // 仅在自己直播间生效 或者 开启所有用户回复设置
-//         if (tag.data?.allowAllUserDanmakuReply || `${me}` === `${roomUserId}`) {
-//           // do nothing
-//         } else {
-//           continue
-//         }
-
-//         const data: SendMessage = {
-//           roomId,
-//           message: text,
-//         }
-//         if (isAtUser) {
-//           data.replyMid = message.uid
-//         }
-//         sendMessage(data, userCookie)
-
-//         // 记录被回复的uid，一段时间内不再回复
-//         // sendUserCache[cacheKey] = {
-//         //     sendAt: Date.now(),
-//         //     name: message.uname
-//         // }
-//       }
-
-//       // if (tag.key === 'SPEAK_REPLY' && isReadySpeak) {
-//       //     isReadySpeak = false
-//       //     const { voice, speed } = tag.data
-//       //     tts(text, {
-//       //         voice,
-//       //         speed
-//       //     })
-//       //         .then(() => {
-//       //             isReadySpeak = true
-//       //         })
-
-//       //     // 记录被回复的uid，一段时间内不再回复
-//       //     sendUserCache[cacheKey] = {
-//       //         sendAt: Date.now(),
-//       //         name: message.uname
-//       //     }
-//       // }
-
-//       if (tag.key === 'SPEAK_REPLY') {
-//         const { voice, speed } = tag.data || {}
-//         wss.broadcast({
-//           cmd: CMD.SPEAK,
-//           payload: {
-//             text,
-//             voice,
-//             speed,
-//           },
-//         })
-//       }
-//     }
-
-//     // 匹配到第一条规则之后跳过
-//     break
-//   }
-// })
-
-// async function isPassed(message, rule) {
-//   if (!rule.enable) return false
-//   for (const tag of rule.tags) {
-//     if (tag.key === 'LEVEL') {
-//       // const { level } = tag.data || {}
-//       // if(level && lel)
-//     }
-//     if (tag.key === 'ROLE') {
-//       const { roles } = tag.data || {}
-//       // 如果没有role字段表示无法确定身份，不通过
-//       if (!Number.isFinite(message.role)) return false
-//       if (roles && roles.length && !roles.includes(message.role)) {
-//         return false
-//       }
-//     }
-//     if (tag.key === 'FILTER') {
-//       const { filter } = tag.data || {}
-//       if (filter && message.content) {
-//         const regexp = new RegExp(filter)
-//         if (!regexp.test(message.content)) {
-//           return false
-//         }
-//       }
-//     }
-//     if (tag.key === 'GIFT') {
-//       if (!Number.isFinite(message.giftId)) return false
-//       const { giftIds } = tag.data || {}
-//       if (giftIds && giftIds.length && Number.isFinite(message.giftId)) {
-//         if (!giftIds.includes(`${message.giftId}`)) {
-//           return false
-//         }
-//       }
-//     }
-//     if (tag.key === 'MEDAL') {
-//       if (!message.medalName) return false
-//       const medalName = state.get('medalName')
-//       if (message.medalName !== medalName) {
-//         return false
-//       }
-//     }
-//     if (tag.key === 'GOLD') {
-//       if (message.coinType !== 1) {
-//         return false
-//       }
-//     }
-//     if (tag.key === 'SILVER') {
-//       if (message.coinType !== 2) {
-//         return false
-//       }
-//     }
-//   }
-
-//   return true
-// }
 
 // let muteCommandCache = {}
 // setInterval(() => {

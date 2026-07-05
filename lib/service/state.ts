@@ -36,6 +36,17 @@ interface State {
     userId: string
     instance: any
   }[]
+
+  giftCache?: {
+    [roomId: string]: {
+      [giftId: string]: {
+        id: string
+        webp: string
+        name: string
+        price: number
+      }
+    }
+  }
 }
 
 // NEED INITIALIZATION
@@ -46,6 +57,7 @@ export const state: Partial<State> = {
   clients: [],
   sseClients: [],
   bilibiliWSInstances: [],
+  giftCache: {},
 } as const
 
 export default state

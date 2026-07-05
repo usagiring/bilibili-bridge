@@ -1,6 +1,6 @@
 import { COMMON_RESPONSE, ERROR } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
-import { getRoomInfoV2 } from '../service/bilibili/sdk'
+import { getGiftList, getRoomInfoV2 } from '../service/bilibili/sdk'
 import { sql } from 'drizzle-orm'
 import { messages } from '../model/message.sqlite'
 import { db } from '../service/db'
@@ -61,6 +61,18 @@ const routes = [
       required: [ 'roomIds' ],
       properties: {
         roomIds: { type: 'array', items: { type: 'string' }, separator: ',' },
+      },
+    },
+  },
+  {
+    verb: 'get',
+    uri: '/room/gift/list',
+    middlewares: [ getRoomGiftList ],
+    validator: {
+      type: 'object',
+      required: [ 'roomId' ],
+      properties: {
+        roomId: { type: 'string' },
       },
     },
   },
@@ -181,6 +193,32 @@ async function getStatus(ctx) {
   ctx.body = {
     message: 'ok',
     data,
+  }
+}
+
+async function getRoomGiftList(ctx) {
+  const { clientId, roomId, roomUserId } = ctx.__body
+
+  let cache = state.giftCache[roomId]
+  if(!cache) {
+    const result = await getGiftList({ roomId, roomUserId })
+    const gifts = result.data?.gift_config?.base_config?.list || []
+    const _gifts = gifts.map(gift => {
+      return {
+        id: gift.id,
+        webp: gift.webp,
+        name: gift.name,
+        price: gift.price,
+        coinType: gift.coin_type,
+      }
+    })
+    cache = _gifts
+    state.giftCache[roomId] = _gifts
+  }
+
+  ctx.body = {
+    message: 'ok',
+    data: cache,
   }
 }
 

@@ -151,8 +151,8 @@ export async function commentJob({ msg, roomId, clientId }) {
   const result = db.insert(messages).values(comment).returning().get()
 
   sse.send({ clientId, event: CMD.MESSAGE, data: result })
-  event.emit(CMD.AUTO_REPLY, result)
-  event.emit(CMD.DANMAKU_COMMAND, result)
+  event.emit(CMD.AUTO_REPLY, { clientId, message: result })
+  // event.emit(CMD.DANMAKU_COMMAND, result)
 }
 
 export async function interactJob({ msg, roomId, clientId }) {
