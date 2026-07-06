@@ -30,11 +30,6 @@ export function getRoom({
     userId: '',
     liveStatus: 0,
     liveStream: '',
-
-    isAutoReply: false,
-    autoReplyRules: [],
-
-    voteOptions: [],
   }
   // return client.config.rooms.find((room: any) => room.id === roomId)
 }

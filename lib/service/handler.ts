@@ -16,7 +16,7 @@ event.on(CMD.AUTO_REPLY, async ({ clientId, message }: { clientId: string; messa
   const clientConfig = getClient(clientId)?.config
   const rule = clientConfig?.autoReplyRule || {}
   const roomId = message.roomId
-  if(!roomId ) return 
+  if (!roomId) return
   const rules = Object.values(rule).filter(r => r.roomId === message.roomId && r.isEnable)
   if (!rules?.length) return
 
@@ -53,15 +53,17 @@ event.on(CMD.AUTO_REPLY, async ({ clientId, message }: { clientId: string; messa
     for (const tag of actionTags) {
       const userCookie = clientConfig?.user?.cookie
       if (tag.key === 'TEXT_REPLY' && userCookie) {
+        const cookies = parseCookie(userCookie)
+        const me = cookies.DedeUserID
 
+        // 当前Cookie用户不触发，防止无限循环
+        if (me === message.userId) return 
+        
         const cacheKey = `roomId:${message.roomId}`
 
         // 一段时间内同一个房间不重复发送，防止触发限流
         const cache = sendRoomCache.get(cacheKey)
-        if(cache && cache > Date.now() - 7 * 1000) return 
-
-        const cookies = parseCookie(userCookie)
-        const me = cookies.DedeUserID
+        if (cache && cache > Date.now() - 7 * 1000) return 
 
         // 当前房间主播ID
         const roomUserId = clientConfig.rooms.find(r => r.id === roomId)?.userId
@@ -94,10 +96,14 @@ event.on(CMD.AUTO_REPLY, async ({ clientId, message }: { clientId: string; messa
   }
 })
 
+// 每个条件之间AND关系
 async function isPassed({ message, rule } : { message: MessageRow; rule: AutoReplyRule }) {
-  if(message.category !== rule.type) return false
-  if(!rule.tags?.length) return false
-  for (const tag of rule.tags) {
+  if (message.category !== rule.type) return false
+
+  // 如果没有条件，则通过
+  const tags = rule.tags?.filter(tag => tag.kind === 'condition')
+  if (!tags?.length) return true
+  for (const tag of tags) {
     // TODO
     if (tag.key === 'LEVEL') {
       // const { level } = tag.data || {}
@@ -105,41 +111,46 @@ async function isPassed({ message, rule } : { message: MessageRow; rule: AutoRep
     }
     if (tag.key === 'ROLE') {
       const roles = tag.data?.roles
-      if(!roles?.length) return false
+      if (!roles?.length) return false
       // 如果没有role字段表示无法确定身份，不通过
-      if(!message.roles?.length) return false
+      if (!message.roles?.length) return false
 
-      return roles.some(role => message.roles?.includes(role))
+      const isPass = roles.some(role => message.roles?.includes(role))
+      if (!isPass) return false
     }
     if (tag.key === 'FILTER') {
       const filter = tag.data?.filter
-      if(!filter || !message.content) return false
+      if (!filter || !message.content) return false
 
-      const regexp = new RegExp(filter)
-      return regexp.test(message.content)
+      const regexp = new RegExp(filter, 'i')
+      const isPass = regexp.test(message.content)
+      if (!isPass) return false
     }
     if (tag.key === 'GIFT') {
-      if(!message.gift || !message.gift?.id) return false
+      if (!message.gift || !message.gift?.id) return false
 
       const giftIds = tag.data?.giftIds
-      if(!giftIds?.length) return false
+      if (!giftIds?.length) return false
 
-      return giftIds.includes(message.gift.id)
+      const isPass = giftIds.includes(message.gift.id)
+      if (!isPass) return false
     }
     if (tag.key === 'MEDAL') {
       if (!message.medal?.name) return false
       const roomMedalName = ''
-      return message.medal.name === roomMedalName
+      const isPass = message.medal.name === roomMedalName
+      if (!isPass) return false
     }
     if (tag.key === 'PRICE') {
       if (!message.gift || !message.gift?.price) return false
       const minPrice = tag.data?.minPrice || 0
       const totalPrice = message.gift.totalPrice || 0
-      return totalPrice >= minPrice
+      const isPass = totalPrice >= minPrice
+      if (!isPass) return false
     }
   }
 
-  return false
+  return true
 }
 
 // let muteCommandCache = {}

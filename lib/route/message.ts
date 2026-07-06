@@ -21,6 +21,8 @@ const routes = [
         coinType: { type: 'array', items: { type: 'string' }, separator: ',' },
         sendAtLte: { type: 'number' },
         sendAtGte: { type: 'number' },
+        totalPriceGte: { type: 'number' },
+        totalPriceLte: { type: 'number' },
         // order: { type: 'string' }, // 该接口固定按sendAt倒序，不再进行额外抽象封装
         cursor: { type: 'string' },
         limit: { type: 'number', default: 20 },
@@ -50,9 +52,9 @@ const routes = [
 ]
 
 async function query(ctx) {
-  const { roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte, cursor, limit = 20 } = ctx.__body
+  const { roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte, totalPriceGte, totalPriceLte, cursor, limit = 20 } = ctx.__body
 
-  const conditions = buildConditions({ roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte, cursor })
+  const conditions = buildConditions({ roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte, totalPriceGte, totalPriceLte, cursor })
 
   const parsed = parseCursor(cursor)
   const isPrev = parsed?.direction === 'prev'
@@ -95,9 +97,9 @@ const columnMap: Record<string, any> = {
 // }
 
 async function count(ctx) {
-  const { roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte } = ctx.__body
+  const { roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte, totalPriceGte, totalPriceLte } = ctx.__body
 
-  const conditions = buildConditions({ roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte })
+  const conditions = buildConditions({ roomId, userId, username, content, search, coinType, category, sendAtLte, sendAtGte, totalPriceGte, totalPriceLte })
 
   const result = db.select({ count: sql<number>`count(*)` })
     .from(messages)
@@ -117,6 +119,8 @@ function buildConditions(filters: {
   category?: string[]
   sendAtLte?: number
   sendAtGte?: number
+  totalPriceGte?: number
+  totalPriceLte?: number
   cursor?: string
 }) {
   const conditions = [
@@ -132,6 +136,12 @@ function buildConditions(filters: {
   if (filters.content) conditions.push(like(messages.content, `%${filters.content}%`))
   if (filters.coinType?.length) {
     conditions.push(inArray(sql`json_extract(${messages.gift}, '$.coinType')`, filters.coinType))
+  }
+  if (filters.totalPriceGte) {
+    conditions.push(sql`json_extract(${messages.gift}, '$.totalPrice') >= ${filters.totalPriceGte}`)
+  }
+  if (filters.totalPriceLte) {
+    conditions.push(sql`json_extract(${messages.gift}, '$.totalPrice') <= ${filters.totalPriceLte}`)
   }
 
   // cursor = 'prev$sendAt:1719500000,id:1234' | 'next$sendAt:1719500000,id:1234'

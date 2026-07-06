@@ -89,6 +89,16 @@ const routes = [
     verb: 'post',
     uri: '/bilibili/room/like',
     middlewares: [ like ],
+    validator: {
+      type: 'object',
+      required: [ 'roomId' ],
+      properties: {
+        clientId: { type: 'string' },
+        roomId: { type: 'string' },
+        roomUserId: { type: 'string' },
+        count: { type: 'number', default: 1 },
+      },
+    },
   },
 ]
 
@@ -157,10 +167,10 @@ async function getPlayUrl(ctx) {
 }
 
 async function like(ctx) {
-  const { roomId, ruid, count, clientId } = ctx.__body
+  const { roomId, roomUserId, count, clientId } = ctx.__body
   const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
-  ctx.body = await likeApi({ room_id: roomId, click_time: count, anchor_id: ruid }, cookie)
+  ctx.body = await likeApi({ room_id: roomId, click_time: count, anchor_id: roomUserId }, cookie)
 }
 
 export default routes

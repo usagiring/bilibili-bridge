@@ -1,4 +1,6 @@
-import jieba from '@node-rs/jieba'
+import { Jieba, TfIdf } from '@node-rs/jieba'
+import { dict, idf } from '@node-rs/jieba/dict'
+
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from './db'
 import { messages } from '../model/message.sqlite'
@@ -17,6 +19,9 @@ interface StatisticResult {
   totalComment: number
   chart?: ChartOption
 }
+
+const jieba = Jieba.withDict(dict)
+const tfIdf = TfIdf.withDict(idf)
 
 export async function getStats({
   roomId,
@@ -150,9 +155,9 @@ export async function wordExtract({
 
   const frequency: Record<string, number> = {}
   for (const row of rows) {
-    const keywords = (jieba as any).extract(row.content, 3) as { keyword: string; weight: number }[]
-    for (const { keyword } of keywords) {
-      frequency[keyword] = (frequency[keyword] || 0) + 1
+    const keywords = tfIdf.extractKeywords(jieba, row.content, 3)
+    for (const keyword of keywords) {
+      frequency[keyword.keyword] = (frequency[keyword.keyword] || 0) + 1
     }
   }
 
@@ -167,7 +172,7 @@ export async function generateCSV({
   roomId: string
   startTime?: number | Date
   endTime?: number | Date
-}): Promise<string> {
+}): Promise<Buffer> {
   const conditions = [
     eq(messages.roomId, String(roomId)),
     sql`${messages.category} IN ('gift', 'superchat')`,
@@ -188,24 +193,29 @@ export async function generateCSV({
     .where(and(...conditions))
     .all()
 
-  const header = [ 'UID', '用户名', '房间号', '礼物名', '礼物数量', '金瓜子', '时间' ]
-  const lines = [ header.map(escapeCSV).join(',') ]
+  const header = [ 'UID', '用户名', '房间号', '礼物名', '礼物数量', '金额（元）', '时间' ]
+  const lines = [ header.join(',') ]
 
   for (const row of rows) {
     const gift = row.gift as GiftInfo | null
     if (!gift) continue
     lines.push([
       forceText(row.userId),
-      row.username,
+      escapeCSV(row.username),
       forceText(row.roomId),
-      gift.name,
+      escapeCSV(gift.name),
       String(gift.count),
-      String(gift.price),
-      new Date(row.sendAt).toISOString(),
-    ].map(escapeCSV).join(','))
+      String(gift.totalPrice),
+      new Date(row.sendAt).toLocaleString(),
+    ].join(','))
   }
 
-  return lines.join('\n')
+  // return lines.join('\n')
+
+  // 1. 创建包含 UTF-8 BOM 头的 Buffer
+  const bom = Buffer.from([ 0xEF, 0xBB, 0xBF ])
+  const csvContent = lines.join('\n')
+  return Buffer.concat([ bom, Buffer.from(csvContent, 'utf-8') ])
 }
 
 function escapeCSV(value: string): string {

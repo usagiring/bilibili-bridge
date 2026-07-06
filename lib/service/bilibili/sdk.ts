@@ -415,10 +415,10 @@ interface LikeParams {
   anchor_id: number // receiver_uid
 }
 
-export async function like(data: LikeParams, userCookie: string) {
+export async function like(data: LikeParams, cookie: string) {
   const { click_time, room_id, anchor_id } = data
 
-  const cookies = parseCookie(userCookie)
+  const cookies = parseCookie(cookie)
   const csrf = cookies.bili_jct
   const uid = Number(cookies.DedeUserID)
 
@@ -437,7 +437,7 @@ export async function like(data: LikeParams, userCookie: string) {
     url,
     params,
     {
-      headers: Object.assign({}, postHeader, { cookie: userCookie }),
+      headers: Object.assign({}, postHeader, { cookie }),
     },
   )
 

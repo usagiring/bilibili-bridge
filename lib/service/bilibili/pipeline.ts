@@ -162,7 +162,7 @@ export async function interactJob({ msg, roomId, clientId }) {
   const result = db.insert(messages).values(interact).returning().get()
 
   sse.send({ clientId, event: CMD.MESSAGE, data: result })
-  event.emit(CMD.AUTO_REPLY, result)
+  event.emit(CMD.AUTO_REPLY, { clientId, message: result })
 }
 
 export async function giftJob({ msg, roomId, clientId }) {
@@ -172,7 +172,7 @@ export async function giftJob({ msg, roomId, clientId }) {
   const result = db.insert(messages).values(gift).returning().get()
 
   sse.send({ clientId, event: CMD.MESSAGE, data: result })
-  event.emit(CMD.AUTO_REPLY, result)
+  event.emit(CMD.AUTO_REPLY, { clientId, message: result })
 }
 
 const roleTransformMap = {
@@ -180,7 +180,7 @@ const roleTransformMap = {
   2: 2, // 提督
   3: 1, // 舰长
 }
-export function parseComment({ msg, roomId, clientId } ): MessageInsert {
+export function parseComment({ msg, roomId, clientId }): MessageInsert {
   if (!msg.cmd.includes(BILI_CMD.DANMU_MSG)) return
   const dmV2 = msg.dm_v2
 
@@ -280,9 +280,9 @@ const contentMap = {
 export function parseInteract ({ msg, clientId }): MessageInsert {
   if (msg.cmd !== BILI_CMD.INTERACT_WORD_V2) return
   const pb = msg.data?.pb
-  if(!pb) return 
+  if (!pb) return 
   const pbDecoder = state.interactDecoder
-  if(!pbDecoder) return 
+  if (!pbDecoder) return 
 
   const data: InteractV2 = pbDecoder(pb)
 

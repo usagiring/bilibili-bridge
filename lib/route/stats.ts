@@ -74,13 +74,10 @@ async function keywordExtract(ctx) {
 async function exportFile(ctx) {
   const { roomId, startTime, endTime } = ctx.__body
 
-  const filename = `${roomId}_${dateFormat(new Date(), 'YYYYMMDD_HHmmss')}.csv`
+  const filename = `${roomId}_${Date.now()}.csv`
 
   const str = await statsService.generateCSV({ roomId, startTime, endTime })
-  ctx.set(
-    'Content-Disposition',
-    `attachment;filename=${encodeURIComponent(filename)}`,
-  )
+  ctx.set('Content-Disposition', `attachment;filename=${encodeURIComponent(filename)}`)
   // ctx.statusCode = 200
   const s = new Readable()
 

@@ -58,6 +58,8 @@ module.exports = [
       'object-curly-spacing': ['warn', 'always'],
       'space-infix-ops': ['warn'],
       'no-multi-spaces': ['warn'],
+      'keyword-spacing': ['warn', { before: true, after: true }],
+      'space-in-parens': ['warn', 'never'],
 
       // ── 项目宽松策略 ──
       'require-yield': 'off',
