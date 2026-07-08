@@ -82,6 +82,7 @@ export const CMD = {
   DM_STYLE: 'DM_STYLE',
   DM_RAW_STYLE: 'DM_RAW_STYLE',
   LIVE_CONFIG: 'LIVE_CONFIG',
+  ASR_TEXT: 'ASR_TEXT',
 } as const
 
 export const ERROR = {

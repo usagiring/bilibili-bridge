@@ -19,6 +19,10 @@ interface State {
   htmlPath: string
   secret: string
   userDataPath: string
+  models: {
+    asr: string
+    vad: string
+  }
   wbi: {
     mixinKey?: string
   }
@@ -54,6 +58,10 @@ export const state: Partial<State> = {
   port: 3000,
   htmlPath: '',
   userDataPath: '',
+  models: {
+    asr: 'models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09',
+    vad: 'models/silero_vad.int8.onnx',
+  },
   clients: [],
   sseClients: [],
   bilibiliWSInstances: [],

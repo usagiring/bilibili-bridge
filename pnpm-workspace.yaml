@@ -7,3 +7,4 @@ allowBuilds:
   ffmpeg-static: false
   protobufjs: true
   utf-8-validate: true
+# nodeLinker: hoisted # sherpa-onnx-node require sherpa-onnx-darwin-arm64 路径问题，必须要求提升

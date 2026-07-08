@@ -61,7 +61,6 @@ const routes = [
         clientId: { type: 'string' },
       },
     },
-    
   },
 ]
 
@@ -136,8 +135,8 @@ function updateConfig(ctx) {
     { key: 'dmRawStyle', event: 'DM_RAW_STYLE' }, 
     { key: 'liveConfig', event: 'LIVE_CONFIG' }, 
   ]
-  for(const k of shouldSendSSEKeys) {
-    if(!rootKeySet.has(k.key)) continue
+  for (const k of shouldSendSSEKeys) {
+    if (!rootKeySet.has(k.key)) continue
     sse.send({ clientId, event: CMD[k.event], data: config[k.key] })
   }
 

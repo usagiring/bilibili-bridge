@@ -7,3 +7,4 @@ dist
 *.tsbuildinfo
 db.sqlite*
 .tsbuildinfo
+models/

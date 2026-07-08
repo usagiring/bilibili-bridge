@@ -1,4 +1,4 @@
-import { createRecognizer, createRecognizerOnce, setFfmpegPath, getAudioStream } from '@tokine/asr'
+import { createRecognizer, createRecognizerOnce } from '@tokine/asr'
 import type { AsrResult } from '@tokine/asr'
 import { createTranslator } from '@tokine/mt'
 import { chunk } from 'lodash'
@@ -7,23 +7,51 @@ import { getClient } from '../service/client'
 import sse from '../service/sse'
 import { CMD, COMMON_RESPONSE, HTTP_ERROR } from '../service/const'
 import { wait } from '../service/util'
+import asr from '../service/asr'
+
+// asr.createVad()
 
 // ── 路由定义 ──
 
 const routes = [
-  { verb: 'get', uri: '/automatic-speech-recognition/status', middlewares: [ status ] },
-  { verb: 'post', uri: '/automatic-speech-recognition/initial', middlewares: [ initial ] },
-  { verb: 'post', uri: '/automatic-speech-recognition/live/start', middlewares: [ liveStreamStart ] },
-  { verb: 'post', uri: '/automatic-speech-recognition/live/close', middlewares: [ liveStreamClose ] },
-  { verb: 'post', uri: '/automatic-speech-recognition/close', middlewares: [ close ] },
-  { verb: 'post', uri: '/automatic-speech-recognition/audio', middlewares: [ sendAudio ] },
-  { verb: 'post', uri: '/translate/sentence', middlewares: [ translateSentence ] },
-  { verb: 'post', uri: '/translate/open', middlewares: [ translateOpen ] },
-  { verb: 'post', uri: '/translate/close', middlewares: [ translateClose ] },
-  { verb: 'get', uri: '/translate/status', middlewares: [ translateStatus ] },
-  { verb: 'post', uri: '/speech-recognition/initial', middlewares: [ srInitial ] },
-  { verb: 'post', uri: '/speech-recognition/speech-to-text', middlewares: [ speechToText ] },
+  {
+    verb: 'post',
+    uri: '/asr/decode',
+    middlewares: [ decode ],
+  },
+  // { verb: 'get', uri: '/automatic-speech-recognition/status', middlewares: [ status ] },
+  // { verb: 'post', uri: '/automatic-speech-recognition/initial', middlewares: [ initial ] },
+  // { verb: 'post', uri: '/automatic-speech-recognition/live/start', middlewares: [ liveStreamStart ] },
+  // { verb: 'post', uri: '/automatic-speech-recognition/live/close', middlewares: [ liveStreamClose ] },
+  // { verb: 'post', uri: '/automatic-speech-recognition/close', middlewares: [ close ] },
+  // { verb: 'post', uri: '/automatic-speech-recognition/audio', middlewares: [ sendAudio ] },
+  // { verb: 'post', uri: '/translate/sentence', middlewares: [ translateSentence ] },
+  // { verb: 'post', uri: '/translate/open', middlewares: [ translateOpen ] },
+  // { verb: 'post', uri: '/translate/close', middlewares: [ translateClose ] },
+  // { verb: 'get', uri: '/translate/status', middlewares: [ translateStatus ] },
+  // { verb: 'post', uri: '/speech-recognition/initial', middlewares: [ srInitial ] },
+  // { verb: 'post', uri: '/speech-recognition/speech-to-text', middlewares: [ speechToText ] },
 ]
+
+async function decode(ctx) {
+  const clientId = ctx.query.clientId as string
+  if (!clientId) {
+    ctx.status = 400
+    ctx.body = { message: 'clientId is required' }
+    return
+  }
+
+  // bodyParser 不处理 application/octet-stream，手动读 req 流
+  const chunks: Buffer[] = []
+  for await (const chunk of ctx.req) {
+    chunks.push(Buffer.from(chunk))
+  }
+  const raw = Buffer.concat(chunks)
+  const samples = new Float32Array(raw.buffer, raw.byteOffset, raw.byteLength / 4)
+
+  asr.decode(clientId, samples)
+  ctx.body = COMMON_RESPONSE
+}
 
 // ── ASR ──
 
