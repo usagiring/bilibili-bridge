@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { DEFAULT_CONFIG, Room } from './const'
+import { DEFAULT_CONFIG } from './const'
 import state, { Client } from './state'
 import { cloneDeep } from 'lodash'
 
@@ -17,21 +17,6 @@ export function createClient() {
   }
 
   return client
-}
-
-export function getRoom({
-  // clientId,
-  roomId,
-}): Room {
-  // const client = getClient(clientId)
-
-  return {
-    id: roomId,
-    userId: '',
-    liveStatus: 0,
-    liveStream: '',
-  }
-  // return client.config.rooms.find((room: any) => room.id === roomId)
 }
 
 // TODO: IF CLOUD AUTH

@@ -82,7 +82,7 @@ export const CMD = {
   DM_STYLE: 'DM_STYLE',
   DM_RAW_STYLE: 'DM_RAW_STYLE',
   LIVE_CONFIG: 'LIVE_CONFIG',
-  ASR_TEXT: 'ASR_TEXT',
+  SPEECH_TO_TEXT: 'SPEECH_TO_TEXT',
 } as const
 
 export const ERROR = {
@@ -366,10 +366,21 @@ export const DEFAULT_CONFIG: Config = {
   chartConfig: CHART_CONFIG,
   voteConfig: VOTE_CONFIG,
   autoReplyRule: {},
+  AIConfig: {
+    speechToText: {
+      model: {
+        name: '',
+      },
+      vad: {
+        minSpeechDuration: 0.1,
+        minSilenceDuration: 0.1,
+      },
+    },
+  },
 
   rooms: [],
   windows: [],
-  providers: [],
+  // providers: [],
 
   signInMessage: '111',
   waitingSpeakerCount: 0,
@@ -506,6 +517,19 @@ export interface AutoReplyRule {
   tags: ReplyRuleTag[]
 }
 
+interface AIConfig {
+  // roomId: string
+  speechToText: {
+    model: {
+      name: string
+    }
+    vad: {
+      minSpeechDuration: number
+      minSilenceDuration: number
+    }
+  }
+}
+
 export interface Config {
   // 全局设置
   signInMessage: string
@@ -515,7 +539,7 @@ export interface Config {
   user?: User
   rooms: Room[]
   windows: Window[]
-  providers: Provider[]
+  // providers: Provider[]
 
   dmStyle: DmStyle
   dmRawStyle: DmRawStyle
@@ -527,4 +551,5 @@ export interface Config {
   chartConfig: ChartConfig
   voteConfig: VoteConfig
   autoReplyRule: Record<string, AutoReplyRule>
+  AIConfig: AIConfig
 }

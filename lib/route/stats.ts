@@ -1,5 +1,4 @@
 import * as statsService from '../service/stats'
-import { dateFormat } from '../service/util'
 import { Readable } from 'stream'
 
 const routes = [

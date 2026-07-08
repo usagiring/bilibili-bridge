@@ -6,7 +6,7 @@ import roomAPIs from './room'
 import messageAPIs from './message'
 import dmAPIs from './dm'
 import statsAPIs from './stats'
-import asrAPIs from './asr'
+import AIAPIs from './ai'
 import userAPIs from './user'
 import clientAPIs from './client'
 import bilibiliProxyAPIs from './bilibili-proxy'
@@ -29,7 +29,7 @@ apiRouter.get('/touch', (ctx) => {
   ...messageAPIs,
   ...dmAPIs,
   ...statsAPIs,
-  ...asrAPIs,
+  ...AIAPIs,
   ...userAPIs,
   ...clientAPIs,
   ...bilibiliProxyAPIs,

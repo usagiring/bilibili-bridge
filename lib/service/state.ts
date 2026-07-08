@@ -1,4 +1,5 @@
 import { Config } from './const'
+import SherpaOnnx from './sherpa-onnx'
 
 export interface Client {
   id: string
@@ -19,10 +20,6 @@ interface State {
   htmlPath: string
   secret: string
   userDataPath: string
-  models: {
-    asr: string
-    vad: string
-  }
   wbi: {
     mixinKey?: string
   }
@@ -51,6 +48,12 @@ interface State {
       }
     }
   }
+
+  speechToTextInstances: {
+    clientId: string
+    roomId: string
+    instance: InstanceType<typeof SherpaOnnx>
+  }[]
 }
 
 // NEED INITIALIZATION
@@ -58,14 +61,11 @@ export const state: Partial<State> = {
   port: 3000,
   htmlPath: '',
   userDataPath: '',
-  models: {
-    asr: 'models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09',
-    vad: 'models/silero_vad.int8.onnx',
-  },
   clients: [],
   sseClients: [],
   bilibiliWSInstances: [],
   giftCache: {},
+  speechToTextInstances: [],
 } as const
 
 export default state

@@ -200,7 +200,7 @@ async function getRoomGiftList(ctx) {
   const { clientId, roomId, roomUserId } = ctx.__body
 
   let cache = state.giftCache[roomId]
-  if(!cache) {
+  if (!cache) {
     const result = await getGiftList({ roomId, roomUserId })
     const gifts = result.data?.gift_config?.base_config?.list || []
     const _gifts = gifts.map(gift => {
