@@ -11,6 +11,7 @@ interface ModelConfig {
 interface VadConfig { 
   minSpeechDuration?: number
   minSilenceDuration?: number
+  maxSpeechDuration?: number
 }
 
 interface Config {
@@ -43,7 +44,6 @@ class SherpaOnnx {
         tokens: '',
         numThreads: 2,
         provider: 'cpu',
-        debug: 1,
       },
     }
 
@@ -65,18 +65,19 @@ class SherpaOnnx {
   }
 
   createVad(cfg: VadConfig) {
-    const vadModel = path.join(process.cwd(), 'models/silero_vad.onnx')
+    // const vadModel = path.join(process.cwd(), 'models/silero_vad.onnx')
+    const vadModel = path.join(process.cwd(), 'models/ten-vad.onnx')
     const config = {
-      sileroVad: {
+      tenVad: {
+      // sileroVad: {
         model: vadModel, // 必须确保这个绝对路径文件真实存在
-        threshold: 0.5, // 语音置信度阈值
+        threshold: 0.4, // 语音置信度阈值
         minSpeechDuration: cfg.minSpeechDuration || 0.1, // 最短语音时间（秒）
         minSilenceDuration: cfg.minSilenceDuration || 0.1, // 静音断句时间（秒）
-        maxSpeechDuration: 20,
+        maxSpeechDuration: cfg.maxSpeechDuration || 10,
         windowSize: 512, // 窗口大小，只能是 512, 1024, 1536 等
       },
       sampleRate: 16000,
-      debug: true,
       numThreads: 1,
       bufferSizeInSeconds: 60,
     }

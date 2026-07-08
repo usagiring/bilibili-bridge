@@ -374,6 +374,7 @@ export const DEFAULT_CONFIG: Config = {
       vad: {
         minSpeechDuration: 0.1,
         minSilenceDuration: 0.1,
+        maxSpeechDuration: 5,
       },
     },
   },
@@ -526,6 +527,7 @@ interface AIConfig {
     vad: {
       minSpeechDuration: number
       minSilenceDuration: number
+      maxSpeechDuration: number
     }
   }
 }
