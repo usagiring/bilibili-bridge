@@ -14,7 +14,7 @@ interface ChartOption {
 interface StatisticResult {
   // topSendGiftUser: any
   // topCommentUser: any
-  totalGold: number
+  totalPrice: string
   totalSendGiftUser: number
   totalComment: number
   chart?: ChartOption
@@ -69,7 +69,7 @@ export async function getStats({
   }
 
   const giftEntries = Object.entries(giftByUser)
-  const totalGold = giftEntries.reduce((sum, [ , u ]) => sum + u.totalPrice, 0)
+  const totalPrice = giftEntries.reduce((sum, [ , u ]) => sum + u.totalPrice, 0)
   // const topSendGiftUser = giftEntries.reduce((best, [ , u ]) =>
   //   u.totalPrice > (best?.totalPrice || 0) ? u : best,
   // null as { username: string; totalPrice: number } | null,
@@ -118,7 +118,7 @@ export async function getStats({
   }
 
   return {
-    totalGold: Math.round(totalGold * 1000),
+    totalPrice: totalPrice.toFixed(1),
     totalSendGiftUser: giftEntries.length,
     // topSendGiftUser,
     totalComment: commentRows.length,

@@ -132,8 +132,7 @@ async function connect(ctx) {
     const bilibiliWSClient = new BilibiliWSClient()
     const cookie = getUserCookie({ clientId })
     await bilibiliWSClient.connect({ 
-      userId: Number(userId) || 0,
-      roomId: Number(roomId),
+      roomId,
       clientId,
       cookie,
     })

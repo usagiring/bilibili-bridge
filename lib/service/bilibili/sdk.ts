@@ -288,18 +288,15 @@ export async function getRoomInfoByIds(ids: string[]) {
 export async function getMedalList({
   page = 1,
   pageSize = 10,
-  userCookie,
+  cookie,
 }: {
   page: number
   pageSize: number
-  userCookie: string
+  cookie: string
 }) {
-  const res = await axios.get(
-    `https://api.live.bilibili.com/xlive/app-ucenter/v1/user/GetMyMedals?page=${page}&page_size=${pageSize}`,
-    {
-      headers: Object.assign({}, defaultHeaders, { cookie: userCookie }),
-    },
-  )
+  const res = await axios.get(`https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel?page=${page}&page_size=${pageSize}`, {
+    headers: Object.assign({}, defaultHeaders, { cookie }),
+  })
   return res.data
 }
 
@@ -422,22 +419,25 @@ export async function like(data: LikeParams, cookie: string) {
   const csrf = cookies.bili_jct
   const uid = Number(cookies.DedeUserID)
 
-  const params = querystring.stringify({
-    click_time,
-    room_id,
-    uid,
-    anchor_id,
-    csrf_token: csrf,
-    csrf,
-    // visit_id: ''
+  const querystring = await getSignedQueryString({
+    params: {
+      click_time,
+      room_id,
+      uid,
+      anchor_id,
+      web_location: '444.8',
+      csrf,
+    },
   })
-
-  const url = `${baseLiveUrl}/xlive/app-ucenter/v1/like_info_v3/like/likeReportV3`
+  const url = `${baseLiveUrl}/xlive/app-ucenter/v1/like_info_v3/like/likeReportV3?${querystring}`
   const res = await axios.post(
     url,
-    params,
+    null,
     {
-      headers: Object.assign({}, postHeader, { cookie }),
+      headers: Object.assign({}, postHeader, { 
+        cookie,
+        referer: `https://live.bilibili.com/${room_id}`,
+      }),
     },
   )
 

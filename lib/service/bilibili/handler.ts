@@ -1,20 +1,9 @@
 import event from '../event'
 import { CMD, BILI_CMD } from '../const'
-import state from '../state'
 import { commentJob, interactJob, giftJob } from './pipeline'
 import sse from '../sse'
-import { db } from '../db'
-// import { lotteries } from '../../model/lottery.sqlite'
 import * as fs from 'fs'
 import path from 'path'
-
-const saveAllBiliMessage = state.saveAllBiliMessage
-
-event.on(CMD.NINKI, async (data) => {
-  const { count: ninkiNumber, clientId, roomId } = data
-
-  sse.send({ clientId, event: CMD.NINKI, data: { ninkiNumber, roomId } })
-})
 
 event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
   if (Array.isArray(data)) {
@@ -24,7 +13,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         continue
       }
 
-      if(msg.cmd === BILI_CMD.INTERACT_WORD_V2) {
+      if (msg.cmd === BILI_CMD.INTERACT_WORD_V2) {
         await interactJob({ msg, roomId, clientId })
         continue
       }
@@ -35,6 +24,7 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         msg.cmd === BILI_CMD.GUARD_BUY ||
         msg.cmd === BILI_CMD.SEND_GIFT
       ) {
+        console.log(JSON.stringify(msg))
         await giftJob({ msg, roomId, clientId })
         continue
       }
@@ -108,14 +98,15 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         const { num: watchedNumber } = msg.data
         sse.send({ clientId, event: CMD.WATCHED_CHANGE, data: { roomId, watchedNumber } })
       }
-      if (msg.cmd === BILI_CMD.LIKE_CHANGE) {
+      if (msg.cmd === BILI_CMD.LIKE_INFO_V3_UPDATE) {
         // {"cmd":"LIKE_INFO_V3_UPDATE","data":{"click_count":6291}}
         const { click_count } = msg.data
         sse.send({ clientId, event: CMD.LIKE_CHANGE, data: { roomId, likeNumber: click_count } })
       }
 
-      if (msg.cmd === BILI_CMD.ONLINE_COUNT) {
+      if (msg.cmd === BILI_CMD.ONLINE_RANK_COUNT) {
         const count = msg.data.count || 0
+        console.log(clientId, msg.data)
         sse.send({ clientId, event: CMD.ONLINE_COUNT, data: { roomId, onlineNumber: count } })
       }
     }
@@ -136,11 +127,14 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
     // }
   }
 
-  if (saveAllBiliMessage) {
-    const today = new Date().toISOString().slice(0, 10)
-    const dir = path.join(process.cwd(), 'data', 'messages')
-    fs.mkdirSync(dir, { recursive: true })
-    const filePath = path.join(dir, `${roomId}_${today}.jsonl`)
-    fs.appendFileSync(filePath, JSON.stringify({ ts: Date.now(), cmd: Array.isArray(data) ? data[0]?.cmd : data.cmd, roomId, data }) + '\n')
-  }
+  // const dir = path.join(process.cwd(), 'bin/messages')
+  // fs.mkdirSync(dir, { recursive: true })
+  // const filePath = path.join(dir, `${roomId}_${process.pid}.json`)
+  // fs.appendFileSync(filePath, JSON.stringify(data) + '\n')
 })
+
+// legacy
+// event.on(CMD.NINKI, async (data) => {
+//   const { count: ninkiNumber, clientId, roomId } = data
+//   sse.send({ clientId, event: CMD.NINKI, data: { ninkiNumber, roomId } })
+// })

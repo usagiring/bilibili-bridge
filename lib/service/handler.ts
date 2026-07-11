@@ -26,7 +26,7 @@ event.on(CMD.AUTO_REPLY, async ({ clientId, message }: { clientId: string; messa
     let text = rule.text
     if (!text) continue
 
-    const isPass = await isPassed({ message, rule })
+    const isPass = await isPassed({ message, rule, clientId })
     if (!isPass) continue
 
     // 执行逻辑
@@ -97,7 +97,15 @@ event.on(CMD.AUTO_REPLY, async ({ clientId, message }: { clientId: string; messa
 })
 
 // 每个条件之间AND关系
-async function isPassed({ message, rule } : { message: MessageRow; rule: AutoReplyRule }) {
+async function isPassed({ 
+  message,
+  rule,
+  clientId,
+} : {
+  message: MessageRow
+  rule: AutoReplyRule
+  clientId: string
+}) {
   if (message.category !== rule.type) return false
 
   // 如果没有条件，则通过
@@ -136,9 +144,26 @@ async function isPassed({ message, rule } : { message: MessageRow; rule: AutoRep
       if (!isPass) return false
     }
     if (tag.key === 'MEDAL') {
-      if (!message.medal?.name) return false
-      const roomMedalName = ''
-      const isPass = message.medal.name === roomMedalName
+      if (!message.medal?.name || !message.medal?.level) return false
+
+      const level = message.medal.level
+      const minLevel = tag.data?.level || 0
+
+      // 判定牌子等级大于要求等级
+      if (level < minLevel) return false
+
+      // 判定牌子属于当前直播间
+      let isPass = false
+      if (message.medal.roomId) {
+        isPass = message.medal.roomId === message.roomId 
+      } else if (message.medal.roomUserId) {
+        // 礼物只能拿到 roomUserId, 暂不使用
+        const clientConfig = getClient(clientId)?.config
+        const room = clientConfig.rooms.find(r => r.id === message.roomId)
+        const roomUserId = room?.userId
+        isPass = message.medal.roomUserId === roomUserId 
+      }
+
       if (!isPass) return false
     }
     if (tag.key === 'PRICE') {

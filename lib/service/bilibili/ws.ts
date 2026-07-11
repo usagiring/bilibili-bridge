@@ -10,9 +10,8 @@ import { getDamankuInfo, getFinger, getFingerV2 } from './sdk'
 const URI = "wss://broadcastlv.chat.bilibili.com:443/sub"
 
 interface ConnectOption {
-  roomId: number
+  roomId: string
   clientId: string
-  userId?: number
   cookie?: string
 }
 
@@ -82,7 +81,7 @@ class WSClient {
 
     const authParams = {
       uid: me,
-      roomid: roomId,
+      roomid: Number(roomId),
       protover: 3,
       platform: "web",
       type: 2,
@@ -105,13 +104,13 @@ class WSClient {
       ws.on('message', (evt) => {
         const result = convertToObject(evt)
 
-        if (result.op === 3) {
-          event.emit(CMD.NINKI, {
-            ...result.body,
-            roomId,
-            clientId,
-          })
-        }
+        // if (result.op === 3) {
+        //   event.emit(CMD.NINKI, {
+        //     ...result.body,
+        //     roomId,
+        //     clientId,
+        //   })
+        // }
         if (Array.isArray(result.body)) {
           result.body.forEach(function (item) {
             event.emit(CMD.MESSAGE, {

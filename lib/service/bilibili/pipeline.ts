@@ -398,6 +398,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
 
   if (msg.cmd === BILI_CMD.SEND_GIFT) {
     const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id } = msg.data
+    const medal = msg.data?.sender_uinfo?.medal
 
     const anchorRole = guard_level
     const roles = [ anchorRole || 0 ]
@@ -405,7 +406,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     const priceRMB = coin_type === 'gold' ? price / RATE : 0
     const count = num || 1
 
-    return {
+    const gift: MessageInsert = {
       roomId: String(roomId),
       content: `${uname} 赠送了 ${String(giftName)}`,
       clientId,
@@ -426,5 +427,22 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         batchComboId: batch_combo_id,
       },
     }
+
+    if (medal) {
+      gift.medal = {
+        name: medal.name,
+        level: medal.level,
+        // anchor: medal.anchor,
+        roomUserId: String(medal.ruid || ''),
+        color: {
+          bg: transformColorNumber2String(medal.color_start),
+          border: transformColorNumber2String(medal.color_border),
+          level: '#FFFFFF',
+          text: '#FFFFFF',
+        },
+      }
+    }
+
+    return gift
   }
 }

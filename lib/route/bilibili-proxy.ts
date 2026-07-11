@@ -149,7 +149,7 @@ async function getMedalList(ctx) {
   const { page, pageSize, clientId } = ctx.__body
   const cookie = getUserCookie({ clientId })
   if (!cookie) throw HTTP_ERROR.PARAMS_ERROR
-  ctx.body = await getMedalListAPI({ page, pageSize, userCookie: cookie })
+  ctx.body = await getMedalListAPI({ page, pageSize, cookie })
 }
 
 async function getPlayUrl(ctx) {

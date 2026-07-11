@@ -100,6 +100,7 @@ export interface MedalInfo {
   level: number
   roomId?: string
   anchor?: number
+  roomUserId?: string
   color: {
     border: string
     bg: string
