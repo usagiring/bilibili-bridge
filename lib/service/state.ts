@@ -1,3 +1,4 @@
+import BilibiliRecorder from '@tokine/bilibili-recorder'
 import { Config } from './const'
 import SherpaOnnx from './sherpa-onnx'
 
@@ -38,6 +39,12 @@ interface State {
     instance: any
   }[]
 
+  recorders: {
+    clientId: string
+    roomId: string
+    instance: InstanceType<typeof BilibiliRecorder>
+  }[]
+
   giftCache?: {
     [roomId: string]: {
       [giftId: string]: {
@@ -64,6 +71,7 @@ export const state: Partial<State> = {
   clients: [],
   sseClients: [],
   bilibiliWSInstances: [],
+  recorders: [],
   giftCache: {},
   speechToTextInstances: [],
 } as const

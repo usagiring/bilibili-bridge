@@ -1,11 +1,11 @@
-import { COMMON_RESPONSE, ERROR } from '../service/const'
+import { COMMON_RESPONSE, ERROR, HTTP_ERROR } from '../service/const'
 import BilibiliWSClient from '../service/bilibili/ws'
 import { getGiftList, getRoomInfoV2 } from '../service/bilibili/sdk'
 import { sql } from 'drizzle-orm'
 import { messages } from '../model/message.sqlite'
 import { db } from '../service/db'
 import { getClient, getUserCookie } from '../service/client'
-import * as biliRecordService from '../service/bilibili/record'
+import { CreateRecorder, createRecorder } from '../service/bilibili/record'
 import { state } from '../service/state'
 
 const routes = [
@@ -82,8 +82,9 @@ const routes = [
     middlewares: [ startRecord ],
     validator: {
       type: 'object',
-      required: [ 'roomId' ],
+      required: [ 'clientId', 'roomId' ],
       properties: {
+        clientId: { type: 'string' },
         roomId: { type: 'string' },
         output: { type: 'string' },
         qn: { type: 'number' },
@@ -98,20 +99,9 @@ const routes = [
     middlewares: [ cancelRecord ],
     validator: {
       type: 'object',
-      required: [ 'roomId', 'recordId' ],
+      required: [ 'clientId', 'roomId' ],
       properties: {
-        roomId: { type: 'string' },
-        recordId: { type: 'string' },
-      },
-    },
-  },
-  {
-    verb: 'get',
-    uri: '/room/record/status',
-    middlewares: [ getRecordStatus ],
-    validator: {
-      type: 'object',
-      properties: {
+        clientId: { type: 'string' },
         roomId: { type: 'string' },
       },
     },
@@ -183,9 +173,14 @@ async function getStatus(ctx) {
       return i.roomId === roomId && i.clientId === clientId && i.instance
     })
 
+    const isRecording = !!state.recorders.find(i => {
+      return i.roomId === roomId && i.clientId === clientId && i.instance
+    })
+
     return {
       roomId, 
       isConnected,
+      isRecording,
     }
   })
 
@@ -222,39 +217,49 @@ async function getRoomGiftList(ctx) {
 }
 
 async function startRecord(ctx) {
-  const { roomId, output, qn, platform, withCookie, clientId } = ctx.__body
+  const { roomId, output, qn, withCookie, clientId } = ctx.__body
+  const cookie = getUserCookie({ clientId })
 
-  const { id } = await biliRecordService.record({
-    clientId,
-    roomId,
-    output,
-    qn,
-    platform,
-    cookie: withCookie ? getUserCookie({ clientId }) || null : null,
-  })
+  const recorder = state.recorders.find(r => r.roomId === roomId && r.clientId === clientId && r.instance)
 
-  // const room = client.rooms.find((r: any) => r.id === roomId)
-  // if (room) room.record = { id, isRecording: true, startedAt: Date.now() }
+  // new instance
+  if (!recorder) {
+    const param: CreateRecorder = {
+      clientId,
+      roomId,
+      output,
+      qn,
+    }
 
-  ctx.body = { message: 'ok', data: { id } }
-}
+    if (withCookie) param.cookie = cookie
 
-async function cancelRecord(ctx) {
-  const { recordId, clientId, roomId } = ctx.__body
-  const client = getClient(clientId)
+    const recorder = createRecorder(param)
 
-  await biliRecordService.cancel({ id: recordId })
-  // const room = client.rooms.find((r: any) => r.id === roomId)
-  // if (room) room.record = { id: '', isRecording: false, startedAt: 0 }
+    try {
+      await recorder.start()
+    } catch (e) {
+      console.error(e)
+      throw HTTP_ERROR.SYSTEM_ERROR
+    }
+
+    state.recorders.push({
+      clientId,
+      roomId,
+      instance: recorder,
+    })
+  }
+
   ctx.body = COMMON_RESPONSE
 }
 
-async function getRecordStatus(ctx) {
+async function cancelRecord(ctx) {
   const { clientId, roomId } = ctx.__body
-  const client = getClient(clientId)
-  // const room = client.rooms.find((r: any) => r.id === roomId)
 
-  // ctx.body = { message: 'ok', data: room?.record }
+  const recorder = state.recorders.find(r => r.roomId === roomId && r.clientId === clientId && r.instance)
+  if (!recorder) throw HTTP_ERROR.PARAMS_ERROR
+  await recorder.instance.cancel()
+  state.recorders = state.recorders.filter(r => r.roomId !== roomId)
+  ctx.body = COMMON_RESPONSE
 }
 
 export default routes

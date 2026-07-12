@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { DEFAULT_CONFIG } from './const'
+import { DEFAULT_CONFIG, Room } from './const'
 import state, { Client } from './state'
 import { cloneDeep } from 'lodash'
 
@@ -25,4 +25,9 @@ export function getUserCookie({
 }): string | null {
   const client = getClient(clientId)
   return client.config?.user?.cookie || null
+}
+
+export function getRoom({ clientId, roomId }): Room | null {
+  const clientConfig = getClient(clientId)
+  return clientConfig?.config?.rooms?.find(r => r.id === roomId) || null
 }

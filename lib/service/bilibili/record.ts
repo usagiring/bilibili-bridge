@@ -1,75 +1,78 @@
-import BilibiliRecorder from "@tokine/bilibili-recorder"
+import BilibiliRecorder, { RecordParams } from "@tokine/bilibili-recorder"
 import { CMD } from "../const"
-import state from '../state'
 import sse from '../sse'
 
-const recorder = new BilibiliRecorder()
-
-recorder.on('rate', ({
-  id,
-  bps,
-  totalSize,
-  roomId,
-  clientId,
-}) => {
-  sse.send({ clientId, event: CMD.RECORD_RATE, data: { id, bps, totalSize, roomId } })
-})
-
-recorder.on('end', ({
-  id,
-  roomId,
-  clientId,
-}) => {
-  sse.send({ clientId, event: CMD.RECORD_END, data: { id, roomId } })
-})
-
-recorder.on('error', ({
-  id,
-  roomId,
-  clientId,
-}) => {
-  sse.send({ clientId, event: CMD.RECORD_ERROR, data: { id, roomId } })
-})
-
-recorder.on('close', ({
-  id,
-  roomId,
-  clientId,
-}) => {
-  sse.send({ clientId, event: CMD.RECORD_CLOSE, data: { id, roomId } })
-})
-
-export async function record({
-  clientId,
-  roomId,
-  output,
-  qn,
-  platform,
-  cookie,
-}: {
-  clientId: string
+export interface CreateRecorder { 
+  clientId: string 
   roomId: string
+  qn: number
   output: string
-  qn?: number
-  platform?: string
   cookie?: string
-}) {
-  const { id } = await recorder.record({
-    clientId,
+}
+
+export function createRecorder ({
+  clientId,
+  roomId,
+  qn,
+  output,
+  cookie,
+}: CreateRecorder) {
+  const param: RecordParams = {
     roomId,
-    output,
     qn,
-    platform,
+    output,
     axiosRequestConfig: {
       headers: {
         cookie,
       },
     },
+  }
+  const recorder = new BilibiliRecorder(param)
+
+  recorder.on('rate', ({
+    bps,
+    totalSize,
+  }) => {
+    sse.send({ 
+      clientId,
+      event: CMD.RECORD_RATE,
+      data: { 
+        roomId,
+        bps,
+        totalSize,
+      },
+    })
   })
 
-  return { id }
-}
+  recorder.on('end', () => {
+    sse.send({ 
+      clientId,
+      event: CMD.RECORD_END,
+      data: {
+        roomId,
+      },
+    })
+  })
 
-export async function cancel({ id }) {
-  await recorder.cancelRecord(id)
+  recorder.on('error', () => {
+    sse.send({ 
+      clientId,
+      event: CMD.RECORD_ERROR,
+      data: {
+        roomId, 
+      },
+    })
+  })
+
+  recorder.on('close', () => {
+    sse.send({ 
+      clientId,
+      event: CMD.RECORD_CLOSE,
+      data: {
+        roomId,
+      },
+    })
+  })
+
+  return recorder
 }

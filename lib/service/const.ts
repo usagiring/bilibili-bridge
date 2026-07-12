@@ -312,8 +312,7 @@ const CHART_CONFIG = {
 
 const RECORD_CONFIG = {
   savePath: '',
-  quality: '',
-  isAutoRecord: false,
+  quality: 400,
 }
 
 const VOTE_CONFIG = {
@@ -334,8 +333,6 @@ interface Provider {
 export interface Room {
   id: string
   userId: string
-  liveStatus: number
-  liveStream: string
 }
 
 interface VoteConfig {
@@ -484,8 +481,7 @@ export interface ChartConfig {
 
 export interface RecordConfig {
   savePath: string
-  quality: string
-  isAutoRecord: boolean
+  quality: number
 }
 
 export interface ReplyRuleTag {

@@ -24,7 +24,6 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         msg.cmd === BILI_CMD.GUARD_BUY ||
         msg.cmd === BILI_CMD.SEND_GIFT
       ) {
-        console.log(JSON.stringify(msg))
         await giftJob({ msg, roomId, clientId })
         continue
       }
@@ -106,7 +105,6 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
 
       if (msg.cmd === BILI_CMD.ONLINE_RANK_COUNT) {
         const count = msg.data.count || 0
-        console.log(clientId, msg.data)
         sse.send({ clientId, event: CMD.ONLINE_COUNT, data: { roomId, onlineNumber: count } })
       }
     }
