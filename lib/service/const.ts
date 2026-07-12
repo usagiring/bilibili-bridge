@@ -100,7 +100,6 @@ export const HTTP_ERROR = {
 } as const
 
 interface Window {
-  id: string
   type: 'live' | 'dm' | 'dmRaw' | 'asr'
   roomId: number
 
@@ -368,11 +367,8 @@ export const DEFAULT_CONFIG: Config = {
   },
 
   rooms: [],
-  windows: [],
+  window: {},
   // providers: [],
-
-  signInMessage: '111',
-  waitingSpeakerCount: 0,
 }
 
 interface User {
@@ -520,14 +516,9 @@ interface AIConfig {
 }
 
 export interface Config {
-  // 全局设置
-  signInMessage: string
-  isNeedRefreshCookieCache?: number
-  waitingSpeakerCount?: number
-
   user?: User
   rooms: Room[]
-  windows: Window[]
+  window: Record<string, Window>
   // providers: Provider[]
 
   dmStyle: DmStyle

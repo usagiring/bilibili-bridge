@@ -50,7 +50,7 @@ app.listen(port)
 export default app
 
 function serve(opts: any = {}) {
-  const defaultRoot = path.join(__dirname, '../bilibili-live-danmaku/web/dist')
+  const defaultRoot = process.env.HTML_PATH || path.join(__dirname, '../bilibili-live-danmaku/web/dist')
 
   opts.index = opts.index ?? 'index.html'
 
