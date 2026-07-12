@@ -11,7 +11,6 @@ const toObjectOpts = {
 protobuf.load(path.join(__dirname, 'dm.proto'))
   .then(root => {
     const dmType = root.lookupType("DM")
-
     state.dmV2Decoder = (dmV2) => {
       const buffer = Buffer.from(dmV2, 'base64')
       const message = dmType.decode(buffer)
@@ -25,6 +24,14 @@ protobuf.load(path.join(__dirname, 'dm.proto'))
       const buffer = Buffer.from(interact, 'base64')
       const message = interactType.decode(buffer)
       const object = interactType.toObject(message, toObjectOpts)
+      return object
+    }
+
+    const giftType = root.lookupType("Gift")
+    state.giftV2Decoder = (pb: string) => {
+      const buffer = Buffer.from(pb, 'base64')
+      const message = giftType.decode(buffer)
+      const object = giftType.toObject(message, toObjectOpts)
       return object
     }
   })

@@ -144,6 +144,39 @@ interface InteractV2 {
   }
 }
 
+interface GiftV2 {
+  userId: string
+  username: string
+  face: string
+  medal?: GiftV2Medal
+  info?: GiftV2Info
+}
+
+interface GiftV2Medal {
+  roomUserId: string
+  level: number
+  name: string
+  color1: string
+  color2: string
+  color3: string
+}
+
+interface GiftV2Info {
+  id: number
+  name: string
+  count: number
+  price: number
+  coinType: string
+  batchComboId: string
+  image?: GiftV2Image
+}
+
+interface GiftV2Image {
+  png: string
+  webp: string
+  gif: string
+}
+
 export async function commentJob({ msg, roomId, clientId }) {
   const comment = parseComment({ msg, roomId, clientId })
   if (!comment) return
@@ -397,7 +430,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
   }
 
   if (msg.cmd === BILI_CMD.SEND_GIFT) {
-    const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id } = msg.data
+    const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id, gift_info } = msg.data
     const medal = msg.data?.sender_uinfo?.medal
 
     const anchorRole = guard_level
@@ -425,6 +458,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         coinType: coin_type,
         totalPrice: priceRMB * count,
         batchComboId: batch_combo_id,
+        webp: gift_info?.webp,
       },
     }
 
@@ -437,6 +471,60 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         color: {
           bg: transformColorNumber2String(medal.color_start),
           border: transformColorNumber2String(medal.color_border),
+          level: '#FFFFFF',
+          text: '#FFFFFF',
+        },
+      }
+    }
+
+    return gift
+  }
+
+  if (msg.cmd === BILI_CMD.SEND_GIFT_V2) {
+    const pb = msg.data?.pb
+    if (!pb) return
+    const pbDecoder = state.giftV2Decoder
+    if (!pbDecoder) return
+
+    const data: GiftV2 = pbDecoder(pb)
+    const { userId, username, face, info } = data
+    if (!info) return
+
+    const count = info.count || 1
+    const price = info.price
+    const priceRMB = info.coinType === 'gold' ? price / RATE : 0
+
+    const gift: MessageInsert = {
+      roomId: String(roomId),
+      clientId,
+      category: 'gift',
+      content: `${username} 赠送了 ${info.name}`,
+      sendAt: Date.now(),
+      userId: String(userId || ''),
+      username,
+      face,
+      roles: [], // TODO 
+      gift: {
+        id: String(info.id),
+        type: 'gift' as const,
+        name: info.name,
+        price: priceRMB,
+        count,
+        coinType: info.coinType as 'gold' | 'silver',
+        totalPrice: priceRMB * count,
+        batchComboId: info.batchComboId,
+        webp: info.image?.webp,
+      },
+    }
+
+    if (data.medal) {
+      gift.medal = {
+        name: data.medal.name,
+        level: data.medal.level,
+        roomUserId: data.medal.roomUserId,
+        color: {
+          bg: data.medal.color1,
+          border: data.medal.color2,
           level: '#FFFFFF',
           text: '#FFFFFF',
         },

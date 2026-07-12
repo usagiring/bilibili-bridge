@@ -131,11 +131,46 @@ message InteractUser {
 // InteractWordV2 消息的 protobuf 解码
 message Interact {
   int64 userId = 1;
-  int32 username = 2;
+  string username = 2;
   int32 type = 5;
   int64 roomId = 6;
   int64 sendAt = 7; // 1782128768
   // int64 unknown8 = 8; // 1782184939957
   // InteractMedal medal = 9;
   InteractUser user = 22;
+}
+
+// SEND_GIFT_V2 
+message Gift {
+  int64 userId = 1;
+  string username = 2;
+  string face = 3;
+  GiftMedal medal = 8;
+  GiftInfo info = 10;
+}
+
+message GiftMedal {
+  int64 roomUserId = 1;
+  int32 level = 5;
+  string name = 6;
+  sint64 color1 =  8;
+  sint64 color2 =  9;
+  sint64 color3 =  10;
+}
+
+message GiftInfo {
+  int32 id = 1;
+  string name = 2;
+  int32 count = 3;
+  int32 price = 5;
+  int32 totalPrice = 7;
+  string coinType = 8;
+  string batchComboId = 12;
+  GiftImage image = 35;
+}
+
+message GiftImage {
+  string png = 1;
+  string webp = 2;
+  string gif = 5;
 }

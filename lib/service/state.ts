@@ -27,6 +27,7 @@ interface State {
   saveAllBiliMessage: boolean
   dmV2Decoder: (base64Str: string) => any
   interactDecoder?: (base64Str: string) => any
+  giftV2Decoder?: (base64Str: string) => any
 
   clients?: Client[]
 

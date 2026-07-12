@@ -93,6 +93,7 @@ export interface GiftInfo {
   batchComboId?: string
   totalPrice: number
   contentJpn?: string // SC 日文内容（superchat 特有）
+  webp?: string
 }
 
 export interface MedalInfo {

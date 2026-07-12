@@ -22,7 +22,8 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
         msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE ||
         msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE_JPN ||
         msg.cmd === BILI_CMD.GUARD_BUY ||
-        msg.cmd === BILI_CMD.SEND_GIFT
+        msg.cmd === BILI_CMD.SEND_GIFT || 
+        msg.cmd === BILI_CMD.SEND_GIFT_V2
       ) {
         await giftJob({ msg, roomId, clientId })
         continue
