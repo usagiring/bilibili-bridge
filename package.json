@@ -4,6 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "pnpm --filter @tokine/bilibili-recorder run build && tsc && cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
     "db:push": "drizzle-kit push",

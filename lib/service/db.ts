@@ -35,11 +35,19 @@ sqlite.exec(`CREATE TABLE IF NOT EXISTS message (
   roles TEXT,
   face TEXT,
   emots TEXT,
+  voice_url TEXT,
+  file_duration TEXT,
+  emoji_url TEXT,
   gift TEXT,
   medal TEXT,
   interact TEXT,
   created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 )`)
+
+// 兼容旧数据库：添加后来新增的列
+for (const col of [ 'voice_url', 'file_duration', 'emoji_url' ]) {
+  try { sqlite.exec(`ALTER TABLE message ADD COLUMN ${col} TEXT`) } catch { /* 列已存在则忽略 */ }
+}
 
 // 索引
 for (const idx of [
