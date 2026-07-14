@@ -11,7 +11,7 @@ import './lib/service/bilibili/handler'
 import './lib/service/handler'
 import './lib/service/protobuf'
 
-const port = state.port || 3000
+const port = process.env.PORT || state.port || 3000
 
 const app = new Koa()
 
@@ -50,13 +50,13 @@ app.listen(port)
 export default app
 
 function serve(opts: any = {}) {
-  const defaultRoot = process.env.HTML_PATH || path.join(__dirname, '../bilibili-live-danmaku/web/dist')
+  const defaultRoot = process.env.WEB_PATH || path.join(__dirname, '../bilibili-live-danmaku/web/dist')
 
   opts.index = opts.index ?? 'index.html'
 
   return async function serve(ctx, next) {
     // 每次请求动态读取 htmlPath，支持运行时修改
-    const root = state.htmlPath || defaultRoot
+    const root = state.webPath || defaultRoot
 
     // 每次请求创建独立 opts，避免并发覆盖
     const sendOpts = { ...opts, root: path.resolve(root) }

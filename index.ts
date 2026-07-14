@@ -1,14 +1,15 @@
+// import './app'
 import state from './lib/service/state'
 
 export default async function ({ 
   port,
-  htmlPath, 
+  webPath, 
 }: { 
-  port: number;
-  htmlPath: string
+  port?: number;
+  webPath?: string
 }) {
   state.port = port
-  state.htmlPath = htmlPath
+  state.webPath = webPath
 
   await import('./app.js')
 }

@@ -4,6 +4,8 @@ import sherpa_onnx from 'sherpa-onnx-node'
 import sse from './sse'
 import { CMD } from './const'
 
+const MODEL_PATH = process.env.MODEL_PATH
+
 interface ModelConfig { 
   name: string
 }
@@ -48,8 +50,8 @@ class SherpaOnnx {
     }
 
     if (cfg.name.includes('sherpa-onnx-sense-voice')) {
-      modelPath = path.join(process.cwd(), `models/${cfg.name}/model.int8.onnx`)
-      tokenPath = path.join(process.cwd(), `models/${cfg.name}/tokens.txt`)
+      modelPath = path.join(MODEL_PATH || `${process.cwd()}/models`, `${cfg.name}/model.int8.onnx`)
+      tokenPath = path.join(MODEL_PATH || `${process.cwd()}/models`, `${cfg.name}/tokens.txt`)
       const senseVoice = {
         model: modelPath,
         language: '',
@@ -66,7 +68,7 @@ class SherpaOnnx {
 
   createVad(cfg: VadConfig) {
     // const vadModel = path.join(process.cwd(), 'models/silero_vad.onnx')
-    const vadModel = path.join(process.cwd(), 'models/ten-vad.onnx')
+    const vadModel = path.join(MODEL_PATH || `${process.cwd()}/models`, 'ten-vad.onnx')
     const config = {
       tenVad: {
       // sileroVad: {

@@ -18,7 +18,7 @@ interface SSEClientEntry {
 
 interface State {
   port: number
-  htmlPath: string
+  webPath: string
   secret: string
   userDataPath: string
   wbi: {
@@ -67,7 +67,7 @@ interface State {
 // NEED INITIALIZATION
 export const state: Partial<State> = {
   port: 3000,
-  htmlPath: '',
+  webPath: '',
   userDataPath: '',
   clients: [],
   sseClients: [],

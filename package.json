@@ -1,11 +1,11 @@
 {
   "name": "@tokine/bilibili-bridge",
-  "version": "0.2.21",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "pnpm --filter @tokine/asr --filter @tokine/mt --filter @tokine/bilibili-recorder run build && tsc && cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
+    "build": "pnpm --filter @tokine/bilibili-recorder run build && tsc && cp ./lib/service/protobuf/*.proto ./dist/lib/service/protobuf",
     "db:push": "drizzle-kit push",
     "start": "pnpm db:push && node ./dist/app",
     "start:test": "node ./bin/run-test.js",
@@ -54,8 +54,6 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "better-sqlite3",
-      "ffmpeg-static",
       "@node-rs/jieba",
       "brotli"
     ]
