@@ -21,8 +21,9 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
       if (
         msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE ||
         // msg.cmd === BILI_CMD.SUPER_CHAT_MESSAGE_JPN ||
-        msg.cmd === BILI_CMD.GUARD_BUY ||
-        msg.cmd === BILI_CMD.SEND_GIFT || 
+        // msg.cmd === BILI_CMD.GUARD_BUY ||
+        msg.cmd === BILI_CMD.USER_TOAST_MSG_V2 ||
+        msg.cmd === BILI_CMD.SEND_GIFT ||
         msg.cmd === BILI_CMD.SEND_GIFT_V2
       ) {
         await giftJob({ msg, roomId, clientId })
@@ -53,18 +54,20 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
           max_time,
           room_id,
         } = msg.data
-        sse.send({ clientId, event: CMD.ANCHOR_LOT_START, data: {
-          id,
-          roomId: room_id,
-          awardName: award_name,
-          awardNumber: award_num,
-          danmaku: danmu,
-          giftId: gift_id,
-          giftName: gift_name,
-          giftNumber: gift_num,
-          giftPrice: gift_price,
-          maxTime: max_time,
-        } })
+        sse.send({
+          clientId, event: CMD.ANCHOR_LOT_START, data: {
+            id,
+            roomId: room_id,
+            awardName: award_name,
+            awardNumber: award_num,
+            danmaku: danmu,
+            giftId: gift_id,
+            giftName: gift_name,
+            giftNumber: gift_num,
+            giftPrice: gift_price,
+            maxTime: max_time,
+          }
+        })
       }
 
       if (msg.cmd === BILI_CMD.ANCHOR_LOT_AWARD) {
@@ -75,12 +78,14 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
           award_users: awardUsers,
         } = msg.data
 
-        sse.send({ clientId, event: CMD.ANCHOR_LOT_AWARD, data: {
-          id,
-          awardName: award_name,
-          awardNumber: award_num,
-          awardUsers,
-        } })
+        sse.send({
+          clientId, event: CMD.ANCHOR_LOT_AWARD, data: {
+            id,
+            awardName: award_name,
+            awardNumber: award_num,
+            awardUsers,
+          }
+        })
 
         for (const awardUser of awardUsers) {
           // await db.insert(lotteries).values({
@@ -126,10 +131,10 @@ event.on(CMD.MESSAGE, async ({ data, roomId, clientId }) => {
     // }
   }
 
-  // const dir = path.join(process.cwd(), 'bin/messages')
-  // fs.mkdirSync(dir, { recursive: true })
-  // const filePath = path.join(dir, `${roomId}_${process.pid}.json`)
-  // fs.appendFileSync(filePath, JSON.stringify(data) + '\n')
+  const dir = path.join(process.cwd(), 'bin/messages')
+  fs.mkdirSync(dir, { recursive: true })
+  const filePath = path.join(dir, `${roomId}_${process.pid}.json`)
+  fs.appendFileSync(filePath, JSON.stringify(data) + '\n')
 })
 
 // legacy

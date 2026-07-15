@@ -460,6 +460,40 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     }
   }
 
+  if (msg.cmd === BILI_CMD.USER_TOAST_MSG_V2) {
+    const { sender_uinfo, receiver_uinfo, guard_info, pay_info, gift_info } = msg.data
+    const userId = sender_uinfo?.uid
+    const username = sender_uinfo?.base?.name
+    const anchorRole = roleTransformMap[guard_info?.guard_level]
+    const giftName = guard_info?.role_name
+    const price = pay_info?.price
+    const count = pay_info?.num || 1
+    const giftId = gift_info?.gift_id
+
+    const roles = [anchorRole || 0]
+    const priceRMB = price / RATE
+
+    return {
+      roomId: String(roomId),
+      category: 'gift',
+      clientId,
+      content: `${username} 赠送了 ${String(giftName)}`,
+      sendAt: now,
+      userId: String(userId || ''),
+      username,
+      roles,
+      gift: {
+        id: String(giftId),
+        type: 'anchor',
+        name: String(giftName),
+        price: priceRMB,
+        count,
+        totalPrice: priceRMB * count,
+        coinType: 'gold',
+      },
+    }
+  }
+
   if (msg.cmd === BILI_CMD.SEND_GIFT) {
     const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id, gift_info, is_first } = msg.data
     const medal = msg.data?.sender_uinfo?.medal
