@@ -273,7 +273,6 @@ const DM_RAW_STYLE: DmRawStyle = {
 
   duration: 10000,
   direction: 'RL',
-  emojiSize: 24,
   styleExtend: 'bilibili',
 
   windowOnTopLevel: '',
@@ -317,6 +316,7 @@ const RECORD_CONFIG = {
 
 const VOTE_CONFIG = {
   options: [],
+  duration: 60,
   isAccurateMatch: false,
   isAllowReVote: false,
 }
@@ -440,7 +440,7 @@ export interface DmRawStyle {
   windowOpacity: number
   windowBackground: string
   direction: 'RL' | 'LR'
-  emojiSize: number
+  emojiSize?: number
   styleExtend: 'bilibili' | 'self'
   duration: number
   windowOnTopLevel: string
