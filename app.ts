@@ -11,6 +11,10 @@ import './lib/service/bilibili/handler'
 import './lib/service/handler'
 import './lib/service/protobuf'
 
+console.log('ENV_PORT: ', process.env.PORT)
+console.log('ENV_WEB_PATH: ', process.env.WEB_PATH)
+console.log('ENV_MODEL_PATH: ', process.env.MODEL_PATH)
+
 const port = process.env.PORT || state.port || 3000
 
 const app = new Koa()

@@ -95,7 +95,8 @@ class SherpaOnnx {
 
     // 2. 顺着 VAD 引擎的内部状态机队列读取就绪的语音段
     while (!this.vad.isEmpty()) {
-      const segment = this.vad.front()
+      // enableExternalBuffer=false：Electron 环境不支持 external ArrayBuffer
+      const segment = this.vad.front(false)
       this.vad.pop()
     
       const stream = this.recognizer.createStream()

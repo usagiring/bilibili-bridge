@@ -278,7 +278,7 @@ const DM_RAW_STYLE: DmRawStyle = {
 
   windowOnTopLevel: '',
   isWindowOnTopForce: false,
-  ignoreMouseEvent: true,
+  ignoreMouseEvent: false,
 }
 
 const LIVE_CONFIG = {
