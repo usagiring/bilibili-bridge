@@ -1,10 +1,11 @@
-import { messages, MessageInsert } from '../../model/message.sqlite'
+import { messages, MessageInsert, MessageRow } from '../../model/message.sqlite'
 import { db } from '../db'
 import { CMD, BILI_CMD } from '../const'
 import event from '../event'
 import sse from '../sse'
 import { transformColorNumber2String } from '../util'
 import state from '../state'
+import { and, eq, sql } from 'drizzle-orm'
 
 export default {
   commentJob,
@@ -202,10 +203,40 @@ export async function giftJob({ msg, roomId, clientId }) {
   const gift = parseGift({ msg, clientId, roomId })
   if (!gift) return
 
-  const result = db.insert(messages).values(gift).returning().get()
+  let result
+  if (gift.gift.batchComboId && !gift.gift.isFirst) {
+    // 找到 batchComboId 的记录，并且更新 totalPrice, count, 写入result
+    const existing = db.select()
+      .from(messages)
+      .where(and(
+        eq(messages.roomId, roomId),
+        sql`json_extract(${messages.gift}, '$.batchComboId') = ${gift.gift.batchComboId}`,
+      ))
+      .get() as MessageRow | undefined
 
-  sse.send({ clientId, event: CMD.MESSAGE, data: result })
-  event.emit(CMD.AUTO_REPLY, { clientId, message: result })
+    if (existing && existing.gift) {
+      const count = existing.gift.count + gift.gift.count
+      const updatedGift = {
+        ...existing.gift,
+        count: existing.gift.count + gift.gift.count,
+        totalPrice: existing.gift.price * count,
+      }
+      result = db.update(messages)
+        .set({ gift: updatedGift, sendAt: Date.now() })
+        .where(eq(messages.id, existing.id))
+        .returning()
+        .get()
+    }
+  }
+
+  if (!result) {
+    result = db.insert(messages).values(gift).returning().get()
+  }
+
+  if (result) {
+    sse.send({ clientId, event: CMD.MESSAGE, data: result })
+    event.emit(CMD.AUTO_REPLY, { clientId, message: result })
+  }
 }
 
 const roleTransformMap = {
@@ -225,8 +256,8 @@ export function parseComment({ msg, roomId, clientId }): MessageInsert {
       face = dm?.user?.face
     }
   }
-  const [ uid, name, isAdmin ] = msg.info[2]
-  const [ medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd ] = msg.info[3]
+  const [uid, name, isAdmin] = msg.info[2]
+  const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   let emoji = msg.info[0][13] || {}
   let voice = msg.info[0][14] || {}
   const { extra: extraString, user } = (msg.info[0][15] || {}) as MessageInfo_0_15
@@ -246,7 +277,7 @@ export function parseComment({ msg, roomId, clientId }): MessageInsert {
   }
 
   const anchorRole = roleTransformMap[msg.info[7]]
-  const roles = [ anchorRole || 0 ]
+  const roles = [anchorRole || 0]
   if (isAdmin) roles.push(99)
   // TODO 房主
 
@@ -309,13 +340,13 @@ const contentMap = {
   2: '关注直播间',
   3: '分享直播间',
 }
-  
-export function parseInteract ({ msg, clientId }): MessageInsert {
+
+export function parseInteract({ msg, clientId }): MessageInsert {
   if (msg.cmd !== BILI_CMD.INTERACT_WORD_V2) return
   const pb = msg.data?.pb
-  if (!pb) return 
+  if (!pb) return
   const pbDecoder = state.interactDecoder
-  if (!pbDecoder) return 
+  if (!pbDecoder) return
 
   const data: InteractV2 = pbDecoder(pb)
 
@@ -373,7 +404,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     const { num, gift_id, gift_name } = gift
 
     const anchorRole = guard_level
-    const roles = [ anchorRole || 0 ]
+    const roles = [anchorRole || 0]
     const count = num || 1
 
     return {
@@ -403,7 +434,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     const { uid, username, guard_level, num, price, gift_id, gift_name } = msg.data
 
     const anchorRole = guard_level
-    const roles = [ anchorRole || 0 ]
+    const roles = [anchorRole || 0]
 
     const priceRMB = price / RATE
     const count = num || 1
@@ -430,12 +461,12 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
   }
 
   if (msg.cmd === BILI_CMD.SEND_GIFT) {
-    const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id, gift_info } = msg.data
+    const { uid, num, price, guard_level, giftId, coin_type, uname, face, giftName, batch_combo_id, gift_info, is_first } = msg.data
     const medal = msg.data?.sender_uinfo?.medal
 
     const anchorRole = guard_level
-    const roles = [ anchorRole || 0 ]
-    
+    const roles = [anchorRole || 0]
+
     const priceRMB = coin_type === 'gold' ? price / RATE : 0
     const count = num || 1
 
@@ -459,6 +490,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         totalPrice: priceRMB * count,
         batchComboId: batch_combo_id,
         webp: gift_info?.webp,
+        isFirst: is_first,
       },
     }
 

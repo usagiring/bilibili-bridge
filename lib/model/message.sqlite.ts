@@ -94,6 +94,7 @@ export interface GiftInfo {
   totalPrice: number
   contentJpn?: string // SC 日文内容（superchat 特有）
   webp?: string
+  isFirst?: boolean
 }
 
 export interface MedalInfo {
