@@ -256,6 +256,7 @@ export function parseComment({ msg, roomId, clientId }): MessageInsert {
       face = dm?.user?.face
     }
   }
+  if (!msg.info) return
   const [uid, name, isAdmin] = msg.info[2]
   const [medalLevel, medalName, medalAnchorName, medalRoomId, medalColor, , , medalColorBorder, medalColorStart, medalColorEnd] = msg.info[3]
   let emoji = msg.info[0][13] || {}
