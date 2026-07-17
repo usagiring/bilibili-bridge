@@ -467,7 +467,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
     const username = sender_uinfo?.base?.name
     const anchorRole = roleTransformMap[guard_info?.guard_level]
     const giftName = guard_info?.role_name
-    const price = pay_info?.price
+    const price = pay_info?.price // 这里是总价
     const count = pay_info?.num || 1
     const giftId = gift_info?.gift_id
 
@@ -489,7 +489,7 @@ export function parseGift({ msg, roomId, clientId }): MessageInsert {
         name: String(giftName),
         price: priceRMB,
         count,
-        totalPrice: priceRMB * count,
+        totalPrice: priceRMB,
         coinType: 'gold',
       },
     }
